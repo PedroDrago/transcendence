@@ -16,11 +16,11 @@ export default function InstallPWA() {
 
   useEffect(() => {
     console.log('InstallPWA component mounted');
-    
+
     // Check if already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
     console.log('Is standalone:', isStandalone);
-    
+
     if (isStandalone) {
       setIsInstalled(true);
       return;
@@ -74,7 +74,7 @@ export default function InstallPWA() {
 
     // Wait for the user to respond to the prompt
     const { outcome } = await deferredPrompt.userChoice;
-    
+
     console.log('User choice:', outcome);
     if (outcome === 'accepted') {
       console.log('User accepted the install prompt');
@@ -100,19 +100,19 @@ export default function InstallPWA() {
 
   return (
     <div className="install-pwa-container">
-      <button 
+      <button
         className={`install-pwa-button ${showDebug && !isInstallable ? 'debug-mode' : ''}`}
         onClick={handleInstallClick}
         aria-label="Install app"
       >
-        <svg 
-          className="install-icon" 
-          xmlns="http://www.w3.org/2000/svg" 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          stroke="currentColor" 
-          strokeWidth="2" 
-          strokeLinecap="round" 
+        <svg
+          className="install-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
           strokeLinejoin="round"
         >
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
