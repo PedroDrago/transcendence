@@ -1,0 +1,77 @@
+services:
+  # Frontend - Next.js
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: transcendence-frontend-prod
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: always
+    networks:
+      - transcendence-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Backend - NestJS API Gateway
+  backend:
+    build:
+      context: ../backend/api/transcendence-api-gateway
+      dockerfile: Dockerfile
+    container_name: transcendence-backend-prod
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - DATABASE_HOST=database
+      - DATABASE_PORT=5432
+      - DATABASE_USER=transcendence
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-transcendence_prod}
+      - DATABASE_NAME=transcendence_prod
+    restart: always
+    networks:
+      - transcendence-network
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Database - PostgreSQL
+  database:
+    image: postgres:16-alpine
+    container_name: transcendence-db-prod
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=transcendence
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-transcendence_prod}
+      - POSTGRES_DB=transcendence_prod
+    volumes:
+      - postgres-data-prod:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - transcendence-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U transcendence"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  transcendence-network:
+    driver: bridge
+
+volumes:
+  postgres-data-prod:
