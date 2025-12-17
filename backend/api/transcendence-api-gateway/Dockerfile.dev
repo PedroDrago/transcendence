@@ -1,0 +1,16 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Instala dependências de desenvolvimento
+COPY package.json package-lock.json* ./
+RUN npm install
+
+# Copia arquivos de configuração
+COPY tsconfig.json ./
+COPY nest-cli.json ./
+
+# O código fonte será montado via volume
+EXPOSE 4000
+
+CMD ["npm", "run", "start:dev"]

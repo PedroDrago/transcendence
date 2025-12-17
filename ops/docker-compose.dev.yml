@@ -1,0 +1,60 @@
+services:
+  # Frontend - Next.js
+  frontend:
+    image: node:20-alpine
+    container_name: transcendence-frontend-dev
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: sh -c "npm install && npm run dev"
+    restart: unless-stopped
+    networks:
+      - transcendence-network
+
+  # Backend - NestJS API Gateway
+  backend:
+    image: node:20-alpine
+    container_name: transcendence-backend-dev
+    working_dir: /app
+    ports:
+      - "4000:4000"
+    volumes:
+      - ../backend/api/transcendence-api-gateway:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+    command: sh -c "npm install && npm run start:dev"
+    restart: unless-stopped
+    networks:
+      - transcendence-network
+    depends_on:
+      - database
+
+  # Database - PostgreSQL
+  database:
+    image: postgres:16-alpine
+    container_name: transcendence-db-dev
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=transcendence
+      - POSTGRES_PASSWORD=transcendence_dev
+      - POSTGRES_DB=transcendence_dev
+    volumes:
+      - postgres-data-dev:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - transcendence-network
+
+networks:
+  transcendence-network:
+    driver: bridge
+
+volumes:
+  postgres-data-dev:
