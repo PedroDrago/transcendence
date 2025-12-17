@@ -1,6 +1,7 @@
 import {NextIntlClientProvider} from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import InstallPWA from '@/components/InstallPWA';
+import './globals.css';
 
 type Props = {
   children: React.ReactNode;
