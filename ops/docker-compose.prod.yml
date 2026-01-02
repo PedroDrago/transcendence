@@ -1,77 +1,57 @@
 services:
-  # Frontend - Next.js
-  frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
-    container_name: transcendence-frontend-prod
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-    restart: always
-    networks:
-      - transcendence-network
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # Backend - NestJS API Gateway
   backend:
-    build:
-      context: ../backend/api/transcendence-api-gateway
-      dockerfile: Dockerfile
-    container_name: transcendence-backend-prod
+    image: node:20-alpine
+    container_name: transcendence-backend-dev
+    working_dir: /app
+    command: sh -c "npm install && npm run start:dev"
+    volumes:
+      - ../backend/api/transcendence-api-gateway:/app
+      - backend-node-modules:/app/node_modules
     ports:
       - "4000:4000"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - PORT=4000
-      - DATABASE_HOST=database
-      - DATABASE_PORT=5432
-      - DATABASE_USER=transcendence
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-transcendence_prod}
-      - DATABASE_NAME=transcendence_prod
-    restart: always
+      - HOST=0.0.0.0
+    networks:
+      - transcendence-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: transcendence-prometheus-dev
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data-dev:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
     networks:
       - transcendence-network
     depends_on:
-      database:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:4000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      - backend
 
-  # Database - PostgreSQL
-  database:
-    image: postgres:16-alpine
-    container_name: transcendence-db-prod
+  grafana:
+    image: grafana/grafana
+    container_name: transcendence-grafana-dev
     ports:
-      - "5432:5432"
+      - '5001:3000'
     environment:
-      - POSTGRES_USER=transcendence
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-transcendence_prod}
-      - POSTGRES_DB=transcendence_prod
-    volumes:
-      - postgres-data-prod:/var/lib/postgresql/data
-    restart: always
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
     networks:
       - transcendence-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U transcendence"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    volumes:
+      - grafana-data-dev:/var/lib/grafana
+    depends_on:
+      - prometheus
 
 networks:
   transcendence-network:
     driver: bridge
 
 volumes:
-  postgres-data-prod:
+  backend-node-modules:
+  prometheus-data-dev:
+  grafana-data-dev:
