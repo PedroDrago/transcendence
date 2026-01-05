@@ -11,7 +11,7 @@ services:
   logstash:
     image: docker.elastic.co/logstash/logstash:8.17.0
     volumes:
-      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      - ./config/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
     ports:
       - "5044:5044"
     depends_on:
@@ -48,6 +48,11 @@ services:
       - grafana-data-dev:/var/lib/grafana
     depends_on:
       - prometheus
+
+networks:
+  transcendence-network:
+    name: transcendence-network
+    driver: bridge
 
 volumes:
   prometheus-data-dev:

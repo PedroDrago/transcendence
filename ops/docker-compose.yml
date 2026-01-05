@@ -22,3 +22,8 @@ services:
 
 volumes:
   postgres-data-prod:
+
+networks:
+  transcendence-network:
+    name: transcendence-network
+    driver: bridge

@@ -1,0 +1,55 @@
+services:
+  # Backend API Gateway - NestJS
+  api-gateway:
+    build:
+      context: ../backend/api/transcendence-api-gateway
+      dockerfile: Dockerfile
+    container_name: transcendence-api-gateway
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - DATABASE_URL=postgresql://transcendence:${DATABASE_PASSWORD:-transcendence_prod}@database:5432/transcendence_prod
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: always
+    networks:
+      - transcendence-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend - Next.js
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: transcendence-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=http://api-gateway:4000
+    depends_on:
+      - api-gateway
+    restart: always
+    networks:
+      - transcendence-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  transcendence-network:
+    name: transcendence-network
+    driver: bridge
+
