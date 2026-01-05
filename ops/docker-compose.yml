@@ -20,22 +20,5 @@ services:
       timeout: 5s
       retries: 5
 
-  grafana:
-      image: grafana/grafana
-      ports:
-        - '5001:3000'
-      environment:
-        - GF_SECURITY_ADMIN_USER=admin
-        - GF_SECURITY_ADMIN_PASSWORD=admin
-      networks:
-        - transcendence-network
-      volumes:
-        - grafana-data-prod:/var/lib/grafana
-
-networks:
-  transcendence-network:
-    driver: host
-
 volumes:
   postgres-data-prod:
-  grafana-data-prod:

@@ -1,20 +1,28 @@
+version: '8'
 services:
-  backend:
-    image: node:20-alpine
-    container_name: transcendence-backend-dev
-    working_dir: /app
-    command: sh -c "npm install && npm run start:dev"
-    volumes:
-      - ../backend/api/transcendence-api-gateway:/app
-      - backend-node-modules:/app/node_modules
-    ports:
-      - "4000:4000"
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.0
     environment:
-      - NODE_ENV=development
-      - PORT=4000
-      - HOST=0.0.0.0
-    networks:
-      - transcendence-network
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.17.0
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    ports:
+      - "5044:5044"
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.17.0
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
 
   prometheus:
     image: prom/prometheus:latest
@@ -22,15 +30,11 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data-dev:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-    networks:
-      - transcendence-network
-    depends_on:
-      - backend
 
   grafana:
     image: grafana/grafana
@@ -40,18 +44,11 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
-    networks:
-      - transcendence-network
     volumes:
       - grafana-data-dev:/var/lib/grafana
     depends_on:
       - prometheus
 
-networks:
-  transcendence-network:
-    driver: bridge
-
 volumes:
-  backend-node-modules:
   prometheus-data-dev:
   grafana-data-dev:
