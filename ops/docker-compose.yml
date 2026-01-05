@@ -1,8 +1,8 @@
 services:
   # Database - PostgreSQL
-  database:
+  transcendence_database_postgres:
     image: postgres:16-alpine
-    container_name: transcendence-db-prod
+    container_name: transcendence_database_postgres
     ports:
       - "5432:5432"
     environment:
@@ -19,9 +19,21 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
+  transcendence_database_mongodb:
+    image: mongo:6.0
+    container_name: transcendence_database_mongodb
+    ports:
+        - "27017:27017"
+    environment:
+        - MONGO_INITDB_ROOT_USERNAME=admin
+        - MONGO_INITDB_ROOT_PASSWORD=${MONGOD_PASSWORD:-transcendence_prod}
+    networks:
+        - transcendence-network
+    volumes:
+        - mongo-data-prod:/data/db
 volumes:
   postgres-data-prod:
+  mongo-data-prod:
 
 networks:
   transcendence-network:
