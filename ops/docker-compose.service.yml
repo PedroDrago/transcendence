@@ -19,7 +19,25 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-
+  transcendence_oauth_service:
+    build:
+      context: ../backend/api/oauth-service
+      dockerfile: Dockerfile
+    container_name: transcendence_oauth_service
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+    restart: always
+    networks:
+      - transcendence-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
   # Frontend - Next.js
   transcendence_frontend:
     build:
