@@ -36,6 +36,33 @@ services:
     depends_on:
       - database
 
+  # Auth Service - NestJS
+  auth-service:
+    image: node:20-alpine
+    container_name: transcendence-auth-dev
+    working_dir: /app
+    ports:
+      - "4001:4001"
+    volumes:
+      - ../backend/services/auth:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=4001
+      - JWT_SECRET=${JWT_SECRET:-dev_secret_change_me}
+      - JWT_EXPIRES_IN=1h
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_USER=transcendence
+      - DB_PASSWORD=transcendence_dev
+      - DB_NAME=transcendence_dev
+    command: sh -c "npm install && npm run start:dev"
+    restart: unless-stopped
+    networks:
+      - transcendence-network
+    depends_on:
+      - database
+
   # Database - PostgreSQL
   database:
     image: postgres:16-alpine
