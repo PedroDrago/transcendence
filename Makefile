@@ -1,4 +1,4 @@
-.PHONY: all dev prod build-front-end build-back-end down-dev down-prod clean
+.PHONY: all dev prod build-front-end build-back-end down-dev down-prod clean re
 
 # Default target - runs development environment
 all: dev
@@ -34,6 +34,14 @@ clean:
 	cd ops && docker compose -f docker-compose.dev.yml down -v
 	cd ops && docker compose -f docker-compose.prod.yml down -v
 	docker system prune -f
+
+# Clean everything and rebuild from scratch
+re:
+	@echo "🔄 Rebuilding from scratch..."
+	cd ops && docker compose -f docker-compose.dev.yml down -v --rmi all --remove-orphans
+	cd ops && docker compose -f docker-compose.prod.yml down -v --rmi all --remove-orphans
+	docker system prune -af
+	cd ops && docker compose -f docker-compose.dev.yml up --build
 
 # Build and run frontend standalone
 build-front-end:
