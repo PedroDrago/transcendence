@@ -1,6 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { User } from './user.entity';
 
 @Injectable()
@@ -32,9 +32,15 @@ export class UsersService {
     }
 
     const user = this.usersRepository.create({ username, passwordHash });
-    const saved = await this.usersRepository.save(user);
-
-    const { passwordHash: _, ...safeUser } = saved;
-    return safeUser;
+    try {
+      const saved = await this.usersRepository.save(user);
+      const { passwordHash: _, ...safeUser } = saved;
+      return safeUser;
+    } catch (err) {
+      if (err instanceof QueryFailedError && (err as any).code === '23505') {
+        throw new ConflictException('Username already exists');
+      }
+      throw err;
+    }
   }
 }
