@@ -1,98 +1,244 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Auth Service
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Handles identity for the Transcendence project: user registration, login, and JWT issuance.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Built with NestJS + TypeORM + PostgreSQL. Runs as a standalone service on port `4001` and is managed by the project's global Docker Compose.
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Responsibilities
 
-## Project setup
+- Register users (hash password with bcrypt, persist to DB)
+- Login users (validate credentials, issue JWT)
+- Issue JWT access tokens
 
-```bash
-$ npm install
+This service owns **identity only** (credentials + tokens). User profiles and social data live in a separate service.
+
+---
+
+## Stack
+
+| Concern | Package |
+|---|---|
+| Framework | `@nestjs/common`, `@nestjs/core` |
+| JWT | `@nestjs/jwt` |
+| Auth strategies | `@nestjs/passport`, `passport-local` |
+| Password hashing | `bcrypt` |
+| ORM | `@nestjs/typeorm`, `typeorm` |
+| Database | `pg` (PostgreSQL) |
+| Config / env | `@nestjs/config` |
+| Validation | `class-validator`, `class-transformer` |
+
+---
+
+## Module Structure
+
+```
+src/
+├── main.ts                      # Bootstrap, global ValidationPipe, port 4001
+├── app.module.ts                # Root: ConfigModule + TypeOrmModule + AuthModule
+│
+├── auth/
+│   ├── auth.module.ts           # Wires PassportModule, JwtModule, strategies, guards
+│   ├── auth.controller.ts       # POST /auth/register, POST /auth/login
+│   ├── auth.service.ts          # register(), validateUser(), login()
+│   ├── strategies/
+│   │   └── local.strategy.ts    # Validates username+password, calls validateUser()
+│   ├── guards/
+│   │   └── local-auth.guard.ts  # Applied to POST /auth/login
+│   └── dto/
+│       ├── register.dto.ts
+│       └── login.dto.ts
+│
+├── users/
+│   ├── users.module.ts
+│   ├── users.service.ts         # findByUsername(), create()
+│   └── user.entity.ts           # TypeORM entity: id, username, passwordHash, createdAt
+│
+└── database/
+    ├── data-source.ts           # TypeORM DataSource for CLI (migrations)
+    └── migrations/
+        └── 1742600000000-CreateUsersTable.ts
 ```
 
-## Compile and run the project
+---
 
-```bash
-# development
-$ npm run start
+## API Endpoints
 
-# watch mode
-$ npm run start:dev
+### `POST /auth/register`
 
-# production mode
-$ npm run start:prod
+Registers a new user.
+
+**Request body:**
+```json
+{
+  "username": "drago",
+  "password": "supersecret"
+}
 ```
 
-## Run tests
+**Validation:**
+- `username`: string, 3–20 characters
+- `password`: string, 8–256 characters
 
-```bash
-# unit tests
-$ npm run test
+**Responses:**
 
-# e2e tests
-$ npm run test:e2e
+| Status | Body | Condition |
+|---|---|---|
+| `201` | `{ message, user: { id, username, createdAt } }` | Success |
+| `400` | Validation errors | Invalid body |
+| `409` | `Username already exists` | Duplicate username |
 
-# test coverage
-$ npm run test:cov
+---
+
+### `POST /auth/login`
+
+Authenticates a user and returns a JWT.
+
+**Request body:**
+```json
+{
+  "username": "drago",
+  "password": "supersecret"
+}
 ```
 
-## Deployment
+**Validation:**
+- `username`: string, 3–20 characters
+- `password`: string, 8–256 characters
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+> Validation is performed manually inside `LocalStrategy.validate()` via `class-validator`, because Passport extracts credentials from `req.body` directly, bypassing NestJS's `ValidationPipe`.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+**Responses:**
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+| Status | Body | Condition |
+|---|---|---|
+| `200` | `{ "access_token": "<jwt>" }` | Valid credentials |
+| `401` | `Unauthorized` | Wrong username or password, or validation failure |
+
+---
+
+## Data Flows
+
+### Register
+
+```
+POST /auth/register
+  → ValidationPipe (class-validator on RegisterDto)
+  → AuthController.register(dto)
+  → AuthService.register(dto)
+    → bcrypt.hash(password, 10)
+    → UsersService.create(username, passwordHash)
+      → check duplicate → 409 if exists
+      → usersRepository.save()
+      → return user without passwordHash
+  → 201 { message: 'registered', user }
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Login
 
-## Resources
+```
+POST /auth/login
+  → LocalAuthGuard triggers LocalStrategy.validate(username, password)
+    → plainToInstance(LoginDto) + class-validator validate()
+    → errors present → throw 401
+    → AuthService.validateUser(username, password)
+      → UsersService.findByUsername()
+      → bcrypt.compare(password, user.passwordHash)
+      → no match → return null → throw 401
+      → match → return user without passwordHash
+    → user attached to req.user
+  → AuthController.login(req.user)
+    → AuthService.login(user)
+      → JwtService.sign({ sub: user.id, username })
+  → 200 { access_token }
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Environment Variables
 
-## Support
+```env
+DB_HOST=database
+DB_PORT=5432
+DB_USER=transcendence
+DB_PASSWORD=transcendence_dev
+DB_NAME=transcendence_dev
+PORT=4001
+JWT_SECRET=changeme
+JWT_EXPIRES_IN=1h
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+> Change `JWT_SECRET` to a long random string in any real environment.
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## API Documentation (Swagger)
 
-## License
+Interactive docs are available at `http://localhost:4001/docs` when the service is running.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Swagger UI lets you explore and execute all endpoints directly from the browser. The `PATCH /auth/password` endpoint requires a Bearer token — use the **Authorize** button at the top right to set it after logging in.
+
+---
+
+## Running
+
+### Full stack (recommended)
+
+The auth service is part of the global Docker Compose. From the project root:
+
+```bash
+make dev    # or: docker compose -f ops/docker-compose.dev.yml up
+```
+
+The service starts at `http://localhost:4001` and connects to the shared PostgreSQL instance.
+
+### Standalone (auth + its own DB)
+
+Useful for developing or testing the auth service in isolation. Requires a `.env` file in this directory.
+
+```bash
+docker compose up --build
+```
+
+- API: `http://localhost:4001`
+- PostgreSQL data persisted in a named volume `postgres-auth-data`
+
+```bash
+docker compose down          # stop
+docker compose down -v       # stop and delete DB volume
+```
+
+### Local (no Docker)
+
+Requires a running PostgreSQL instance matching the `.env` config.
+
+```bash
+npm install
+npm run start:dev
+```
+
+---
+
+## Migrations
+
+Migrations run automatically on startup (`migrationsRun: true`).
+
+To run or revert manually (requires a running DB matching `.env`):
+
+```bash
+npm run migration:run
+npm run migration:revert
+```
+
+Migration files live in `src/database/migrations/`.
+
+---
+
+## Notes
+
+- `passwordHash` is never returned from any endpoint — stripped in `UsersService.create()` and `AuthService.validateUser()`
+- `ValidationPipe` is global with `whitelist: true` and `forbidNonWhitelisted: true`
+- `LocalStrategy` manually validates the `LoginDto` because Passport bypasses `ValidationPipe`
+- `UsersModule` is internal — there is no `UsersController`. User data is accessed only through auth flows
+- All user data lives under the `auth` PostgreSQL schema
