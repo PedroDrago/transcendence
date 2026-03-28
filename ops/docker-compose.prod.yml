@@ -30,11 +30,6 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=4000
-      - DATABASE_HOST=database
-      - DATABASE_PORT=5432
-      - DATABASE_USER=transcendence
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-transcendence_prod}
-      - DATABASE_NAME=transcendence_prod
     restart: always
     networks:
       - transcendence-network
@@ -43,6 +38,37 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Auth Service - NestJS
+  auth-service:
+    build:
+      context: ../backend/services/auth
+      dockerfile: Dockerfile
+    container_name: transcendence-auth-prod
+    ports:
+      - "4001:4001"
+    environment:
+      - NODE_ENV=production
+      - PORT=4001
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=1h
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_USER=transcendence
+      - DB_PASSWORD=${DATABASE_PASSWORD:-transcendence_prod}
+      - DB_NAME=transcendence_prod
+    restart: always
+    networks:
+      - transcendence-network
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:4001/auth/health"]
       interval: 30s
       timeout: 10s
       retries: 3

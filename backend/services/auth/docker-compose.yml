@@ -1,0 +1,35 @@
+services:
+  api:
+    build: .
+    ports:
+      - "4001:4001"
+    env_file: .env
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - auth-network
+
+  database:
+    image: postgres:16-alpine
+    container_name: auth-db
+    environment:
+      - POSTGRES_USER=${DB_USER:-transcendence}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-transcendence_dev}
+      - POSTGRES_DB=${DB_NAME:-transcendence_dev}
+    volumes:
+      - postgres-auth-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-transcendence}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - auth-network
+
+networks:
+  auth-network:
+    driver: bridge
+
+volumes:
+  postgres-auth-data:
