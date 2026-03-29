@@ -63,6 +63,20 @@ services:
     depends_on:
       - database
 
+  posts-service:
+    build: ../backend/services/posts
+    container_name: transcendence-posts-dev
+    ports:
+      - "3333:3333"
+    env_file:
+      - ../backend/services/posts/.env
+    restart: unless-stopped
+    networks:
+      - transcendence-network
+    depends_on:
+      - database
+      - redis
+
   # Database - PostgreSQL
   database:
     image: postgres:16-alpine
@@ -78,6 +92,19 @@ services:
     restart: unless-stopped
     networks:
       - transcendence-network
+
+  redis:
+    image: redis:7
+    container_name: transcendence-redis-dev
+    ports:
+      - "6379:6379"
+    networks:
+      - transcendence-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   transcendence-network:
