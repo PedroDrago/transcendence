@@ -1,11 +1,16 @@
-import { redis, sql } from 'bun'
+import { sql } from 'drizzle-orm'
 import { Elysia } from 'elysia'
 import { z } from 'zod'
+import { redis } from '@/cache'
+import { db } from '@/database'
 
 export const readiness = new Elysia().get(
   '/readyz',
   async ({ status }) => {
-    const checks = await Promise.allSettled([sql`SELECT 1`, redis.ping()])
+    const checks = await Promise.allSettled([
+      db.execute(sql`SELECT 1`),
+      redis.ping(),
+    ])
 
     const hasError = checks.some((check) => check.status === 'rejected')
 
