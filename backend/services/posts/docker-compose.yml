@@ -1,0 +1,42 @@
+services:
+  transcendence_postgres:
+    image: postgres:17
+    container_name: transcendence_postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - transcendence_postgres_data:/var/lib/postgresql/data
+    networks:
+      - timeline
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  transcendence_redis:
+    image: redis:7
+    container_name: transcendence_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - transcendence_redis_data:/data
+    networks:
+      - timeline
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  timeline:
+    driver: bridge
+
+volumes:
+  transcendence_postgres_data:
+  transcendence_redis_data:
