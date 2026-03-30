@@ -36,16 +36,16 @@ export const highlightsRelations = relations(highlights, ({ many }) => ({
 }))
 
 export const highlightSelectSchema = createSelectSchema(highlights, {
-  createdAt: z.iso.datetime(),
-  updatedAt: z.iso.datetime(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 })
 
 export const highlightInsertSchema = createInsertSchema(highlights, {
-  createdAt: z.iso.datetime(),
-  updatedAt: z.iso.datetime(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 })
 
 export const highlightUpdateSchema = createUpdateSchema(highlights, {
-  createdAt: z.iso.datetime(),
-  updatedAt: z.iso.datetime(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 })

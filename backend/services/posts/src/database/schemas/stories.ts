@@ -37,15 +37,15 @@ export const storiesRelations = relations(stories, ({ many }) => ({
 }))
 
 export const storySelectSchema = createSelectSchema(stories, {
-  expiresAt: z.iso.datetime(),
-  createdAt: z.iso.datetime(),
+  expiresAt: z.string(),
+  createdAt: z.string(),
 })
 
 export const storyInsertSchema = createInsertSchema(stories, {
-  expiresAt: z.iso.datetime(),
-  createdAt: z.iso.datetime(),
+  expiresAt: z.string(),
+  createdAt: z.string(),
 })
 export const storyUpdateSchema = createUpdateSchema(stories, {
-  expiresAt: z.iso.datetime(),
-  createdAt: z.iso.datetime(),
+  expiresAt: z.string(),
+  createdAt: z.string(),
 })
