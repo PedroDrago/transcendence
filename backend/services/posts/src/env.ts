@@ -11,7 +11,7 @@ const envSchema = z.object({
   REDIS_URL: z.url().startsWith('redis://'),
   R2_ACCESS_KEY_ID: z.string(),
   R2_SECRET_ACCESS_KEY: z.string(),
-  R2_ENDPOINT: z.url().startsWith('https://'),
+  R2_ENDPOINT: z.url(),
   R2_BUCKET: z.string(),
   JWT_SECRET: z.string(),
   SERVICE_NAME: z.string(),
