@@ -33,6 +33,29 @@ services:
       timeout: 5s
       retries: 5
 
+  transcendence_minio:
+    image: minio/minio:latest
+    container_name: transcendence_minio
+    ports:
+      - 9000:9000
+      - 9001:9001
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /data/${R2_BUCKET} && \
+        minio server /data --console-address ':9001'
+    volumes:
+      - transcendence_minio_data:/data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
 networks:
   transcendence:
     driver: bridge
@@ -40,3 +63,4 @@ networks:
 volumes:
   transcendence_postgres_data:
   transcendence_redis_data:
+  transcendence_minio_data:
