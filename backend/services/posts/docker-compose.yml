@@ -1,6 +1,6 @@
 services:
   transcendence_postgres:
-    image: postgres:17
+    image: postgres:17-alpine
     container_name: transcendence_postgres
     environment:
       POSTGRES_DB: ${DB_NAME}
@@ -19,7 +19,7 @@ services:
       retries: 5
 
   transcendence_redis:
-    image: redis:7.2
+    image: redis:8.6.2-alpine
     container_name: transcendence_redis
     ports:
       - "6379:6379"
