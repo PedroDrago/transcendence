@@ -85,12 +85,8 @@
           "tableFrom": "highlight_stories",
           "tableTo": "highlights",
           "schemaTo": "posts",
-          "columnsFrom": [
-            "highlight_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["highlight_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -99,12 +95,8 @@
           "tableFrom": "highlight_stories",
           "tableTo": "stories",
           "schemaTo": "posts",
-          "columnsFrom": [
-            "story_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["story_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -353,10 +345,7 @@
     "posts.media_type": {
       "name": "media_type",
       "schema": "posts",
-      "values": [
-        "image",
-        "video"
-      ]
+      "values": ["image", "video"]
     }
   },
   "schemas": {
