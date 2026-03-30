@@ -56,6 +56,12 @@ export const listPosts = new Elysia().use(middlewares).get(
   },
   {
     auth: true,
+    detail: {
+      tags: ['Posts'],
+      summary: 'List posts',
+      description: 'List posts by user Id',
+      operationId: 'listPosts',
+    },
     params: z.object({
       userId: z.string(),
     }),
