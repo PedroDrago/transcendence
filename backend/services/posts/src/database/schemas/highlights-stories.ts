@@ -47,13 +47,13 @@ export const highlightStoriesRelations = relations(
 )
 
 export const highlightStorySelectSchema = createSelectSchema(highlightStories, {
-  createdAt: z.iso.datetime(),
+  createdAt: z.string(),
 })
 
 export const highlightStoryInsertSchema = createInsertSchema(highlightStories, {
-  createdAt: z.iso.datetime(),
+  createdAt: z.string(),
 })
 
 export const highlightStoryUpdateSchema = createUpdateSchema(highlightStories, {
-  createdAt: z.iso.datetime(),
+  createdAt: z.string(),
 })

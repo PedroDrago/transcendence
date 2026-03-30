@@ -29,16 +29,16 @@ export const posts = postsSchema.table(
 )
 
 export const postSelectSchema = createSelectSchema(posts, {
-  createdAt: z.iso.datetime(),
-  updatedAt: z.iso.datetime(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 })
 
 export const postInsertSchema = createInsertSchema(posts, {
-  createdAt: z.iso.datetime(),
-  updatedAt: z.iso.datetime(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 })
 
 export const postUpdateSchema = createUpdateSchema(posts, {
-  createdAt: z.iso.datetime(),
-  updatedAt: z.iso.datetime(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 })
