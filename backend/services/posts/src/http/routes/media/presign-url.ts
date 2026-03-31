@@ -38,6 +38,7 @@ export const presignUrl = new Elysia().use(middlewares).post(
     body: z.object({
       context: z.enum(['post', 'story', 'highlight_cover']),
       contentType: z.enum([
+        'image/jpg',
         'image/jpeg',
         'image/png',
         'image/webp',
