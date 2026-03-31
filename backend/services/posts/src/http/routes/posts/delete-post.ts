@@ -8,7 +8,7 @@ import { middlewares } from '@/http/middlewares'
 import { r2 } from '@/storage'
 
 export const deletePost = new Elysia().use(middlewares).delete(
-  '/post/:id',
+  '/posts/:id',
   async ({ userId, params, status }) => {
     const { id } = params
 

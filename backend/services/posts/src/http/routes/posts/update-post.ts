@@ -9,7 +9,7 @@ import { middlewares } from '@/http/middlewares'
 import { getSignedMediaUrl } from '@/utils/get-signed-media-url'
 
 export const updatePost = new Elysia().use(middlewares).patch(
-  '/post/:id',
+  '/posts/:id',
   async ({ userId, params, body, status }) => {
     const { id } = params
     const { caption } = body

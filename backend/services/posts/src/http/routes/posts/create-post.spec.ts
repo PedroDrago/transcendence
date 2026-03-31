@@ -6,7 +6,7 @@ import { uuidv7 } from 'uuidv7'
 import { api } from '@/http/app'
 import { r2 } from '@/storage'
 
-describe('Posts tests', () => {
+describe('Create posts tests', () => {
   let token: string
   let userId: string
 
@@ -22,7 +22,7 @@ describe('Posts tests', () => {
   it('should be able to create a post', async () => {
     const { key } = await upload(token)
 
-    const { status, data, error } = await api.post.post(
+    const { status, data, error } = await api.posts.post(
       {
         key,
         caption: 'My test post!',
@@ -46,7 +46,7 @@ describe('Posts tests', () => {
   it('should be able to create post without caption', async () => {
     const { key } = await upload(token)
 
-    const { status, data, error } = await api.post.post(
+    const { status, data, error } = await api.posts.post(
       {
         key,
       },
@@ -66,7 +66,7 @@ describe('Posts tests', () => {
   it('should be able to set mediaType as video for mp4 files', async () => {
     const { key } = await upload(token, { contentType: 'video/mp4' })
 
-    const { status, data } = await api.post.post(
+    const { status, data } = await api.posts.post(
       {
         key,
       },
@@ -84,7 +84,7 @@ describe('Posts tests', () => {
   it('should be able to move media from tmp/ to permanent path after post creation', async () => {
     const { key } = await upload(token)
 
-    await api.post.post(
+    await api.posts.post(
       {
         key,
         caption: 'My test post!',
@@ -102,7 +102,7 @@ describe('Posts tests', () => {
   })
 
   it('should fail if media key does not exist in R2', async () => {
-    const { status, error } = await api.post.post(
+    const { status, error } = await api.posts.post(
       {
         key: 'tmp/post/fake-key.jpeg',
       },
@@ -120,7 +120,7 @@ describe('Posts tests', () => {
   })
 
   it('should fail if key does not start with tmp/', async () => {
-    const { status } = await api.post.post(
+    const { status } = await api.posts.post(
       {
         key: 'post/user/file.jpeg',
       } as any,
@@ -135,13 +135,13 @@ describe('Posts tests', () => {
   })
 
   it('should fail without authentication', async () => {
-    const { status } = await api.post.post({ key: 'tmp/post/fake-key.jpeg' })
+    const { status } = await api.posts.post({ key: 'tmp/post/fake-key.jpeg' })
 
     expect(status).toBe(401)
   })
 
   it('should fail with invalid token', async () => {
-    const { status } = await api.post.post(
+    const { status } = await api.posts.post(
       {
         key: 'tmp/post/fake-key.jpeg',
       },

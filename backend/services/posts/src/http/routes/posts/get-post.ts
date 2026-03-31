@@ -11,7 +11,7 @@ import { getSignedMediaUrl } from '@/utils/get-signed-media-url'
 const EXPIRATION = 600
 
 export const getPost = new Elysia().get(
-  '/post/:id',
+  '/posts/:id',
   async ({ params, status }) => {
     const { id } = params
 
