@@ -7,7 +7,7 @@ import { middlewares } from '@/http/middlewares'
 import { r2 } from '@/storage'
 
 export const createPost = new Elysia().use(middlewares).post(
-  '/post',
+  '/posts',
   async ({ userId, body }) => {
     const { key, caption } = body
 
