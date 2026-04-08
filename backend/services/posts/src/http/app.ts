@@ -5,6 +5,7 @@ import { plugins } from './plugins'
 import { health } from './routes/health'
 import { media } from './routes/media'
 import { posts } from './routes/posts'
+import { stories } from './routes/stories'
 
 export const app = new Elysia()
   .use(plugins)
@@ -12,5 +13,6 @@ export const app = new Elysia()
   .use(health)
   .use(media)
   .use(posts)
+  .use(stories)
 
 export const api = treaty(app)
