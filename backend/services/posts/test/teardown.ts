@@ -6,7 +6,7 @@ import { r2 } from '@/storage'
 export async function teardown() {
   await Promise.all([
     db.execute(
-      sql`TRUNCATE TABLE posts.posts, posts.stories, posts.highlights, posts.highlight_stories RESTART IDENTITY CASCADE`
+      sql`TRUNCATE TABLE posts.posts, posts.stories RESTART IDENTITY CASCADE`
     ),
     redis.send('FLUSHDB', []),
     r2
