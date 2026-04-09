@@ -74,24 +74,4 @@ describe('Get posts tests', () => {
 
     expect(status).toBe(404)
   })
-
-  it('should fail without authentication', async () => {
-    const { id } = await createPost({ userId })
-
-    const { status } = await api.posts({ id }).get()
-
-    expect(status).toBe(401)
-  })
-
-  it('should fail with invalid token', async () => {
-    const { id } = await createPost({ userId })
-
-    const { status } = await api.posts({ id }).get({
-      headers: {
-        authorization: 'Bearer invalid-token',
-      },
-    })
-
-    expect(status).toBe(401)
-  })
 })

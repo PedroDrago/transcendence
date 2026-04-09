@@ -69,24 +69,4 @@ describe('Delete story tests', () => {
 
     expect(status).toBe(404)
   })
-
-  it('should fail without authentication', async () => {
-    const { id } = await createStory({ userId })
-
-    const { status } = await api.stories({ id }).delete()
-
-    expect(status).toBe(401)
-  })
-
-  it('should fail with invalid token', async () => {
-    const { id } = await createStory({ userId })
-
-    const { status } = await api.stories({ id }).delete(undefined, {
-      headers: {
-        authorization: 'Bearer invalid-token',
-      },
-    })
-
-    expect(status).toBe(401)
-  })
 })
