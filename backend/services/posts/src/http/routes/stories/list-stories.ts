@@ -1,4 +1,13 @@
-import { and, desc, eq, gt, lt, sql } from 'drizzle-orm'
+import {
+  and,
+  desc,
+  eq,
+  getTableColumns,
+  gt,
+  isNull,
+  lt,
+  sql,
+} from 'drizzle-orm'
 import { Elysia } from 'elysia'
 import { z } from 'zod'
 import { redis } from '@/cache'
@@ -20,7 +29,16 @@ export const listStories = new Elysia().use(middlewares).get(
     const key = `stories:user:${userId}`
 
     if (!cursor) {
-      const cached = await getCached(key, z.array(storySelectSchema))
+      const cached = await getCached(
+        key,
+        z.array(
+          storySelectSchema.extend({
+            mediaUrl: z.string(),
+            likeCount: z.number(),
+            commentCount: z.number(),
+          })
+        )
+      )
 
       if (cached) {
         const active = cached.filter((s) => new Date(s.expiresAt) > new Date())
@@ -37,8 +55,20 @@ export const listStories = new Elysia().use(middlewares).get(
     }
 
     const stories = await db
-      .select()
+      .select({
+        ...getTableColumns(schemas.stories),
+        likeCount: sql<number>`count(distinct ${schemas.likes.id})::int`,
+        commentCount: sql<number>`count(distinct ${schemas.comments.id})::int`,
+      })
       .from(schemas.stories)
+      .leftJoin(schemas.likes, eq(schemas.likes.storyId, schemas.stories.id))
+      .leftJoin(
+        schemas.comments,
+        and(
+          eq(schemas.comments.storyId, schemas.stories.id),
+          isNull(schemas.comments.replyId)
+        )
+      )
       .where(
         and(
           eq(schemas.stories.userId, userId),
@@ -46,6 +76,7 @@ export const listStories = new Elysia().use(middlewares).get(
           cursor ? lt(schemas.stories.id, cursor) : undefined
         )
       )
+      .groupBy(schemas.stories.id)
       .orderBy(desc(schemas.stories.id))
       .limit(limit + 1)
 
@@ -88,6 +119,8 @@ export const listStories = new Elysia().use(middlewares).get(
         stories: z.array(
           storySelectSchema.extend({
             mediaUrl: z.string(),
+            likeCount: z.number(),
+            commentCount: z.number(),
           })
         ),
         nextCursor: z.uuidv7().nullable(),
