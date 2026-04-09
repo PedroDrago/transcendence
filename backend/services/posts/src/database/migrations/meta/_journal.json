@@ -15,6 +15,13 @@
       "when": 1775685349299,
       "tag": "0001_red_rattler",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775694504958,
+      "tag": "0002_early_crusher_hogan",
+      "breakpoints": true
     }
   ]
 }
