@@ -40,7 +40,7 @@ export const createPostLike = new Elysia().use(middlewares).post(
       })
     }
 
-    await redis.del(`posts:${postId}:likes`)
+    await redis.del(`posts:${postId}:likes`, `posts:${postId}:likes:count`)
 
     return status(201, { ...like })
   },

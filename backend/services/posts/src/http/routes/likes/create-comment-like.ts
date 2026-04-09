@@ -40,7 +40,10 @@ export const createCommentLike = new Elysia().use(middlewares).post(
       })
     }
 
-    await redis.del(`comments:${commentId}:likes`)
+    await redis.del(
+      `comments:${commentId}:likes`,
+      `comments:${commentId}:likes:count`
+    )
 
     return status(201, { ...like })
   },

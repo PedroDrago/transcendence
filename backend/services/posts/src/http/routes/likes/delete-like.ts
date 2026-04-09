@@ -1,6 +1,7 @@
 import { and, eq } from 'drizzle-orm'
 import { Elysia } from 'elysia'
 import { z } from 'zod'
+import { redis } from '@/cache'
 import { db } from '@/database'
 import { schemas } from '@/database/schemas'
 import { middlewares } from '@/http/middlewares'
@@ -22,6 +23,23 @@ export const deleteLike = new Elysia().use(middlewares).delete(
         error: 'Not found',
         message: 'Like not found',
       })
+    }
+
+    if (deleted.postId) {
+      await redis.del(
+        `posts:${deleted.postId}:likes`,
+        `posts:${deleted.postId}:likes:count`
+      )
+    } else if (deleted.storyId) {
+      await redis.del(
+        `stories:${deleted.storyId}:likes`,
+        `stories:${deleted.storyId}:likes:count`
+      )
+    } else if (deleted.commentId) {
+      await redis.del(
+        `comments:${deleted.commentId}:likes`,
+        `comments:${deleted.commentId}:likes:count`
+      )
     }
 
     return status(204, undefined)

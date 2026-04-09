@@ -3,10 +3,10 @@ import type { schemas } from '@/database/schemas'
 type Comment = typeof schemas.comments.$inferSelect
 type TargetColumn = Extract<keyof Comment, 'postId' | 'storyId' | 'replyId'>
 
-const CACHE_TARGET_MAP: Record<TargetColumn, (id: string) => string> = {
-  postId: (id) => `posts:${id}:comments`,
-  storyId: (id) => `stories:${id}:comments`,
-  replyId: (id) => `comments:${id}:replies`,
+const CACHE_TARGET_MAP: Record<TargetColumn, (id: string) => string[]> = {
+  postId: (id) => [`posts:${id}:comments`, `posts:${id}:comments:count`],
+  storyId: (id) => [`stories:${id}:comments`, `stories:${id}:comments:count`],
+  replyId: (id) => [`comments:${id}:replies`, `comments:${id}:replies:count`],
 }
 
 export function getCommentCacheKeys(comment: Partial<Comment>): string[] {
@@ -16,7 +16,7 @@ export function getCommentCacheKeys(comment: Partial<Comment>): string[] {
     const targetId = comment[column as TargetColumn]
 
     if (targetId) {
-      keys.push(keyBuilder(targetId))
+      keys.push(...keyBuilder(targetId))
       break
     }
   }
