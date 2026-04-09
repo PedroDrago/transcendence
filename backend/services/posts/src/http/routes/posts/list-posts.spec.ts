@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import { createTestToken } from '@test/helpers/auth'
+import { createComment } from '@test/helpers/create-comment'
+import { createLike } from '@test/helpers/create-like'
 import { createPost } from '@test/helpers/create-post'
 import { teardown } from '@test/teardown'
 import { uuidv7 } from 'uuidv7'
@@ -144,5 +146,42 @@ describe('List posts tests', () => {
 
     expect(data?.posts).toHaveLength(1)
     expect(data?.posts[0]?.userId).toBe(userId)
+  })
+
+  it('should return likeCount and commentCount per post', async () => {
+    const { id: postId } = await createPost({ userId })
+    await createLike({ userId, postId })
+    await createLike({ userId: uuidv7(), postId })
+    const { id: commentId } = await createComment({ userId, postId })
+    await createComment({ userId, postId })
+    await createComment({ userId, replyId: commentId, rootId: commentId })
+
+    const { data } = await api.users({ userId }).posts.get({
+      query: {
+        limit: 20,
+      },
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    })
+
+    expect(data?.posts[0]?.likeCount).toBe(2)
+    expect(data?.posts[0]?.commentCount).toBe(2)
+  })
+
+  it('should return 0 counts when post has no likes or comments', async () => {
+    await createPost({ userId })
+
+    const { data } = await api.users({ userId }).posts.get({
+      query: {
+        limit: 20,
+      },
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    })
+
+    expect(data?.posts[0]?.likeCount).toBe(0)
+    expect(data?.posts[0]?.commentCount).toBe(0)
   })
 })

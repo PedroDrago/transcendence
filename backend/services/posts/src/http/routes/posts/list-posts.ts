@@ -1,4 +1,4 @@
-import { and, desc, eq, lt } from 'drizzle-orm'
+import { and, desc, eq, getTableColumns, isNull, lt, sql } from 'drizzle-orm'
 import { Elysia } from 'elysia'
 import { z } from 'zod'
 import { redis } from '@/cache'
@@ -20,7 +20,16 @@ export const listPosts = new Elysia().use(middlewares).get(
     const key = `posts:user:${userId}`
 
     if (!cursor) {
-      const cached = await getCached(key, z.array(postSelectSchema))
+      const cached = await getCached(
+        key,
+        z.array(
+          postSelectSchema.extend({
+            mediaUrl: z.string(),
+            likeCount: z.number(),
+            commentCount: z.number(),
+          })
+        )
+      )
 
       if (cached) {
         const hasMore = cached.length > limit
@@ -36,14 +45,27 @@ export const listPosts = new Elysia().use(middlewares).get(
     }
 
     const posts = await db
-      .select()
+      .select({
+        ...getTableColumns(schemas.posts),
+        likeCount: sql<number>`count(distinct ${schemas.likes.id})::int`,
+        commentCount: sql<number>`count(distinct ${schemas.comments.id})::int`,
+      })
       .from(schemas.posts)
+      .leftJoin(schemas.likes, eq(schemas.likes.postId, schemas.posts.id))
+      .leftJoin(
+        schemas.comments,
+        and(
+          eq(schemas.comments.postId, schemas.posts.id),
+          isNull(schemas.comments.replyId)
+        )
+      )
       .where(
         and(
           eq(schemas.posts.userId, userId),
           cursor ? lt(schemas.posts.id, cursor) : undefined
         )
       )
+      .groupBy(schemas.posts.id)
       .orderBy(desc(schemas.posts.id))
       .limit(limit + 1)
 
@@ -81,6 +103,8 @@ export const listPosts = new Elysia().use(middlewares).get(
         posts: z.array(
           postSelectSchema.extend({
             mediaUrl: z.string(),
+            likeCount: z.number(),
+            commentCount: z.number(),
           })
         ),
         nextCursor: z.uuidv7().nullable(),

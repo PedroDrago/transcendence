@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import { createTestToken } from '@test/helpers/auth'
+import { createComment } from '@test/helpers/create-comment'
+import { createLike } from '@test/helpers/create-like'
 import { createStory } from '@test/helpers/create-story'
 import { teardown } from '@test/teardown'
 import { uuidv7 } from 'uuidv7'
@@ -166,5 +168,42 @@ describe('List stories tests', () => {
     })
 
     expect(data?.stories).toHaveLength(1)
+  })
+
+  it('should return likeCount and commentCount per story', async () => {
+    const { id: storyId } = await createStory({ userId })
+    await createLike({ userId, storyId })
+    await createLike({ userId: uuidv7(), storyId })
+    const { id: commentId } = await createComment({ userId, storyId })
+    await createComment({ userId, storyId })
+    await createComment({ userId, replyId: commentId, rootId: commentId })
+
+    const { data } = await api.users({ userId }).stories.get({
+      query: {
+        limit: 20,
+      },
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    })
+
+    expect(data?.stories[0]?.likeCount).toBe(2)
+    expect(data?.stories[0]?.commentCount).toBe(2)
+  })
+
+  it('should return 0 counts when story has no likes or comments', async () => {
+    await createStory({ userId })
+
+    const { data } = await api.users({ userId }).stories.get({
+      query: {
+        limit: 20,
+      },
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    })
+
+    expect(data?.stories[0]?.likeCount).toBe(0)
+    expect(data?.stories[0]?.commentCount).toBe(0)
   })
 })
