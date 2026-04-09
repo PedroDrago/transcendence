@@ -1,5 +1,6 @@
 import { Elysia, status } from 'elysia'
 import { z } from 'zod'
+import { redis } from '@/cache'
 import { db } from '@/database'
 import { schemas } from '@/database/schemas'
 import { storyInsertSchema } from '@/database/schemas/stories'
@@ -40,6 +41,8 @@ export const createStory = new Elysia().use(middlewares).post(
         mediaType,
       })
       .returning()
+
+    await redis.del(`stories:user:${userId}`)
 
     return status(201, { ...story })
   },

@@ -1,6 +1,7 @@
 import { and, desc, eq, gt, lt, sql } from 'drizzle-orm'
 import { Elysia } from 'elysia'
 import { z } from 'zod'
+import { redis } from '@/cache'
 import { db } from '@/database'
 import { schemas } from '@/database/schemas'
 import { storySelectSchema } from '@/database/schemas/stories'
@@ -8,15 +9,17 @@ import { middlewares } from '@/http/middlewares'
 import { getCached } from '@/utils/get-cached'
 import { withSignedUrls } from '@/utils/with-signed-urls'
 
+const EXPIRATION_STORIES_LIST = 30
+
 export const listStories = new Elysia().use(middlewares).get(
   '/users/:userId/stories',
   async ({ params, query, status }) => {
     const { userId } = params
     const { cursor, limit } = query
 
-    if (!cursor) {
-      const key = `stories:user:${userId}`
+    const key = `stories:user:${userId}`
 
+    if (!cursor) {
       const cached = await getCached(key, z.array(storySelectSchema))
 
       if (cached) {
@@ -45,6 +48,15 @@ export const listStories = new Elysia().use(middlewares).get(
       )
       .orderBy(desc(schemas.stories.id))
       .limit(limit + 1)
+
+    if (!cursor) {
+      await redis.set(
+        key,
+        JSON.stringify(stories),
+        'EX',
+        EXPIRATION_STORIES_LIST
+      )
+    }
 
     const hasMore = stories.length > limit
     const items = hasMore ? stories.slice(0, limit) : stories
