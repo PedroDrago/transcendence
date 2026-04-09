@@ -38,7 +38,7 @@ export const deleteLike = new Elysia().use(middlewares).delete(
       likeId: z.uuidv7(),
     }),
     response: {
-      204: z.undefined(),
+      204: z.unknown(),
       404: z.object({
         error: z.string(),
         message: z.string(),
