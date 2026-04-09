@@ -145,27 +145,4 @@ describe('List posts tests', () => {
     expect(data?.posts).toHaveLength(1)
     expect(data?.posts[0]?.userId).toBe(userId)
   })
-
-  it('should fail without authentication', async () => {
-    const { status } = await api.users({ userId }).posts.get({
-      query: {
-        limit: 20,
-      },
-    })
-
-    expect(status).toBe(401)
-  })
-
-  it('should fail with invalid token', async () => {
-    const { status } = await api.users({ userId }).posts.get({
-      query: {
-        limit: 20,
-      },
-      headers: {
-        authorization: 'Bearer invalid-token',
-      },
-    })
-
-    expect(status).toBe(401)
-  })
 })

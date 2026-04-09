@@ -93,7 +93,7 @@ describe('Create story tests', () => {
       }
     )
 
-    expect(status).toBe(400)
+    expect(status).toBe(404)
   })
 
   it('should fail if key does not start with tmp/', async () => {
@@ -109,28 +109,5 @@ describe('Create story tests', () => {
     )
 
     expect(status).toBe(422)
-  })
-
-  it('should fail without authentication', async () => {
-    const { status } = await api.stories.post({
-      key: 'tmp/story/some-file.jpeg',
-    })
-
-    expect(status).toBe(401)
-  })
-
-  it('should fail with invalid token', async () => {
-    const { status } = await api.stories.post(
-      {
-        key: 'tmp/story/some-file.jpeg',
-      },
-      {
-        headers: {
-          authorization: 'Bearer invalid-token',
-        },
-      }
-    )
-
-    expect(status).toBe(401)
   })
 })

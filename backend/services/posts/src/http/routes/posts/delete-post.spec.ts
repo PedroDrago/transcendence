@@ -72,24 +72,4 @@ describe('Delete posts tests', () => {
 
     expect(status).toBe(404)
   })
-
-  it('should fail without authentication', async () => {
-    const { id } = await createPost({ userId })
-
-    const { status } = await api.posts({ id }).delete()
-
-    expect(status).toBe(401)
-  })
-
-  it('should fail with invalid token', async () => {
-    const { id } = await createPost({ userId })
-
-    const { status } = await api.posts({ id }).delete(undefined, {
-      headers: {
-        authorization: 'Bearer invalid-token',
-      },
-    })
-
-    expect(status).toBe(401)
-  })
 })

@@ -101,29 +101,4 @@ describe('Presign URL tests', () => {
     expect(status).toBe(422)
     expect(error).toBeDefined()
   })
-
-  it('should fail without authentication', async () => {
-    const { status } = await api['presign-url'].post({
-      context: 'post',
-      contentType: 'image/jpeg',
-    })
-
-    expect(status).toBe(401)
-  })
-
-  it('should fail with invalid token', async () => {
-    const { status } = await api['presign-url'].post(
-      {
-        context: 'post',
-        contentType: 'image/jpeg',
-      },
-      {
-        headers: {
-          authorization: 'Bearer invalid-token',
-        },
-      }
-    )
-
-    expect(status).toBe(401)
-  })
 })

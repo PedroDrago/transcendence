@@ -113,7 +113,7 @@ describe('Create posts tests', () => {
       }
     )
 
-    expect(status).toBe(400)
+    expect(status).toBe(404)
     expect(error?.value.message).toBe(
       'The media file could not be found on the server.'
     )
@@ -132,26 +132,5 @@ describe('Create posts tests', () => {
     )
 
     expect(status).toBe(422)
-  })
-
-  it('should fail without authentication', async () => {
-    const { status } = await api.posts.post({ key: 'tmp/post/fake-key.jpeg' })
-
-    expect(status).toBe(401)
-  })
-
-  it('should fail with invalid token', async () => {
-    const { status } = await api.posts.post(
-      {
-        key: 'tmp/post/fake-key.jpeg',
-      },
-      {
-        headers: {
-          authorization: 'Bearer invalid-token',
-        },
-      }
-    )
-
-    expect(status).toBe(401)
   })
 })

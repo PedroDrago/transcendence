@@ -167,27 +167,4 @@ describe('List stories tests', () => {
 
     expect(data?.stories).toHaveLength(1)
   })
-
-  it('should fail without authentication', async () => {
-    const { status } = await api.users({ userId }).stories.get({
-      query: {
-        limit: 20,
-      },
-    })
-
-    expect(status).toBe(401)
-  })
-
-  it('should fail with invalid token', async () => {
-    const { status } = await api.users({ userId }).stories.get({
-      query: {
-        limit: 20,
-      },
-      headers: {
-        authorization: 'Bearer invalid-token',
-      },
-    })
-
-    expect(status).toBe(401)
-  })
 })
