@@ -35,7 +35,10 @@ export const createReplyComment = new Elysia().use(middlewares).post(
       })
       .returning()
 
-    await redis.del(`comments:${commentId}:replies`)
+    await redis.del(
+      `comments:${commentId}:replies`,
+      `comments:${commentId}:replies:count`
+    )
 
     return status(201, { ...reply })
   },
