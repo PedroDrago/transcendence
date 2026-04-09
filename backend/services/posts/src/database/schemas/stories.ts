@@ -1,3 +1,4 @@
+import { relations } from 'drizzle-orm'
 import { index, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import {
   createInsertSchema,
@@ -6,6 +7,8 @@ import {
 } from 'drizzle-zod'
 import { uuidv7 } from 'uuidv7'
 import { z } from 'zod'
+import { comments } from './comments'
+import { likes } from './likes'
 import { mediaTypeEnum } from './media-types'
 import { postsSchema } from './posts-schema'
 
@@ -29,6 +32,11 @@ export const stories = postsSchema.table(
     index('idx_stories_user_expires').on(table.userId, table.expiresAt),
   ]
 )
+
+export const storiesRelations = relations(stories, ({ many }) => ({
+  comments: many(comments),
+  likes: many(likes),
+}))
 
 export const storySelectSchema = createSelectSchema(stories, {
   expiresAt: z.string(),
