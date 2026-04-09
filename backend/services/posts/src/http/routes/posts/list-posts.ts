@@ -1,6 +1,7 @@
 import { and, desc, eq, lt } from 'drizzle-orm'
 import { Elysia } from 'elysia'
 import { z } from 'zod'
+import { redis } from '@/cache'
 import { db } from '@/database'
 import { schemas } from '@/database/schemas'
 import { postSelectSchema } from '@/database/schemas/posts'
@@ -8,15 +9,17 @@ import { middlewares } from '@/http/middlewares'
 import { getCached } from '@/utils/get-cached'
 import { withSignedUrls } from '@/utils/with-signed-urls'
 
+const EXPIRATION_POSTS_LIST = 30
+
 export const listPosts = new Elysia().use(middlewares).get(
   '/users/:userId/posts',
   async ({ params, query, status }) => {
     const { userId } = params
     const { cursor, limit } = query
 
-    if (!cursor) {
-      const key = `posts:user:${userId}`
+    const key = `posts:user:${userId}`
 
+    if (!cursor) {
       const cached = await getCached(key, z.array(postSelectSchema))
 
       if (cached) {
@@ -43,6 +46,10 @@ export const listPosts = new Elysia().use(middlewares).get(
       )
       .orderBy(desc(schemas.posts.id))
       .limit(limit + 1)
+
+    if (!cursor) {
+      await redis.set(key, JSON.stringify(posts), 'EX', EXPIRATION_POSTS_LIST)
+    }
 
     const hasMore = posts.length > limit
     const items = hasMore ? posts.slice(0, limit) : posts

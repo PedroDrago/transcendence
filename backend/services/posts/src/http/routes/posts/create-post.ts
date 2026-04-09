@@ -1,5 +1,6 @@
 import { Elysia, status } from 'elysia'
 import { z } from 'zod'
+import { redis } from '@/cache'
 import { db } from '@/database'
 import { schemas } from '@/database/schemas'
 import { postInsertSchema } from '@/database/schemas/posts'
@@ -42,6 +43,8 @@ export const createPost = new Elysia().use(middlewares).post(
       })
       .returning()
 
+    await redis.del(`posts:user:${userId}`)
+
     return status(201, { ...post })
   },
   {
@@ -54,7 +57,7 @@ export const createPost = new Elysia().use(middlewares).post(
     },
     body: z.object({
       key: z.string().startsWith('tmp/'),
-      caption: z.string().optional(),
+      caption: z.string().max(2200).optional(),
     }),
     response: {
       201: postInsertSchema,
