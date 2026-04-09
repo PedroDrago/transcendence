@@ -45,10 +45,10 @@ export const createReplyComment = new Elysia().use(middlewares).post(
       tags: ['Comments'],
       summary: 'Create a reply',
       description: 'Create a new reply for the specified comment',
-      operationId: 'createReply',
+      operationId: 'createReplyComment',
     },
     params: z.object({
-      commentId: z.string(),
+      commentId: z.uuidv7(),
     }),
     body: z.object({
       content: z.string().min(1).max(2200),

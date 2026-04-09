@@ -44,10 +44,10 @@ export const createPostComment = new Elysia().use(middlewares).post(
       tags: ['Comments'],
       summary: 'Create a comment',
       description: 'Create a new comment for the specified post',
-      operationId: 'createComment',
+      operationId: 'createPostComment',
     },
     params: z.object({
-      postId: z.string(),
+      postId: z.uuidv7(),
     }),
     body: z.object({
       content: z.string().min(1).max(2200),
