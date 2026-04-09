@@ -50,7 +50,7 @@ export const deleteStory = new Elysia().use(middlewares).delete(
       operationId: 'deleteStory',
     },
     params: z.object({
-      id: z.string(),
+      id: z.uuidv7(),
     }),
     response: {
       204: z.undefined(),
