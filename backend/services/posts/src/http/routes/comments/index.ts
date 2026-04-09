@@ -1,4 +1,7 @@
 import { Elysia } from 'elysia'
+import { countCommentReplies } from './count-comment-replies'
+import { countPostComments } from './count-post-comments'
+import { countStoryComments } from './count-story-comments'
 import { createPostComment } from './create-post-comment'
 import { createReplyComment } from './create-reply-comment'
 import { createStoryComment } from './create-story-comment'
@@ -19,3 +22,6 @@ export const comments = new Elysia()
   .use(listReplyComments)
   .use(listStoryComments)
   .use(updateComment)
+  .use(countPostComments)
+  .use(countStoryComments)
+  .use(countCommentReplies)
