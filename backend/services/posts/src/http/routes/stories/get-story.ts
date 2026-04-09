@@ -11,11 +11,11 @@ import { getSignedMediaUrl } from '@/utils/get-signed-media-url'
 const EXPIRATION = 600
 
 export const getStory = new Elysia().get(
-  '/stories/:id',
+  '/stories/:storyId',
   async ({ params, status }) => {
-    const { id } = params
+    const { storyId } = params
 
-    const key = `stories:${id}`
+    const key = `stories:${storyId}`
 
     const cached = await getCached(key, storySelectSchema)
 
@@ -40,7 +40,7 @@ export const getStory = new Elysia().get(
       .from(schemas.stories)
       .where(
         and(
-          eq(schemas.stories.id, id),
+          eq(schemas.stories.id, storyId),
           gt(schemas.stories.expiresAt, sql`now()`)
         )
       )
@@ -69,7 +69,7 @@ export const getStory = new Elysia().get(
       operationId: 'getStory',
     },
     params: z.object({
-      id: z.string(),
+      storyId: z.string(),
     }),
     response: {
       200: storySelectSchema.extend({

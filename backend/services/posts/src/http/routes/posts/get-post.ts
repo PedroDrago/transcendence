@@ -11,11 +11,11 @@ import { getSignedMediaUrl } from '@/utils/get-signed-media-url'
 const EXPIRATION = 600
 
 export const getPost = new Elysia().get(
-  '/posts/:id',
+  '/posts/:postId',
   async ({ params, status }) => {
-    const { id } = params
+    const { postId } = params
 
-    const key = `posts:${id}`
+    const key = `posts:${postId}`
 
     const cached = await getCached(key, postSelectSchema)
 
@@ -29,7 +29,7 @@ export const getPost = new Elysia().get(
     const [post] = await db
       .select()
       .from(schemas.posts)
-      .where(eq(schemas.posts.id, id))
+      .where(eq(schemas.posts.id, postId))
       .limit(1)
 
     if (!post) {
@@ -55,7 +55,7 @@ export const getPost = new Elysia().get(
       operationId: 'getPost',
     },
     params: z.object({
-      id: z.string(),
+      postId: z.string(),
     }),
     response: {
       200: postSelectSchema.extend({

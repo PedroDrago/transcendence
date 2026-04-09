@@ -8,14 +8,14 @@ import { middlewares } from '@/http/middlewares'
 import { r2 } from '@/storage'
 
 export const deleteStory = new Elysia().use(middlewares).delete(
-  '/stories/:id',
+  '/stories/:storyId',
   async ({ userId, params, status }) => {
-    const { id } = params
+    const { storyId } = params
 
     const [deleted] = await db
       .delete(schemas.stories)
       .where(
-        and(eq(schemas.stories.userId, userId), eq(schemas.stories.id, id))
+        and(eq(schemas.stories.userId, userId), eq(schemas.stories.id, storyId))
       )
       .returning()
 
@@ -26,7 +26,7 @@ export const deleteStory = new Elysia().use(middlewares).delete(
       })
     }
 
-    const storiesKey = `stories:${id}`
+    const storiesKey = `stories:${storyId}`
 
     const userStoriesKey = `stories:user:${userId}`
 
@@ -50,7 +50,7 @@ export const deleteStory = new Elysia().use(middlewares).delete(
       operationId: 'deleteStory',
     },
     params: z.object({
-      id: z.uuidv7(),
+      storyId: z.uuidv7(),
     }),
     response: {
       204: z.undefined(),

@@ -9,15 +9,17 @@ import { middlewares } from '@/http/middlewares'
 import { getSignedMediaUrl } from '@/utils/get-signed-media-url'
 
 export const updatePost = new Elysia().use(middlewares).patch(
-  '/posts/:id',
+  '/posts/:postId',
   async ({ userId, params, body, status }) => {
-    const { id } = params
+    const { postId } = params
     const { caption } = body
 
     const [updated] = await db
       .update(schemas.posts)
       .set({ caption })
-      .where(and(eq(schemas.posts.userId, userId), eq(schemas.posts.id, id)))
+      .where(
+        and(eq(schemas.posts.userId, userId), eq(schemas.posts.id, postId))
+      )
       .returning()
 
     if (!updated) {
@@ -27,7 +29,7 @@ export const updatePost = new Elysia().use(middlewares).patch(
       })
     }
 
-    const postsKey = `posts:${id}`
+    const postsKey = `posts:${postId}`
 
     const userPostsKey = `posts:user:${userId}`
 
@@ -47,7 +49,7 @@ export const updatePost = new Elysia().use(middlewares).patch(
       operationId: 'updatePost',
     },
     params: z.object({
-      id: z.string(),
+      postId: z.string(),
     }),
     body: z.object({
       caption: z.string(),

@@ -8,13 +8,15 @@ import { middlewares } from '@/http/middlewares'
 import { r2 } from '@/storage'
 
 export const deletePost = new Elysia().use(middlewares).delete(
-  '/posts/:id',
+  '/posts/:postId',
   async ({ userId, params, status }) => {
-    const { id } = params
+    const { postId } = params
 
     const [deleted] = await db
       .delete(schemas.posts)
-      .where(and(eq(schemas.posts.userId, userId), eq(schemas.posts.id, id)))
+      .where(
+        and(eq(schemas.posts.userId, userId), eq(schemas.posts.id, postId))
+      )
       .returning()
 
     if (!deleted) {
@@ -24,7 +26,7 @@ export const deletePost = new Elysia().use(middlewares).delete(
       })
     }
 
-    const postsKey = `posts:${id}`
+    const postsKey = `posts:${postId}`
 
     const userPostsKey = `posts:user:${userId}`
 
@@ -48,7 +50,7 @@ export const deletePost = new Elysia().use(middlewares).delete(
       operationId: 'deletePost',
     },
     params: z.object({
-      id: z.uuidv7(),
+      postId: z.uuidv7(),
     }),
     response: {
       204: z.undefined(),
