@@ -14,7 +14,7 @@ export const createStory = new Elysia().use(middlewares).post(
     const exists = await r2.exists(key)
 
     if (!exists) {
-      return status(400, {
+      return status(404, {
         error: 'Media not found',
         message: 'The media file could not be found on the server.',
       })
@@ -56,7 +56,7 @@ export const createStory = new Elysia().use(middlewares).post(
     }),
     response: {
       201: storyInsertSchema,
-      400: z.object({
+      404: z.object({
         error: z.string(),
         message: z.string(),
       }),
