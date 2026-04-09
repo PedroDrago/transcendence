@@ -7,6 +7,7 @@ import {
 } from 'drizzle-zod'
 import { uuidv7 } from 'uuidv7'
 import { z } from 'zod'
+import { likes } from './likes'
 import { posts } from './posts'
 import { postsSchema } from './posts-schema'
 import { stories } from './stories'
@@ -33,16 +34,22 @@ export const comments = postsSchema.table(
     index('idx_comments_post').on(table.postId),
     index('idx_comments_story').on(table.storyId),
     index('idx_comments_reply').on(table.replyId),
+    index('idx_comments_root').on(table.rootId),
 
     foreignKey({
       columns: [table.replyId],
       foreignColumns: [table.id],
       name: 'comments_reply_id_fk',
     }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.rootId],
+      foreignColumns: [table.id],
+      name: 'comments_root_id_fk',
+    }).onDelete('cascade'),
   ]
 )
 
-export const commentsRelations = relations(comments, ({ one }) => ({
+export const commentsRelations = relations(comments, ({ one, many }) => ({
   post: one(posts, {
     fields: [comments.postId],
     references: [posts.id],
@@ -51,10 +58,23 @@ export const commentsRelations = relations(comments, ({ one }) => ({
     fields: [comments.storyId],
     references: [stories.id],
   }),
+  root: one(comments, {
+    fields: [comments.rootId],
+    references: [comments.id],
+    relationName: 'comment_thread',
+  }),
+  threadReplies: many(comments, {
+    relationName: 'comment_thread',
+  }),
   reply: one(comments, {
     fields: [comments.replyId],
     references: [comments.id],
+    relationName: 'comment_replies',
   }),
+  replies: many(comments, {
+    relationName: 'comment_replies',
+  }),
+  likes: many(likes),
 }))
 
 export const commentSelectSchema = createSelectSchema(comments, {

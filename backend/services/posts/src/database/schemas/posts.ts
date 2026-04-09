@@ -1,3 +1,4 @@
+import { relations } from 'drizzle-orm'
 import { index, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import {
   createInsertSchema,
@@ -6,6 +7,8 @@ import {
 } from 'drizzle-zod'
 import { uuidv7 } from 'uuidv7'
 import { z } from 'zod'
+import { comments } from './comments'
+import { likes } from './likes'
 import { mediaTypeEnum } from './media-types'
 import { postsSchema } from './posts-schema'
 
@@ -27,6 +30,11 @@ export const posts = postsSchema.table(
   },
   (table) => [index('idx_posts_user_created').on(table.userId, table.createdAt)]
 )
+
+export const postsRelations = relations(posts, ({ many }) => ({
+  comments: many(comments),
+  likes: many(likes),
+}))
 
 export const postSelectSchema = createSelectSchema(posts, {
   createdAt: z.string(),
