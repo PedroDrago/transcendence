@@ -44,10 +44,10 @@ This starts PostgreSQL, Redis, MinIO, and Jaeger.
 
 ### 2. Configure environment
 
-Copy the test env as a starting point:
+Copy the example env as a starting point:
 
 ```bash
-cp .env.test .env
+cp .env.example .env
 ```
 
 Adjust any values as needed (ports, credentials).
