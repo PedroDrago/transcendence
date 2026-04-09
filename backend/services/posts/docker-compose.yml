@@ -47,6 +47,8 @@ services:
         minio server /data --console-address ':9001'
     volumes:
       - transcendence_minio_data:/data
+    networks:
+      - transcendence
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
@@ -55,6 +57,18 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+
+  transcendence_jaeger:
+    image: jaegertracing/all-in-one:1.57
+    container_name: transcendence_jaeger
+    networks:
+      - transcendence
+    ports:
+      - "16686:16686" # UI
+      - "6831:6831/udp" # Traces UDP
+      - "14268:14268" # Traces HTTP
+      - "4317:4317" # OTLP/gRPC
+      - "4318:4318" # OTLP/HTTP
 
 networks:
   transcendence:
