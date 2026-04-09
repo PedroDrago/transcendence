@@ -48,7 +48,7 @@ export const deletePost = new Elysia().use(middlewares).delete(
       operationId: 'deletePost',
     },
     params: z.object({
-      id: z.string(),
+      id: z.uuidv7(),
     }),
     response: {
       204: z.undefined(),
