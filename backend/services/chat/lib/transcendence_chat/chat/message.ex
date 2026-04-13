@@ -2,10 +2,11 @@ defmodule TranscendenceChat.Chat.Message do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @schema_prefix "chat"
   schema "messages" do
     field :body, :string
     belongs_to :conversation, TranscendenceChat.Chat.Conversation
-    belongs_to :user, TranscendenceChat.Chat.User
+    belongs_to :user, TranscendenceChat.Chat.User, type: :binary_id
 
     timestamps(type: :utc_datetime)
   end

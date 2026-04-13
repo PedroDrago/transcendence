@@ -8,10 +8,10 @@ services:
       - "3000:3000"
     volumes:
       - ../frontend:/app
-      - /app/node_modules
+      - frontend-node-modules:/app/node_modules
     environment:
       - NODE_ENV=development
-    command: sh -c "npm install && npm run dev"
+    command: sh -c "[ -x node_modules/.bin/next ] || npm ci --include=dev; npm run dev"
     restart: unless-stopped
     networks:
       - transcendence-network
@@ -25,11 +25,11 @@ services:
       - "4000:4000"
     volumes:
       - ../backend/api/transcendence-api-gateway:/app
-      - /app/node_modules
+      - backend-node-modules:/app/node_modules
     environment:
       - NODE_ENV=development
       - PORT=4000
-    command: sh -c "npm install && npm run start:dev"
+    command: sh -c "[ -x node_modules/.bin/nest ] || npm ci --include=dev; npm run start:dev"
     restart: unless-stopped
     networks:
       - transcendence-network
@@ -45,7 +45,7 @@ services:
       - "4001:4001"
     volumes:
       - ../backend/services/auth:/app
-      - /app/node_modules
+      - auth-node-modules:/app/node_modules
     environment:
       - NODE_ENV=development
       - PORT=4001
@@ -56,12 +56,47 @@ services:
       - DB_USER=transcendence
       - DB_PASSWORD=transcendence_dev
       - DB_NAME=transcendence_dev
-    command: sh -c "npm install && npm run start:dev"
+    command: sh -c "[ -x node_modules/.bin/nest ] || npm ci --include=dev; npm run start:dev"
     restart: unless-stopped
     networks:
       - transcendence-network
     depends_on:
-      - database
+      database:
+        condition: service_healthy
+
+  # Chat Service - Phoenix/Elixir
+  chat-service:
+    build:
+      context: ../backend/services/chat
+      dockerfile: Dockerfile.dev
+    container_name: transcendence-chat-dev
+    ports:
+      - "4002:4002"
+    volumes:
+      - ../backend/services/chat:/app
+      - /app/deps
+      - /app/_build
+    environment:
+      - MIX_ENV=dev
+      - PORT=4002
+      - PHX_IP=0.0.0.0
+      - PHX_SERVER=true
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_USER=transcendence
+      - DB_PASSWORD=transcendence_dev
+      - DB_NAME=transcendence_dev
+      - MIX_ENV=dev
+      - PORT=4002
+      - PHX_IP=0.0.0.0
+      - PHX_SERVER=true
+    command: sh -c "mix deps.get && mix deps.compile && mix ecto.create && mix ecto.migrate && mix phx.server"
+    depends_on:
+      database:
+        condition: service_healthy    
+    restart: unless-stopped
+    networks:
+      - transcendence-network
 
   # Database - PostgreSQL
   database:
@@ -78,6 +113,11 @@ services:
     restart: unless-stopped
     networks:
       - transcendence-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U transcendence -d transcendence_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 networks:
   transcendence-network:
@@ -85,3 +125,6 @@ networks:
 
 volumes:
   postgres-data-dev:
+  frontend-node-modules:
+  backend-node-modules:
+  auth-node-modules:

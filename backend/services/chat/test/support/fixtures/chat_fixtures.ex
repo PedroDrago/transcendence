@@ -1,21 +1,25 @@
 defmodule TranscendenceChat.ChatFixtures do
   @moduledoc """
-  This module defines test helpers for creating
-  entities via the `TranscendenceChat.Chat` context.
+  Test helpers for creating entities via the `TranscendenceChat.Chat` context.
+  Users are inserted directly into auth.users since the chat service doesn't own that table.
   """
+
+  alias TranscendenceChat.Repo
 
   @doc """
-  Generate a user.
+  Generate a user directly in auth.users for testing.
   """
   def user_fixture(attrs \\ %{}) do
-    {:ok, user} =
-      attrs
-      |> Enum.into(%{
-        name: "user_#{System.unique_integer([:positive])}"
-      })
-      |> TranscendenceChat.Chat.create_user()
+    username = Map.get(attrs, :username, "user_#{System.unique_integer([:positive])}")
 
-    user
+    {:ok, result} =
+      Repo.query(
+        "INSERT INTO auth.users (id, username, \"passwordHash\", \"createdAt\") VALUES (gen_random_uuid(), $1, 'test_hash', NOW()) RETURNING id, username",
+        [username]
+      )
+
+    [id, name] = hd(result.rows)
+    %TranscendenceChat.Chat.User{id: id, username: name}
   end
 
   @doc """

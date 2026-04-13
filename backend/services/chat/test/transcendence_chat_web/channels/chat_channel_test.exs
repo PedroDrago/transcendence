@@ -5,7 +5,7 @@ defmodule TranscendenceChatWeb.ChatChannelTest do
 
   setup do
     user = user_fixture()
-    other_user = user_fixture(%{name: "other_user"})
+    other_user = user_fixture()
     {:ok, conversation} = TranscendenceChat.Chat.get_or_create_conversation(user.id, other_user.id)
 
     {:ok, _, socket} =
@@ -17,7 +17,7 @@ defmodule TranscendenceChatWeb.ChatChannelTest do
   end
 
   test "join is rejected for unauthorized user" do
-    user = user_fixture(%{name: "outsider"})
+    user = user_fixture(%{username: "outsider"})
     conversation = conversation_fixture()
 
     assert {:error, %{reason: "unauthorized"}} =

@@ -24,14 +24,12 @@ defmodule TranscendenceChatWeb.ChatChannel do
         conversation_id: conversation_id
       })
 
-    # Get the other user in the conversation and notify them
     conversation = Chat.get_conversation!(conversation_id) |> Chat.preload_conversation_users()
 
     other_user =
       conversation.conversation_users
       |> Enum.find(fn cu -> cu.user_id != socket.assigns.user_id end)
 
-    # Notify the other user about new message in this conversation
     if other_user do
       sender = Chat.get_user!(socket.assigns.user_id)
 
@@ -41,7 +39,7 @@ defmodule TranscendenceChatWeb.ChatChannel do
         %{
           conversation_id: conversation_id,
           sender_id: socket.assigns.user_id,
-          sender_name: sender.name,
+          sender_name: sender.username,
           body: msg.body
         }
       )

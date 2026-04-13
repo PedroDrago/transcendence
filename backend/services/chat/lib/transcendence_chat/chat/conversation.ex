@@ -2,6 +2,7 @@ defmodule TranscendenceChat.Chat.Conversation do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @schema_prefix "chat"
   schema "conversations" do
     has_many :conversation_users, TranscendenceChat.Chat.ConversationUser
 

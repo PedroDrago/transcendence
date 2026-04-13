@@ -1,17 +1,9 @@
 defmodule TranscendenceChat.Chat.User do
   use Ecto.Schema
-  import Ecto.Changeset
 
+  @primary_key {:id, :binary_id, autogenerate: false}
+  @schema_prefix "auth"
   schema "users" do
-    field :name, :string
-
-    timestamps(type: :utc_datetime)
-  end
-
-  @doc false
-  def changeset(user, attrs) do
-    user
-    |> cast(attrs, [:name])
-    |> validate_required([:name])
+    field :username, :string
   end
 end

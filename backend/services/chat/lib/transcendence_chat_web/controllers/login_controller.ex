@@ -4,19 +4,19 @@ defmodule TranscendenceChatWeb.LoginController do
   alias TranscendenceChat.Chat
 
   def login(conn, %{"username" => username}) do
-    user =
-      Chat.get_user_by_name(username) ||
-        elem(Chat.create_user(%{name: username}), 1)
+    case Chat.get_user_by_username(username) do
+      nil ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{error: "User not found"})
 
-    json(conn, %{
-      user_id: user.id
-    })
+      user ->
+        json(conn, %{user_id: user.id})
+    end
   end
 
   def create_conversation(conn, %{"user_id" => user_id, "recipient_name" => recipient_name}) do
-    user_id = to_integer(user_id)
-
-    case Chat.get_user_by_name(recipient_name) do
+    case Chat.get_user_by_username(recipient_name) do
       nil ->
         conn
         |> put_status(:not_found)
@@ -28,20 +28,19 @@ defmodule TranscendenceChatWeb.LoginController do
         json(conn, %{
           conversation_id: conversation.id,
           recipient_id: recipient.id,
-          recipient_name: recipient.name
+          recipient_name: recipient.username
         })
     end
   end
 
   def list_conversations(conn, %{"user_id" => user_id}) do
-    user_id = to_integer(user_id)
     conversations = Chat.list_user_conversations(user_id)
 
     json(conn, %{conversations: conversations})
   end
 
   def list_messages(conn, %{"conversation_id" => conversation_id}) do
-    conversation_id = to_integer(conversation_id)
+    conversation_id = String.to_integer(conversation_id)
     messages = Chat.list_messages_for_conversation(conversation_id)
 
     json(conn, %{
@@ -55,7 +54,4 @@ defmodule TranscendenceChatWeb.LoginController do
         end)
     })
   end
-
-  defp to_integer(val) when is_integer(val), do: val
-  defp to_integer(val) when is_binary(val), do: String.to_integer(val)
 end
