@@ -17,8 +17,8 @@ body {
   min-height: 100vh;
 }
 
-/* Login Screen */
-#login-screen {
+/* Auth Screen */
+#auth-screen {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -27,12 +27,41 @@ body {
   gap: 16px;
 }
 
-#login-screen h2 {
+#auth-screen h2 {
   font-size: 2rem;
   color: #fff;
 }
 
-#login-screen input {
+#auth-screen .auth-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 8px;
+}
+
+#auth-screen .auth-tab {
+  padding: 10px 28px;
+  border: none;
+  background: #16213e;
+  color: #888;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#auth-screen .auth-tab:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+#auth-screen .auth-tab:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+#auth-screen .auth-tab.active {
+  background: #e94560;
+  color: #fff;
+}
+
+#auth-screen input {
   padding: 12px 16px;
   border: none;
   border-radius: 8px;
@@ -42,7 +71,7 @@ body {
   width: 280px;
 }
 
-#login-screen button {
+#auth-screen button.auth-submit {
   padding: 12px 32px;
   border: none;
   border-radius: 8px;
@@ -51,10 +80,25 @@ body {
   font-size: 1rem;
   cursor: pointer;
   transition: background 0.2s;
+  width: 280px;
 }
 
-#login-screen button:hover {
+#auth-screen button.auth-submit:hover {
   background: #ff6b6b;
+}
+
+#auth-screen .auth-error {
+  color: #ff6b6b;
+  font-size: 0.9rem;
+  max-width: 280px;
+  text-align: center;
+}
+
+#auth-screen .auth-success {
+  color: #4caf50;
+  font-size: 0.9rem;
+  max-width: 280px;
+  text-align: center;
 }
 
 /* Chat Container */
@@ -349,11 +393,18 @@ body {
 
 <body>
 
-<!-- Login Screen -->
-<div id="login-screen">
+<!-- Auth Screen -->
+<div id="auth-screen">
   <h2>Transcendence Chat</h2>
-  <input id="username" placeholder="Digite seu username">
-  <button onclick="login()">Entrar</button>
+  <div class="auth-tabs">
+    <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+    <button class="auth-tab" onclick="switchAuthTab('register')">Cadastro</button>
+  </div>
+  <input id="auth-username" placeholder="Username" autocomplete="username">
+  <input id="auth-password" placeholder="Senha" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter') submitAuth()">
+  <button class="auth-submit" onclick="submitAuth()">Entrar</button>
+  <div id="auth-error" class="auth-error"></div>
+  <div id="auth-success" class="auth-success"></div>
 </div>
 
 <!-- Chat Container -->
@@ -399,7 +450,7 @@ body {
 <div id="new-message-modal" class="modal-overlay">
   <div class="modal">
     <h3>Nova Conversa</h3>
-    <input id="recipient-input" placeholder="Nome do destinatario">
+    <input id="recipient-input" placeholder="Username do destinatario">
     <div class="modal-buttons">
       <button class="btn-cancel" onclick="closeNewMessageModal()">Cancelar</button>
       <button class="btn-confirm" onclick="startNewConversation()">Iniciar</button>
@@ -410,35 +461,150 @@ body {
 <script src="https://cdn.jsdelivr.net/npm/phoenix@1.7.10/priv/static/phoenix.min.js"></script>
 
 <script>
+const AUTH_URL = "http://localhost:4001"
+
 let socket
 let channels = {}
 let userId
 let username
+let accessToken
 let currentConversationId = null
 let conversations = {}
 let typingTimers = {}
 let myTypingTimer = null
+let authMode = "login"
 
-// localStorage
+// --- Auth ---
+
+function switchAuthTab(mode) {
+  authMode = mode
+  document.querySelectorAll(".auth-tab").forEach(t => t.classList.remove("active"))
+  if (mode === "login") {
+    document.querySelectorAll(".auth-tab")[0].classList.add("active")
+    document.querySelector(".auth-submit").textContent = "Entrar"
+  } else {
+    document.querySelectorAll(".auth-tab")[1].classList.add("active")
+    document.querySelector(".auth-submit").textContent = "Cadastrar"
+  }
+  document.getElementById("auth-error").textContent = ""
+  document.getElementById("auth-success").textContent = ""
+}
+
+function decodeJwt(token) {
+  let payload = token.split(".")[1]
+  let decoded = atob(payload.replace(/-/g, "+").replace(/_/g, "/"))
+  return JSON.parse(decoded)
+}
+
+async function submitAuth() {
+  let user = document.getElementById("auth-username").value.trim()
+  let pass = document.getElementById("auth-password").value
+
+  document.getElementById("auth-error").textContent = ""
+  document.getElementById("auth-success").textContent = ""
+
+  if (!user || !pass) {
+    document.getElementById("auth-error").textContent = "Preencha username e senha"
+    return
+  }
+
+  if (authMode === "register") {
+    await doRegister(user, pass)
+  } else {
+    await doLogin(user, pass)
+  }
+}
+
+async function doRegister(user, pass) {
+  try {
+    let resp = await fetch(AUTH_URL + "/auth/register", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({username: user, password: pass})
+    })
+    let data = await resp.json()
+
+    if (!resp.ok) {
+      let msg = data.message
+      if (Array.isArray(msg)) msg = msg.join(", ")
+      document.getElementById("auth-error").textContent = msg || "Erro no cadastro"
+      return
+    }
+
+    document.getElementById("auth-success").textContent = "Cadastro realizado! Fazendo login..."
+    await doLogin(user, pass)
+  } catch (e) {
+    document.getElementById("auth-error").textContent = "Erro de conexao com o servico de auth"
+  }
+}
+
+async function doLogin(user, pass) {
+  try {
+    let resp = await fetch(AUTH_URL + "/auth/login", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({username: user, password: pass})
+    })
+    let data = await resp.json()
+
+    if (!resp.ok) {
+      let msg = data.message
+      if (Array.isArray(msg)) msg = msg.join(", ")
+      document.getElementById("auth-error").textContent = msg || "Credenciais invalidas"
+      return
+    }
+
+    accessToken = data.access_token
+    let claims = decodeJwt(accessToken)
+    userId = claims.sub
+    username = claims.username
+
+    saveLogin()
+    showChatInterface()
+    connectSocket()
+  } catch (e) {
+    document.getElementById("auth-error").textContent = "Erro de conexao com o servico de auth"
+  }
+}
+
+// --- Session persistence ---
+
 function saveLogin() {
-  localStorage.setItem('chat_username', username)
-  localStorage.setItem('chat_userId', userId)
+  localStorage.setItem("chat_username", username)
+  localStorage.setItem("chat_userId", userId)
+  localStorage.setItem("chat_token", accessToken)
 }
 
 function loadLogin() {
-  const savedUsername = localStorage.getItem('chat_username')
-  const savedUserId = localStorage.getItem('chat_userId')
-  if (savedUsername && savedUserId) {
+  let savedUsername = localStorage.getItem("chat_username")
+  let savedUserId = localStorage.getItem("chat_userId")
+  let savedToken = localStorage.getItem("chat_token")
+  if (savedUsername && savedUserId && savedToken) {
     username = savedUsername
-    userId = parseInt(savedUserId)
+    userId = savedUserId
+    accessToken = savedToken
+
+    // Check if token is expired
+    try {
+      let claims = decodeJwt(accessToken)
+      if (claims.exp && claims.exp * 1000 < Date.now()) {
+        clearLogin()
+        return false
+      }
+    } catch (e) {
+      clearLogin()
+      return false
+    }
+
     return true
   }
   return false
 }
 
 function clearLogin() {
-  localStorage.removeItem('chat_username')
-  localStorage.removeItem('chat_userId')
+  localStorage.removeItem("chat_username")
+  localStorage.removeItem("chat_userId")
+  localStorage.removeItem("chat_token")
 }
 
 function logout() {
@@ -454,30 +620,15 @@ window.onload = function() {
 }
 
 function showChatInterface() {
-  document.getElementById("login-screen").style.display = "none"
+  document.getElementById("auth-screen").style.display = "none"
   document.getElementById("chat-container").style.display = "block"
   document.getElementById("logged-user").textContent = username
 }
 
-async function login() {
-  username = document.getElementById("username").value.trim()
-  if (!username) { alert("Digite um username"); return }
-
-  let resp = await fetch("/api/login", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({username: username})
-  })
-  let data = await resp.json()
-  userId = data.user_id
-
-  saveLogin()
-  showChatInterface()
-  connectSocket()
-}
+// --- Socket & Channels ---
 
 function connectSocket() {
-  socket = new Phoenix.Socket("ws://localhost:4000/socket", {
+  socket = new Phoenix.Socket("/socket", {
     params: { user_id: userId }
   })
   socket.connect()
@@ -485,7 +636,6 @@ function connectSocket() {
   let userChannel = socket.channel("user:" + userId)
   userChannel.join()
 
-  // User channel: only used for NEW conversations not yet joined
   userChannel.on("new_conversation_message", data => {
     handleNewConversationMessage(data)
   })
@@ -496,8 +646,6 @@ function connectSocket() {
 async function handleNewConversationMessage(data) {
   let convId = data.conversation_id
 
-  // Only act if we haven't joined this conversation's chat channel yet.
-  // If already joined, the chat channel handler takes care of everything.
   if (channels[convId]) return
 
   let messagesResp = await fetch("/api/messages?conversation_id=" + convId)
@@ -541,6 +689,7 @@ async function loadUserConversations() {
 }
 
 function joinConversationChannel(conversationId, recipientName) {
+  conversationId = Number(conversationId)
   if (channels[conversationId]) return
 
   let channel = socket.channel("chat:" + conversationId)
@@ -549,7 +698,6 @@ function joinConversationChannel(conversationId, recipientName) {
     .receive("ok", () => console.log("Joined conversation", conversationId))
     .receive("error", resp => console.log("Unable to join", resp))
 
-  // --- Messages ---
   channel.on("message", msg => {
     if (!conversations[conversationId]) {
       conversations[conversationId] = { name: recipientName, messages: [], unreadCount: 0, otherRead: false }
@@ -558,11 +706,9 @@ function joinConversationChannel(conversationId, recipientName) {
     let conv = conversations[conversationId]
     conv.messages.push(msg)
 
-    let messageUserId = msg.user_id
-    let isMine = messageUserId === userId
+    let isMine = msg.user_id === userId
 
     if (isMine) {
-      // My own message: other hasn't read yet
       conv.otherRead = false
     }
 
@@ -570,7 +716,6 @@ function joinConversationChannel(conversationId, recipientName) {
       conv.unreadCount = (conv.unreadCount || 0) + 1
     }
 
-    // If viewing this conversation and message is from other, send read receipt
     if (!isMine && currentConversationId === conversationId) {
       channel.push("messages_read", {})
     }
@@ -579,7 +724,6 @@ function joinConversationChannel(conversationId, recipientName) {
       renderMessages(conversationId)
     }
 
-    // Clear typing indicator when a message arrives
     if (!isMine) {
       clearTypingIndicator(conversationId)
     }
@@ -587,7 +731,6 @@ function joinConversationChannel(conversationId, recipientName) {
     updateConversationsList()
   })
 
-  // --- Typing ---
   channel.on("typing", data => {
     if (data.user_id === userId) return
 
@@ -598,7 +741,6 @@ function joinConversationChannel(conversationId, recipientName) {
     }
   })
 
-  // --- Read receipts ---
   channel.on("messages_read", data => {
     if (data.user_id === userId) return
 
@@ -614,19 +756,17 @@ function joinConversationChannel(conversationId, recipientName) {
   channels[conversationId] = channel
 }
 
-// --- Typing indicator logic ---
+// --- Typing ---
 
 function setTypingIndicator(conversationId, name) {
   if (!typingTimers[conversationId]) {
     typingTimers[conversationId] = {}
   }
 
-  // Clear previous timeout
   clearTimeout(typingTimers[conversationId].timeout)
 
   typingTimers[conversationId].active = true
 
-  // Auto-clear after 3s if no new typing event
   typingTimers[conversationId].timeout = setTimeout(() => {
     clearTypingIndicator(conversationId)
   }, 3000)
@@ -651,11 +791,8 @@ function emitTyping() {
   if (!currentConversationId || !channels[currentConversationId]) return
 
   let channel = channels[currentConversationId]
-
-  // Send typing=true
   channel.push("typing", { is_typing: true })
 
-  // Debounce: after 2s of no keystrokes, send typing=false
   clearTimeout(myTypingTimer)
   myTypingTimer = setTimeout(() => {
     channel.push("typing", { is_typing: false })
@@ -680,7 +817,7 @@ function joinConversation(conversationId, recipientName) {
 }
 
 function selectConversation(conversationId) {
-  currentConversationId = conversationId
+  currentConversationId = Number(conversationId)
 
   document.getElementById("no-chat").style.display = "none"
   document.getElementById("active-chat").style.display = "flex"
@@ -688,7 +825,6 @@ function selectConversation(conversationId) {
   let conv = conversations[conversationId]
   document.getElementById("chat-with").textContent = conv ? conv.name : "Conversa"
 
-  // Clear unread & send read receipt
   if (conv) {
     conv.unreadCount = 0
     if (channels[conversationId]) {
@@ -696,7 +832,6 @@ function selectConversation(conversationId) {
     }
   }
 
-  // Update typing indicator for this conversation
   if (typingTimers[conversationId] && typingTimers[conversationId].active) {
     document.getElementById("typing-indicator").textContent = conv.name + " esta digitando..."
   } else {
@@ -731,7 +866,6 @@ function renderMessages(conversationId) {
     div.appendChild(sender)
     div.appendChild(body)
 
-    // Read receipt on the last sent message
     let isLastMessage = index === conv.messages.length - 1
     if (isMine && isLastMessage) {
       let status = document.createElement("div")
@@ -756,7 +890,7 @@ function updateConversationsList() {
 
     let div = document.createElement("div")
     div.className = "conversation-item" + (currentConversationId == convId ? " active" : "")
-    div.onclick = () => selectConversation(parseInt(convId))
+    div.onclick = () => selectConversation(convId)
 
     let nameContainer = document.createElement("div")
     nameContainer.style.display = "flex"
@@ -798,7 +932,6 @@ function sendMsg() {
   let text = input.value.trim()
   if (!text) return
 
-  // Stop typing indicator
   clearTimeout(myTypingTimer)
   channels[currentConversationId].push("typing", { is_typing: false })
 
@@ -826,7 +959,7 @@ function closeNewMessageModal() {
 
 async function startNewConversation() {
   let recipient = document.getElementById("recipient-input").value.trim()
-  if (!recipient) { alert("Digite o nome do destinatario"); return }
+  if (!recipient) { alert("Digite o username do destinatario"); return }
 
   let resp = await fetch("/api/conversation", {
     method: "POST",

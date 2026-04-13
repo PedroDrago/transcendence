@@ -1,14 +1,128 @@
 # TranscendenceChat - API Documentation
 
-## Base URL
+## Arquitetura
 
-```
-http://localhost:4000
-```
+O sistema usa dois servicos independentes com banco PostgreSQL compartilhado:
+
+| Servico | URL | Responsabilidade |
+|---------|-----|------------------|
+| **Auth** | `http://localhost:4001` | Cadastro, login, JWT |
+| **Chat** | `http://localhost:4002` | Conversas, mensagens, WebSocket |
+
+O Auth gerencia a tabela `auth.users` (UUID). O Chat le dessa tabela e gerencia suas proprias tabelas no schema `chat`.
+
+**Importante:** `user_id` e um **UUID** (string) em todo o sistema — ex: `"a1b2c3d4-e5f6-7890-abcd-ef1234567890"`.
 
 ---
 
-## REST API
+## Auth Service (`http://localhost:4001`)
+
+### POST `/auth/register`
+
+Cadastra um novo usuario.
+
+**Request:**
+```json
+{
+  "username": "joao",
+  "password": "minhasenha123"
+}
+```
+
+**Response (201):**
+```json
+{
+  "message": "registered",
+  "user": {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "username": "joao",
+    "createdAt": "2026-04-13T10:00:00.000Z"
+  }
+}
+```
+
+**Erros:**
+- `400` — Validacao (username 3-20 chars, password 8-256 chars)
+- `409` — Username ja existe
+
+---
+
+### POST `/auth/login`
+
+Autentica e retorna um JWT.
+
+**Request:**
+```json
+{
+  "username": "joao",
+  "password": "minhasenha123"
+}
+```
+
+**Response (200):**
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIs..."
+}
+```
+
+**JWT payload (decodificado):**
+```json
+{
+  "sub": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "username": "joao",
+  "iat": 1681300000,
+  "exp": 1681303600
+}
+```
+
+**Erros:**
+- `401` — Credenciais invalidas
+
+**Como extrair `user_id` e `username` do JWT:**
+```javascript
+function decodeJwt(token) {
+  const payload = token.split(".")[1];
+  return JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+}
+
+const claims = decodeJwt(access_token);
+const userId = claims.sub;       // UUID string
+const username = claims.username;
+```
+
+- Guarde `user_id` (UUID) e `access_token` — o `user_id` e necessario em todas as operacoes do Chat
+- O token expira conforme configurado no auth (`JWT_EXPIRES_IN`, padrao 1h)
+
+---
+
+### PATCH `/auth/password`
+
+Altera a senha (requer JWT).
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Request:**
+```json
+{
+  "currentPassword": "minhasenha123",
+  "newPassword": "novasenha456"
+}
+```
+
+**Erros:**
+- `401` — JWT ausente ou invalido
+- `403` — Senha atual incorreta
+- `400` — Nova senha igual a atual
+
+---
+
+## Chat Service (`http://localhost:4002`)
+
+### REST API
 
 Todos os endpoints retornam JSON. Os endpoints POST recebem JSON no body (`Content-Type: application/json`). Os endpoints GET recebem query parameters.
 
@@ -16,7 +130,7 @@ Todos os endpoints retornam JSON. Os endpoints POST recebem JSON no body (`Conte
 
 ### POST `/api/login`
 
-Cria um novo usuario ou retorna um existente.
+Busca um usuario existente pelo username. **Nao cria usuarios** — o cadastro e feito pelo Auth Service.
 
 **Request:**
 ```json
@@ -28,13 +142,19 @@ Cria um novo usuario ou retorna um existente.
 **Response (200):**
 ```json
 {
-  "user_id": 1
+  "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 }
 ```
 
-- Se o username ja existe, retorna o `user_id` existente
-- Se nao existe, cria e retorna o novo `user_id`
-- Guarde o `user_id` — ele e necessario em todas as outras operacoes
+**Response (404):**
+```json
+{
+  "error": "User not found"
+}
+```
+
+- Endpoint opcional — se voce ja tem o `user_id` do JWT do Auth Service, pode usar direto
+- Util para buscar o UUID de um usuario pelo username
 
 ---
 
@@ -45,7 +165,7 @@ Cria ou recupera uma conversa 1-a-1 entre dois usuarios.
 **Request:**
 ```json
 {
-  "user_id": 1,
+  "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "recipient_name": "maria"
 }
 ```
@@ -54,7 +174,7 @@ Cria ou recupera uma conversa 1-a-1 entre dois usuarios.
 ```json
 {
   "conversation_id": 5,
-  "recipient_id": 2,
+  "recipient_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
   "recipient_name": "maria"
 }
 ```
@@ -67,11 +187,12 @@ Cria ou recupera uma conversa 1-a-1 entre dois usuarios.
 ```
 
 - Se a conversa ja existe entre os dois usuarios, ela e retornada (nao cria duplicata)
+- `conversation_id` e um **integer** (diferente de `user_id` que e UUID)
 - Guarde o `conversation_id` para usar no WebSocket
 
 ---
 
-### GET `/api/conversations?user_id={id}`
+### GET `/api/conversations?user_id={uuid}`
 
 Lista todas as conversas do usuario, com a ultima mensagem de cada.
 
@@ -81,17 +202,17 @@ Lista todas as conversas do usuario, com a ultima mensagem de cada.
   "conversations": [
     {
       "conversation_id": 5,
-      "other_user_id": 2,
+      "other_user_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
       "other_user_name": "maria",
       "last_message": {
         "body": "Opa, tudo bem?",
-        "user_id": 2,
+        "user_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
         "inserted_at": "2026-04-12T10:30:00Z"
       }
     },
     {
       "conversation_id": 8,
-      "other_user_id": 3,
+      "other_user_id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
       "other_user_name": "pedro",
       "last_message": {
         "body": null,
@@ -104,7 +225,7 @@ Lista todas as conversas do usuario, com a ultima mensagem de cada.
 ```
 
 - `last_message` tem campos `null` quando a conversa nao tem mensagens ainda
-- `last_message.user_id` indica quem enviou a ultima mensagem (pode ser o proprio usuario ou o outro)
+- `last_message.user_id` indica quem enviou a ultima mensagem (UUID)
 - Use para popular a lista de conversas na sidebar
 
 ---
@@ -119,12 +240,12 @@ Retorna todas as mensagens de uma conversa em ordem cronologica.
   "messages": [
     {
       "body": "Opa, tudo bem?",
-      "user_id": 2,
+      "user_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
       "inserted_at": "2026-04-12T10:30:00Z"
     },
     {
       "body": "Tudo certo!",
-      "user_id": 1,
+      "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
       "inserted_at": "2026-04-12T10:31:15Z"
     }
   ]
@@ -132,29 +253,30 @@ Retorna todas as mensagens de uma conversa em ordem cronologica.
 ```
 
 - Ordenadas da mais antiga para a mais recente
-- `user_id` indica quem enviou — compare com o seu `user_id` para distinguir mensagens enviadas/recebidas
-- Use para carregar o historico ao abrir uma conversa
+- `user_id` (UUID) indica quem enviou — compare com o seu `user_id` para distinguir mensagens enviadas/recebidas
 
 ---
 
 ## WebSocket
 
-A comunicacao em tempo real usa Phoenix Channels sobre WebSocket. Apos o login, conecte ao socket e entre nos channels.
+A comunicacao em tempo real usa Phoenix Channels sobre WebSocket.
 
 ### Conexao
 
 ```
-ws://localhost:4000/socket?user_id={user_id}
+ws://localhost:4002/socket?user_id={user_id_uuid}
 ```
 
 ```javascript
 import { Socket } from "phoenix";
 
-const socket = new Socket("/socket", { params: { user_id: userId } });
+const socket = new Socket("ws://localhost:4002/socket", {
+  params: { user_id: userId }  // UUID string
+});
 socket.connect();
 ```
 
-O `user_id` passado na conexao identifica o usuario em todos os channels.
+O `user_id` (UUID) passado na conexao identifica o usuario em todos os channels.
 
 ---
 
@@ -171,6 +293,7 @@ userChannel.join();
 ```
 
 - So o proprio usuario pode entrar no seu channel (valida `user_id` do socket)
+- `userId` e o UUID — ex: `user:a1b2c3d4-e5f6-7890-abcd-ef1234567890`
 - Entre neste channel logo apos conectar ao socket
 
 #### Evento recebido: `new_conversation_message`
@@ -182,7 +305,7 @@ userChannel.on("new_conversation_message", (payload) => {
   // payload:
   // {
   //   "conversation_id": 5,
-  //   "sender_id": 2,
+  //   "sender_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
   //   "sender_name": "maria",
   //   "body": "Opa, respondeu!"
   // }
@@ -213,6 +336,7 @@ chatChannel.join()
 
 - O backend valida que o `user_id` do socket e participante da conversa
 - Se nao for, o join retorna `{ "reason": "unauthorized" }`
+- `conversationId` e um **integer** (diferente de `user_id`)
 
 ---
 
@@ -230,7 +354,7 @@ chatChannel.on("message", (payload) => {
   // payload:
   // {
   //   "body": "Ola!",
-  //   "user_id": 1
+  //   "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
   // }
 });
 ```
@@ -257,7 +381,7 @@ chatChannel.push("typing", { is_typing: false });
 chatChannel.on("typing", (payload) => {
   // payload:
   // {
-  //   "user_id": 2,
+  //   "user_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
   //   "is_typing": true
   // }
 });
@@ -286,7 +410,7 @@ chatChannel.push("messages_read", {});
 chatChannel.on("messages_read", (payload) => {
   // payload:
   // {
-  //   "user_id": 1
+  //   "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
   // }
 });
 ```
@@ -299,25 +423,50 @@ chatChannel.on("messages_read", (payload) => {
 
 ---
 
+## Tipos de ID
+
+| Campo | Tipo | Exemplo |
+|-------|------|---------|
+| `user_id` | UUID string | `"a1b2c3d4-e5f6-7890-abcd-ef1234567890"` |
+| `conversation_id` | integer | `5` |
+
+**Atencao:** `user_id` e `conversation_id` sao tipos diferentes. Nao tente converter `user_id` para integer.
+
+---
+
 ## Fluxo completo
 
 ```javascript
 import { Socket } from "phoenix";
 
-// 1. Login
-const res = await fetch("/api/login", {
+// 1. Cadastrar (uma vez)
+await fetch("http://localhost:4001/auth/register", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ username: "joao" })
+  body: JSON.stringify({ username: "joao", password: "minhasenha123" })
 });
-const { user_id } = await res.json();
 
-// 2. Conectar WebSocket
-const socket = new Socket("/socket", { params: { user_id } });
+// 2. Login — obter JWT
+const loginRes = await fetch("http://localhost:4001/auth/login", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ username: "joao", password: "minhasenha123" })
+});
+const { access_token } = await loginRes.json();
+
+// 3. Extrair user_id do JWT
+const claims = JSON.parse(atob(access_token.split(".")[1]));
+const userId = claims.sub;       // UUID
+const username = claims.username;
+
+// 4. Conectar WebSocket ao Chat Service
+const socket = new Socket("ws://localhost:4002/socket", {
+  params: { user_id: userId }
+});
 socket.connect();
 
-// 3. Entrar no user channel (notificacoes)
-const userChannel = socket.channel(`user:${user_id}`);
+// 5. Entrar no user channel (notificacoes)
+const userChannel = socket.channel(`user:${userId}`);
 userChannel.join();
 
 userChannel.on("new_conversation_message", (msg) => {
@@ -328,11 +477,11 @@ userChannel.on("new_conversation_message", (msg) => {
   console.log(`${msg.sender_name}: ${msg.body}`);
 });
 
-// 4. Listar conversas existentes
-const convRes = await fetch(`/api/conversations?user_id=${user_id}`);
+// 6. Listar conversas existentes
+const convRes = await fetch(`http://localhost:4002/api/conversations?user_id=${userId}`);
 const { conversations } = await convRes.json();
 
-// 5. Para cada conversa, fazer join no chat channel
+// 7. Para cada conversa, fazer join no chat channel
 conversations.forEach((conv) => {
   const ch = socket.channel(`chat:${conv.conversation_id}`);
   ch.join();
@@ -342,29 +491,29 @@ conversations.forEach((conv) => {
   ch.on("messages_read", (data) => { /* atualizar status de leitura */ });
 });
 
-// 6. Criar conversa nova
-const newConvRes = await fetch("/api/conversation", {
+// 8. Criar conversa nova
+const newConvRes = await fetch("http://localhost:4002/api/conversation", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ user_id, recipient_name: "maria" })
+  body: JSON.stringify({ user_id: userId, recipient_name: "maria" })
 });
 const { conversation_id } = await newConvRes.json();
 
-// 7. Carregar historico
-const msgsRes = await fetch(`/api/messages?conversation_id=${conversation_id}`);
+// 9. Carregar historico
+const msgsRes = await fetch(`http://localhost:4002/api/messages?conversation_id=${conversation_id}`);
 const { messages } = await msgsRes.json();
 
-// 8. Entrar no chat channel da nova conversa
+// 10. Entrar no chat channel da nova conversa
 const chatChannel = socket.channel(`chat:${conversation_id}`);
 chatChannel.join();
 
-// 9. Enviar mensagem
+// 11. Enviar mensagem
 chatChannel.push("message", { body: "Opa, tudo bem?" });
 
-// 10. Indicar digitacao
+// 12. Indicar digitacao
 chatChannel.push("typing", { is_typing: true });
 
-// 11. Confirmar leitura
+// 13. Confirmar leitura
 chatChannel.push("messages_read", {});
 ```
 
@@ -372,13 +521,21 @@ chatChannel.push("messages_read", {});
 
 ## Tabela de referencia rapida
 
-### REST
+### Auth Service (porta 4001)
+
+| Metodo | Rota | Body | Response |
+|--------|------|------|----------|
+| POST | `/auth/register` | `{ "username", "password" }` | `{ "message", "user": { "id", "username", "createdAt" } }` |
+| POST | `/auth/login` | `{ "username", "password" }` | `{ "access_token": "JWT..." }` |
+| PATCH | `/auth/password` | `{ "currentPassword", "newPassword" }` | (vazio, 200) |
+
+### Chat Service — REST (porta 4002)
 
 | Metodo | Rota | Body / Params | Response |
 |--------|------|---------------|----------|
-| POST | `/api/login` | `{ "username": "..." }` | `{ "user_id": 1 }` |
-| POST | `/api/conversation` | `{ "user_id": 1, "recipient_name": "..." }` | `{ "conversation_id": 5, "recipient_id": 2, "recipient_name": "..." }` |
-| GET | `/api/conversations` | `?user_id=1` | `{ "conversations": [...] }` |
+| POST | `/api/login` | `{ "username": "..." }` | `{ "user_id": "uuid" }` |
+| POST | `/api/conversation` | `{ "user_id": "uuid", "recipient_name": "..." }` | `{ "conversation_id": 5, "recipient_id": "uuid", "recipient_name": "..." }` |
+| GET | `/api/conversations` | `?user_id=uuid` | `{ "conversations": [...] }` |
 | GET | `/api/messages` | `?conversation_id=5` | `{ "messages": [...] }` |
 
 ### WebSocket — Eventos enviados (push)
@@ -402,8 +559,14 @@ chatChannel.push("messages_read", {});
 
 ## Checklist de implementacao
 
-- [ ] `POST /api/login` — fazer login e guardar `user_id`
-- [ ] Conectar ao WebSocket com `user_id`
+### Auth
+- [ ] `POST /auth/register` — cadastrar usuario (username 3-20 chars, password 8-256 chars)
+- [ ] `POST /auth/login` — fazer login e guardar `access_token`
+- [ ] Decodificar JWT para extrair `user_id` (UUID) e `username`
+- [ ] Verificar expiracao do token e renovar se necessario
+
+### Chat
+- [ ] Conectar ao WebSocket (`ws://localhost:4002/socket`) com `user_id` (UUID)
 - [ ] Entrar no `user:{user_id}` — ouvir `new_conversation_message`
 - [ ] `GET /api/conversations` — listar conversas do usuario
 - [ ] Entrar no `chat:{id}` de cada conversa existente
