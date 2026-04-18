@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
@@ -14,7 +14,7 @@ export class AuthService {
 
   async validateUser(username: string, password: string) {
     const user = await this.usersService.findByUsername(username);
-    if (!user) return null;
+    if (!user || !user.passwordHash) return null;
 
     const match = await bcrypt.compare(password, user.passwordHash);
     if (!match) return null;
@@ -25,7 +25,7 @@ export class AuthService {
 
   async register(dto: RegisterDto) {
     const passwordHash = await bcrypt.hash(dto.password, 10);
-    const user = await this.usersService.create(dto.username, passwordHash);
+    const user = await this.usersService.create(dto.username, dto.email, passwordHash);
     return { message: 'registered', user };
   }
 
@@ -37,6 +37,9 @@ export class AuthService {
   async changePassword(userId: string, dto: ChangePasswordDto): Promise<void> {
     const user = await this.usersService.findById(userId);
     if (!user) throw new NotFoundException('User not found');
+    if (!user.passwordHash) {
+      throw new BadRequestException('OAuth accounts cannot change password');
+    }
 
     const match = await bcrypt.compare(dto.currentPassword, user.passwordHash);
     if (!match) throw new ForbiddenException('Current password is incorrect');
@@ -46,5 +49,24 @@ export class AuthService {
 
     const newHash = await bcrypt.hash(dto.newPassword, 10);
     await this.usersService.updatePassword(userId, newHash);
+  }
+
+  createOAuthHandoffToken(accessToken: string) {
+    return this.jwtService.sign(
+      { access_token: accessToken, typ: 'oauth_handoff' },
+      { expiresIn: '60s' },
+    );
+  }
+
+  exchangeOAuthHandoffToken(token: string) {
+    try {
+      const payload = this.jwtService.verify<{ access_token: string; typ: string }>(token);
+      if (payload.typ !== 'oauth_handoff' || !payload.access_token) {
+        throw new UnauthorizedException('Invalid OAuth handoff token');
+      }
+      return { access_token: payload.access_token };
+    } catch {
+      throw new UnauthorizedException('Invalid OAuth handoff token');
+    }
   }
 }

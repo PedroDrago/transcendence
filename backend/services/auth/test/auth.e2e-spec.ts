@@ -48,7 +48,7 @@ describe('Auth (e2e)', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await app?.close();
   });
 
   // ─── Register ────────────────────────────────────────────────────────────────
@@ -57,12 +57,13 @@ describe('Auth (e2e)', () => {
     it('201 — registers a new user', async () => {
       const res = await request(app.getHttpServer())
         .post('/auth/register')
-        .send({ username: 'drago', password: 'password123' })
+        .send({ username: 'drago', email: 'drago@example.com', password: 'password123' })
         .expect(201);
 
       expect(res.body.message).toBe('registered');
       expect(res.body.user.id).toBeDefined();
       expect(res.body.user.username).toBe('drago');
+      expect(res.body.user.email).toBe('drago@example.com');
       expect(res.body.user.createdAt).toBeDefined();
       expect(res.body.user.passwordHash).toBeUndefined();
     });
@@ -70,25 +71,25 @@ describe('Auth (e2e)', () => {
     it('409 — duplicate username', async () => {
       await request(app.getHttpServer())
         .post('/auth/register')
-        .send({ username: 'drago', password: 'password123' });
+        .send({ username: 'drago', email: 'drago@example.com', password: 'password123' });
 
       await request(app.getHttpServer())
         .post('/auth/register')
-        .send({ username: 'drago', password: 'password123' })
+        .send({ username: 'drago', email: 'other@example.com', password: 'password123' })
         .expect(409);
     });
 
     it('400 — username too short', async () => {
       await request(app.getHttpServer())
         .post('/auth/register')
-        .send({ username: 'ab', password: 'password123' })
+        .send({ username: 'ab', email: 'ab@example.com', password: 'password123' })
         .expect(400);
     });
 
     it('400 — password too short', async () => {
       await request(app.getHttpServer())
         .post('/auth/register')
-        .send({ username: 'drago', password: 'short' })
+        .send({ username: 'drago', email: 'drago@example.com', password: 'short' })
         .expect(400);
     });
 
@@ -106,7 +107,7 @@ describe('Auth (e2e)', () => {
     beforeEach(async () => {
       await request(app.getHttpServer())
         .post('/auth/register')
-        .send({ username: 'drago', password: 'password123' });
+        .send({ username: 'drago', email: 'drago@example.com', password: 'password123' });
     });
 
     it('200 — returns a JWT', async () => {
@@ -149,7 +150,7 @@ describe('Auth (e2e)', () => {
     beforeEach(async () => {
       await request(app.getHttpServer())
         .post('/auth/register')
-        .send({ username: 'drago', password: 'password123' });
+        .send({ username: 'drago', email: 'drago@example.com', password: 'password123' });
 
       const res = await request(app.getHttpServer())
         .post('/auth/login')
