@@ -48,8 +48,9 @@ export function decodeJwt(token: string) {
     const [, payload] = token.split('.');
     if (!payload) return null;
     const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padding = '='.repeat((4 - (normalized.length % 4)) % 4);
     const json = decodeURIComponent(
-      atob(normalized)
+      atob(`${normalized}${padding}`)
         .split('')
         .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`)
         .join(''),
