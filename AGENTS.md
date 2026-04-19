@@ -7,3 +7,4 @@
 - When committing in this repo, group relevant code chunks into separate commits instead of collapsing everything into one giant commit.
 - Use concise conventional commit messages.
 - Keep PR descriptions concise as well.
+- dont include any mention of the agent writing commits, PR names, descriptions etc. use always conventional/semantical git messages, titles and descriptions
