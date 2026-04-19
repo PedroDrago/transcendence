@@ -14,7 +14,7 @@ services:
     networks:
       - transcendence-network
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:' + process.env.PORT, (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:' + process.env.PORT + '/login', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -58,11 +58,12 @@ services:
       - PORT=${AUTH_PORT}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+      - FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
       - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
+      - DB_PORT=5432
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_NAME=${POSTGRES_DB}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}
@@ -75,7 +76,7 @@ services:
       database:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:${AUTH_PORT}/auth/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:${AUTH_PORT}/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -86,7 +87,7 @@ services:
     image: postgres:16-alpine
     container_name: transcendence-db-prod
     ports:
-      - "${DB_PORT}:${DB_PORT}"
+      - "${DB_HOST_PORT}:5432"
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
