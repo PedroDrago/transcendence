@@ -6,6 +6,8 @@ import { AppController } from './app.controller';
 import { User } from './users/user.entity';
 import { CreateUsersTable1742600000000 } from './database/migrations/1742600000000-CreateUsersTable';
 import { AddOAuthColumns1776200000000 } from './database/migrations/1776200000000-AddOAuthColumns';
+import { AddUpdatedAtToUsers1776614861000 } from './database/migrations/1776614861000-AddUpdatedAtToUsers';
+import { AddUsernamePendingToUsers1776616088000 } from './database/migrations/1776616088000-AddUsernamePendingToUsers';
 
 @Module({
   controllers: [AppController],
@@ -21,7 +23,12 @@ import { AddOAuthColumns1776200000000 } from './database/migrations/177620000000
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_NAME'),
         entities: [User],
-        migrations: [CreateUsersTable1742600000000, AddOAuthColumns1776200000000],
+        migrations: [
+          CreateUsersTable1742600000000,
+          AddOAuthColumns1776200000000,
+          AddUpdatedAtToUsers1776614861000,
+          AddUsernamePendingToUsers1776616088000,
+        ],
         migrationsRun: true,
       }),
     }),

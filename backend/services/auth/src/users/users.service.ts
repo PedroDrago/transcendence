@@ -1,5 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { randomUUID } from 'crypto';
 import { QueryFailedError, Repository } from 'typeorm';
 import { OAuthProvider, User } from './user.entity';
 
@@ -7,7 +8,7 @@ export interface OAuthProfile {
   oauthId: string;
   oauthProvider: OAuthProvider;
   email: string;
-  username: string;
+  displayName?: string;
 }
 
 @Injectable()
@@ -25,12 +26,40 @@ export class UsersService {
     return this.usersRepository.findOneBy({ username });
   }
 
+  findByUsernameOrEmail(identifier: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: [{ username: identifier }, { email: identifier }],
+    });
+  }
+
   findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOneBy({ email });
   }
 
   async updatePassword(id: string, passwordHash: string): Promise<void> {
     await this.usersRepository.update(id, { passwordHash });
+  }
+
+  async updateUsername(id: string, username: string): Promise<User> {
+    const existing = await this.findByUsername(username);
+    if (existing && existing.id !== id) {
+      throw new ConflictException('Username already exists');
+    }
+
+    try {
+      await this.usersRepository.update(id, { username, usernamePending: false });
+    } catch (err) {
+      if (err instanceof QueryFailedError && (err as any).code === '23505') {
+        throw new ConflictException('Username already exists');
+      }
+      throw err;
+    }
+
+    const updated = await this.findById(id);
+    if (!updated) {
+      throw new ConflictException('User not found after username update');
+    }
+    return updated;
   }
 
   async create(
@@ -54,6 +83,7 @@ export class UsersService {
       passwordHash,
       oauthProvider: OAuthProvider.LOCAL,
       oauthId: null,
+      usernamePending: false,
     });
     try {
       const saved = await this.usersRepository.save(user);
@@ -80,11 +110,12 @@ export class UsersService {
     }
 
     const user = this.usersRepository.create({
-      username: profile.username,
+      username: await this.generateTemporaryUsername(profile.displayName, profile.email),
       email: profile.email,
       oauthId: profile.oauthId,
       oauthProvider: profile.oauthProvider,
       passwordHash: null,
+      usernamePending: true,
     });
 
     try {
@@ -95,5 +126,28 @@ export class UsersService {
       }
       throw err;
     }
+  }
+
+  private async generateTemporaryUsername(
+    displayName: string | undefined,
+    email: string,
+  ): Promise<string> {
+    const preferredBase = this.usernameBase(displayName) || this.usernameBase(email.split('@')[0]);
+    const base = preferredBase || 'user';
+    const suffix = randomUUID().replace(/-/g, '').slice(0, 12);
+    const maxBaseLength = 20 - suffix.length - 1;
+    const trimmedBase = base.slice(0, Math.max(maxBaseLength, 3)) || 'user';
+    return `${trimmedBase}_${suffix}`;
+  }
+
+  private usernameBase(value: string | undefined): string {
+    return (value ?? '')
+      .normalize('NFKD')
+      .replace(/[^\x00-\x7F]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .replace(/_+/g, '_')
+      .slice(0, 20);
   }
 }

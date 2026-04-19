@@ -9,17 +9,17 @@ import { LoginDto } from '../dto/login.dto';
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
   constructor(private readonly authService: AuthService) {
-    super();
+    super({ usernameField: 'identifier' });
   }
 
-  async validate(username: string, password: string) {
-    const dto = plainToInstance(LoginDto, { username, password });
+  async validate(identifier: string, password: string) {
+    const dto = plainToInstance(LoginDto, { identifier, password });
     const errors = await validate(dto);
     if (errors.length > 0) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const user = await this.authService.validateUser(username, password);
+    const user = await this.authService.validateUser(identifier, password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }

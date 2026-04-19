@@ -18,6 +18,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { OAuthExchangeDto } from './dto/oauth-exchange.dto';
 import { RegisterDto } from './dto/register.dto';
+import { UpdateUsernameDto } from './dto/update-username.dto';
 import {
     GoogleAuthGuard,
     GoogleCallbackGuard,
@@ -103,5 +104,16 @@ export class AuthController {
     @ApiResponse({ status: 403, description: 'Current password is incorrect' })
     changePassword(@Request() req, @Body() dto: ChangePasswordDto) {
         return this.authService.changePassword(req.user.id, dto);
+    }
+
+    @Patch('username')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Finalize or update authenticated username' })
+    @ApiResponse({ status: 200, description: 'Username updated' })
+    @ApiResponse({ status: 409, description: 'Username already exists' })
+    updateUsername(@Request() req, @Body() dto: UpdateUsernameDto) {
+        return this.authService.updateUsername(req.user.id, dto.username);
     }
 }

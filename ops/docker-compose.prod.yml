@@ -6,14 +6,15 @@ services:
       dockerfile: Dockerfile
     container_name: transcendence-frontend-prod
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     environment:
       - NODE_ENV=production
+      - PORT=${FRONTEND_PORT}
     restart: always
     networks:
       - transcendence-network
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:' + process.env.PORT, (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -26,10 +27,11 @@ services:
       dockerfile: Dockerfile
     container_name: transcendence-backend-prod
     ports:
-      - "4000:4000"
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
     environment:
       - NODE_ENV=production
-      - PORT=4000
+      - PORT=${BACKEND_PORT}
+      - JWT_SECRET=${JWT_SECRET}
     restart: always
     networks:
       - transcendence-network
@@ -37,7 +39,7 @@ services:
       database:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:4000/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:${BACKEND_PORT}/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -50,17 +52,22 @@ services:
       dockerfile: Dockerfile
     container_name: transcendence-auth-prod
     ports:
-      - "4001:4001"
+      - "${AUTH_PORT}:${AUTH_PORT}"
     environment:
       - NODE_ENV=production
-      - PORT=4001
+      - PORT=${AUTH_PORT}
       - JWT_SECRET=${JWT_SECRET}
-      - JWT_EXPIRES_IN=1h
-      - DB_HOST=database
-      - DB_PORT=5432
-      - DB_USER=transcendence
-      - DB_PASSWORD=${DATABASE_PASSWORD:-transcendence_prod}
-      - DB_NAME=transcendence_prod
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}
+      - GOOGLE_TEST_CALLBACK_URL=${GOOGLE_TEST_CALLBACK_URL}
+      - FRONTEND_OAUTH_SUCCESS_URL=${FRONTEND_OAUTH_SUCCESS_URL}
     restart: always
     networks:
       - transcendence-network
@@ -68,7 +75,7 @@ services:
       database:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:4001/auth/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:${AUTH_PORT}/auth/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -79,18 +86,18 @@ services:
     image: postgres:16-alpine
     container_name: transcendence-db-prod
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:${DB_PORT}"
     environment:
-      - POSTGRES_USER=transcendence
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-transcendence_prod}
-      - POSTGRES_DB=transcendence_prod
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres-data-prod:/var/lib/postgresql/data
     restart: always
     networks:
       - transcendence-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U transcendence"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5

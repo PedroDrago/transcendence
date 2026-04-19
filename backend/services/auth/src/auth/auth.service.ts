@@ -5,6 +5,15 @@ import { UsersService } from '../users/users.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { RegisterDto } from './dto/register.dto';
 
+type JwtUserPayload = {
+  id: string;
+  username: string;
+  email: string;
+  createdAt: Date;
+  updatedAt: Date;
+  usernamePending: boolean;
+};
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -12,8 +21,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async validateUser(username: string, password: string) {
-    const user = await this.usersService.findByUsername(username);
+  async validateUser(identifier: string, password: string) {
+    const user = await this.usersService.findByUsernameOrEmail(identifier);
     if (!user || !user.passwordHash) return null;
 
     const match = await bcrypt.compare(password, user.passwordHash);
@@ -29,9 +38,39 @@ export class AuthService {
     return { message: 'registered', user };
   }
 
-  login(user: { id: string; username: string }) {
-    const payload = { sub: user.id, username: user.username };
+  login(user: JwtUserPayload) {
+    const payload = {
+      sub: user.id,
+      username: user.username,
+      email: user.email,
+      createdAt: user.createdAt.toISOString(),
+      updatedAt: user.updatedAt.toISOString(),
+      usernamePending: user.usernamePending,
+    };
     return { access_token: this.jwtService.sign(payload) };
+  }
+
+  async updateUsername(userId: string, username: string) {
+    const user = await this.usersService.updateUsername(userId, username);
+    return {
+      message: 'username updated',
+      access_token: this.jwtService.sign({
+        sub: user.id,
+        username: user.username,
+        email: user.email,
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString(),
+        usernamePending: user.usernamePending,
+      }),
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        usernamePending: user.usernamePending,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    };
   }
 
   async changePassword(userId: string, dto: ChangePasswordDto): Promise<void> {

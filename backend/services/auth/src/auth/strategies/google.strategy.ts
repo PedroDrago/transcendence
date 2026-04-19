@@ -32,7 +32,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         oauthId: profile.id,
         oauthProvider: OAuthProvider.GOOGLE,
         email,
-        username: this.oauthUsername(OAuthProvider.GOOGLE, profile.id),
+        displayName: profile.displayName,
       });
     } catch (err) {
       if (err instanceof ConflictException) {
@@ -40,9 +40,5 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       }
       throw err;
     }
-  }
-
-  private oauthUsername(provider: OAuthProvider, oauthId: string): string {
-    return `${provider}_${oauthId}`.slice(0, 100);
   }
 }

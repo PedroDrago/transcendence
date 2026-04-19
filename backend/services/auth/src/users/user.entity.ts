@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 export enum OAuthProvider {
@@ -19,7 +20,7 @@ export class User {
   @Column({ length: 100, unique: true })
   username: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   passwordHash: string | null;
 
   @Column({ length: 255, unique: true })
@@ -28,9 +29,15 @@ export class User {
   @Column({ type: 'enum', enum: OAuthProvider, default: OAuthProvider.LOCAL })
   oauthProvider: OAuthProvider;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   oauthId: string | null;
+
+  @Column({ default: false })
+  usernamePending: boolean;
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
