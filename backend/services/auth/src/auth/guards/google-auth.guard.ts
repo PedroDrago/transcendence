@@ -25,6 +25,7 @@ abstract class BaseGoogleStartGuard extends AuthGuard('google') {
     const stateCookie = createOAuthStateCookie(
       this.config.getOrThrow<string>('JWT_SECRET'),
     );
+    const isSecureCookie = this.config.get<string>('NODE_ENV') === 'production';
 
     request.oauthState = stateCookie.state;
     response.cookie(OAUTH_STATE_COOKIE, stateCookie.value, {
@@ -32,7 +33,7 @@ abstract class BaseGoogleStartGuard extends AuthGuard('google') {
       maxAge: 5 * 60 * 1000,
       path: '/auth/google',
       sameSite: 'lax',
-      secure: false,
+      secure: isSecureCookie,
     });
 
     return (await super.canActivate(context)) as boolean;
@@ -61,6 +62,7 @@ abstract class BaseGoogleCallbackGuard extends AuthGuard('google') {
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
+    const isSecureCookie = this.config.get<string>('NODE_ENV') === 'production';
     const cookieValue = readCookie(request.headers.cookie, OAUTH_STATE_COOKIE);
     const isValidState = verifyOAuthStateCookie(
       cookieValue,
@@ -68,7 +70,11 @@ abstract class BaseGoogleCallbackGuard extends AuthGuard('google') {
       this.config.getOrThrow<string>('JWT_SECRET'),
     );
 
-    response.clearCookie(OAUTH_STATE_COOKIE, { path: '/auth/google' });
+    response.clearCookie(OAUTH_STATE_COOKIE, {
+      path: '/auth/google',
+      sameSite: 'lax',
+      secure: isSecureCookie,
+    });
 
     if (!isValidState) {
       throw new UnauthorizedException('Invalid OAuth state');

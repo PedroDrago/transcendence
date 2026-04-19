@@ -40,6 +40,7 @@ export class AuthService {
 
   login(user: JwtUserPayload) {
     const payload = {
+      typ: 'access',
       sub: user.id,
       username: user.username,
       email: user.email,
@@ -55,6 +56,7 @@ export class AuthService {
     return {
       message: 'username updated',
       access_token: this.jwtService.sign({
+        typ: 'access',
         sub: user.id,
         username: user.username,
         email: user.email,

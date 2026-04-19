@@ -1,4 +1,9 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'crypto';
 import { QueryFailedError, Repository } from 'typeorm';
@@ -37,17 +42,30 @@ export class UsersService {
   }
 
   async updatePassword(id: string, passwordHash: string): Promise<void> {
-    await this.usersRepository.update(id, { passwordHash });
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.passwordHash = passwordHash;
+    await this.usersRepository.save(user);
   }
 
   async updateUsername(id: string, username: string): Promise<User> {
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     const existing = await this.findByUsername(username);
     if (existing && existing.id !== id) {
       throw new ConflictException('Username already exists');
     }
 
     try {
-      await this.usersRepository.update(id, { username, usernamePending: false });
+      user.username = username;
+      user.usernamePending = false;
+      await this.usersRepository.save(user);
     } catch (err) {
       if (err instanceof QueryFailedError && (err as any).code === '23505') {
         throw new ConflictException('Username already exists');
@@ -57,7 +75,7 @@ export class UsersService {
 
     const updated = await this.findById(id);
     if (!updated) {
-      throw new ConflictException('User not found after username update');
+      throw new InternalServerErrorException('User not found after username update');
     }
     return updated;
   }

@@ -248,6 +248,7 @@ describe('Auth (e2e)', () => {
 
       userId = created.id;
       token = jwtService.sign({
+        typ: 'access',
         sub: created.id,
         username: created.username,
         email: created.email,
