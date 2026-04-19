@@ -1,4 +1,4 @@
-# Project Context
+# AGENTS.md
 
 - This project is a social network.
 - It is not a game project.
