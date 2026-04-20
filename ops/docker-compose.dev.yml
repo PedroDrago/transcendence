@@ -5,13 +5,14 @@ services:
     container_name: transcendence-frontend-dev
     working_dir: /app
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     volumes:
       - ../frontend:/app
-      - frontend-node-modules:/app/node_modules
+      - /app/node_modules
     environment:
       - NODE_ENV=development
-    command: sh -c "[ -x node_modules/.bin/next ] || npm ci --include=dev; npm run dev"
+      - PORT=${FRONTEND_PORT}
+    command: sh -c "npm install && npm run dev"
     restart: unless-stopped
     networks:
       - transcendence-network
@@ -22,14 +23,15 @@ services:
     container_name: transcendence-backend-dev
     working_dir: /app
     ports:
-      - "4000:4000"
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
     volumes:
       - ../backend/api/transcendence-api-gateway:/app
-      - backend-node-modules:/app/node_modules
+      - /app/node_modules
     environment:
       - NODE_ENV=development
-      - PORT=4000
-    command: sh -c "[ -x node_modules/.bin/nest ] || npm ci --include=dev; npm run start:dev"
+      - PORT=${BACKEND_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+    command: sh -c "npm install && npm run start:dev"
     restart: unless-stopped
     networks:
       - transcendence-network
@@ -42,27 +44,32 @@ services:
     container_name: transcendence-auth-dev
     working_dir: /app
     ports:
-      - "4001:4001"
+      - "${AUTH_PORT}:${AUTH_PORT}"
     volumes:
       - ../backend/services/auth:/app
-      - auth-node-modules:/app/node_modules
+      - /app/node_modules
     environment:
       - NODE_ENV=development
-      - PORT=4001
-      - JWT_SECRET=${JWT_SECRET:-dev_secret_change_me}
-      - JWT_EXPIRES_IN=1h
-      - DB_HOST=database
+      - PORT=${AUTH_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+      - FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
+      - DB_HOST=${DB_HOST}
       - DB_PORT=5432
-      - DB_USER=transcendence
-      - DB_PASSWORD=transcendence_dev
-      - DB_NAME=transcendence_dev
-    command: sh -c "[ -x node_modules/.bin/nest ] || npm ci --include=dev; npm run start:dev"
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_NAME=${POSTGRES_DB}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}
+      - GOOGLE_TEST_CALLBACK_URL=${GOOGLE_TEST_CALLBACK_URL}
+      - FRONTEND_OAUTH_SUCCESS_URL=${FRONTEND_OAUTH_SUCCESS_URL}
+    command: sh -c "npm install && npm run start:dev"
     restart: unless-stopped
     networks:
       - transcendence-network
     depends_on:
-      database:
-        condition: service_healthy
+      - database
 
   # Chat Service - Phoenix/Elixir
   chat-service:
@@ -71,25 +78,25 @@ services:
       dockerfile: Dockerfile.dev
     container_name: transcendence-chat-dev
     ports:
-      - "4002:4002"
+      - "${CHAT_PORT:-4002}:${CHAT_PORT:-4002}"
     volumes:
       - ../backend/services/chat:/app
       - /app/deps
       - /app/_build
     environment:
       - MIX_ENV=dev
-      - PORT=4002
+      - PORT=${CHAT_PORT:-4002}
       - PHX_IP=0.0.0.0
       - PHX_SERVER=true
-      - DB_HOST=database
+      - DB_HOST=${DB_HOST}
       - DB_PORT=5432
-      - DB_USER=transcendence
-      - DB_PASSWORD=transcendence_dev
-      - DB_NAME=transcendence_dev
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_NAME=${POSTGRES_DB}
     command: sh -c "mix deps.get && mix deps.compile && mix ecto.create && mix ecto.migrate && mix phx.server"
     depends_on:
       database:
-        condition: service_healthy    
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - transcendence-network
@@ -99,18 +106,18 @@ services:
     image: postgres:16-alpine
     container_name: transcendence-db-dev
     ports:
-      - "5432:5432"
+      - "${DB_HOST_PORT}:5432"
     environment:
-      - POSTGRES_USER=transcendence
-      - POSTGRES_PASSWORD=transcendence_dev
-      - POSTGRES_DB=transcendence_dev
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres-data-dev:/var/lib/postgresql/data
     restart: unless-stopped
     networks:
       - transcendence-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U transcendence -d transcendence_dev"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -121,6 +128,3 @@ networks:
 
 volumes:
   postgres-data-dev:
-  frontend-node-modules:
-  backend-node-modules:
-  auth-node-modules:
