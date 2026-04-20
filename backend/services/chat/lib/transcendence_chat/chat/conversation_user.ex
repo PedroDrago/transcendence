@@ -4,6 +4,8 @@ defmodule TranscendenceChat.Chat.ConversationUser do
 
   @schema_prefix "chat"
   schema "conversation_users" do
+    field :role, :string, default: "member"
+
     belongs_to :conversation, TranscendenceChat.Chat.Conversation
     belongs_to :user, TranscendenceChat.Chat.User, type: :binary_id
 
@@ -13,7 +15,8 @@ defmodule TranscendenceChat.Chat.ConversationUser do
   @doc false
   def changeset(conversation_user, attrs) do
     conversation_user
-    |> cast(attrs, [:conversation_id, :user_id])
+    |> cast(attrs, [:conversation_id, :user_id, :role])
     |> validate_required([:conversation_id, :user_id])
+    |> validate_inclusion(:role, ["member", "admin"])
   end
 end

@@ -27,6 +27,16 @@ defmodule TranscendenceChatWeb.Router do
     post "/conversation", LoginController, :create_conversation
     get "/conversations", LoginController, :list_conversations
     get "/messages", LoginController, :list_messages
+
+    # Group management
+    post "/group", GroupController, :create
+    post "/group/:id/members", GroupController, :add_member
+    delete "/group/:id/members/:user_id", GroupController, :remove_member
+    patch "/group/:id", GroupController, :update
+
+    # Online status
+    get "/users/online", StatusController, :online
+    get "/users/:user_id/last_seen", StatusController, :last_seen
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

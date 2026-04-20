@@ -23,15 +23,37 @@ defmodule TranscendenceChat.ChatFixtures do
   end
 
   @doc """
-  Generate a conversation.
+  Generate a direct conversation between two users.
   """
   def conversation_fixture(attrs \\ %{}) do
+    type = Map.get(attrs, :type, "direct")
+
     {:ok, conversation} =
-      attrs
-      |> Enum.into(%{})
-      |> TranscendenceChat.Chat.create_conversation()
+      TranscendenceChat.Chat.create_conversation(%{
+        type: type,
+        name: Map.get(attrs, :name),
+        created_by: Map.get(attrs, :created_by)
+      })
 
     conversation
+  end
+
+  @doc """
+  Generate a group conversation with a creator and members.
+  """
+  def group_conversation_fixture(attrs \\ %{}) do
+    creator = Map.get_lazy(attrs, :creator, fn -> user_fixture() end)
+    members = Map.get(attrs, :members, [user_fixture(), user_fixture()])
+    name = Map.get(attrs, :name, "Test Group")
+
+    {:ok, conversation} =
+      TranscendenceChat.Chat.create_group_conversation(
+        creator.id,
+        name,
+        Enum.map(members, & &1.id)
+      )
+
+    %{conversation: conversation, creator: creator, members: members}
   end
 
   @doc """

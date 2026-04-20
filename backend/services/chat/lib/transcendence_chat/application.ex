@@ -14,9 +14,7 @@ defmodule TranscendenceChat.Application do
        repos: Application.fetch_env!(:transcendence_chat, :ecto_repos), skip: skip_migrations?()},
       {DNSCluster, query: Application.get_env(:transcendence_chat, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: TranscendenceChat.PubSub},
-      # Start a worker by calling: TranscendenceChat.Worker.start_link(arg)
-      # {TranscendenceChat.Worker, arg},
-      # Start to serve requests, typically the last entry
+      TranscendenceChatWeb.Presence,
       TranscendenceChatWeb.Endpoint
     ]
 
