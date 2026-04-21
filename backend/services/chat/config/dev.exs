@@ -23,7 +23,7 @@ config :transcendence_chat, TranscendenceChatWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "xfTFh2r+G/70oGbV44I7S+LPRFKxfILx3HuLGD+AcpN1Nm8L1P/BOqIPmM93U1pj",
+  secret_key_base: System.get_env("DEV_SECRET_KEY_BASE", "dev_secret_change_me"),
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:transcendence_chat, ~w(--sourcemap=inline --watch)]},
     tailwind: {Tailwind, :install_and_run, [:transcendence_chat, ~w(--watch)]}
