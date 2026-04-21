@@ -7,16 +7,13 @@ services:
     container_name: transcendence-frontend-prod
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
-      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     environment:
       - NODE_ENV=production
-      - PORT=${FRONTEND_PORT}
       - PORT=${FRONTEND_PORT}
     restart: always
     networks:
       - transcendence-network
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:' + process.env.PORT + '/login', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:' + process.env.PORT + '/login', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
       interval: 30s
       timeout: 10s
@@ -31,11 +28,8 @@ services:
     container_name: transcendence-backend-prod
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
-      - "${BACKEND_PORT}:${BACKEND_PORT}"
     environment:
       - NODE_ENV=production
-      - PORT=${BACKEND_PORT}
-      - JWT_SECRET=${JWT_SECRET}
       - PORT=${BACKEND_PORT}
       - JWT_SECRET=${JWT_SECRET}
     restart: always
@@ -45,7 +39,6 @@ services:
       database:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:${BACKEND_PORT}/health"]
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:${BACKEND_PORT}/health"]
       interval: 30s
       timeout: 10s
@@ -60,17 +53,13 @@ services:
     container_name: transcendence-auth-prod
     ports:
       - "${AUTH_PORT}:${AUTH_PORT}"
-      - "${AUTH_PORT}:${AUTH_PORT}"
     environment:
       - NODE_ENV=production
-      - PORT=${AUTH_PORT}
       - PORT=${AUTH_PORT}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
       - FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
-      - DB_HOST=${DB_HOST}
-      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
-      - FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
       - DB_HOST=${DB_HOST}
       - DB_PORT=5432
       - DB_USER=${POSTGRES_USER}
@@ -112,14 +101,6 @@ services:
       - DB_USER=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
       - DB_NAME=${POSTGRES_DB}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}
-      - GOOGLE_TEST_CALLBACK_URL=${GOOGLE_TEST_CALLBACK_URL}
-      - FRONTEND_OAUTH_SUCCESS_URL=${FRONTEND_OAUTH_SUCCESS_URL}
-      - DB_USER=${POSTGRES_USER}
-      - DB_PASSWORD=${POSTGRES_PASSWORD}
-      - DB_NAME=${POSTGRES_DB}
     restart: always
     networks:
       - transcendence-network
@@ -127,7 +108,6 @@ services:
       database:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:${AUTH_PORT}/health"]
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:${CHAT_PORT:-4002}/health"]
       interval: 30s
       timeout: 10s
@@ -140,11 +120,7 @@ services:
     container_name: transcendence-db-prod
     ports:
       - "${DB_HOST_PORT}:5432"
-      - "${DB_HOST_PORT}:5432"
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
@@ -154,7 +130,6 @@ services:
     networks:
       - transcendence-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s

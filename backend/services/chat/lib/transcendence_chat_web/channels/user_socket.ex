@@ -6,14 +6,13 @@ defmodule TranscendenceChatWeb.UserSocket do
   channel "chat:*", TranscendenceChatWeb.ChatChannel
   channel "user:*", TranscendenceChatWeb.UserChannel
 
-  # O cliente precisa passar `token=<jwt>` como query-param ao conectar
-  # no socket (ex.: new Phoenix.Socket("/socket", { params: { token } }).
-  # Validamos o JWT e colocamos o user_id em socket.assigns — o valor
-  # enviado antes pelo cliente não é mais confiável.
+  # O cliente passa `token=<jwt>` como query-param ao conectar no socket.
+  # A validação de assinatura/exp é feita pelo gateway; aqui apenas lemos
+  # os claims para extrair `user_id` e `username`.
   @impl true
   def connect(%{"token" => token}, socket, _connect_info) when is_binary(token) do
-    case JWT.verify(token) do
-      {:ok, %{"sub" => user_id} = claims} when is_binary(user_id) ->
+    case JWT.peek(token) do
+      {:ok, %{"sub" => user_id} = claims} when is_binary(user_id) and user_id != "" ->
         socket =
           socket
           |> assign(:user_id, user_id)

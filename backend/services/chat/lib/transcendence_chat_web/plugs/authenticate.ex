@@ -1,10 +1,11 @@
 defmodule TranscendenceChatWeb.Plugs.Authenticate do
   @moduledoc """
-  Plug que exige um header `Authorization: Bearer <token>` válido.
+  Plug que lê o JWT do header `Authorization: Bearer <token>` e popula
+  `conn.assigns.current_user` com `%{id: ..., username: ...}`.
 
-  Valida o JWT via `TranscendenceChatWeb.JWT` e, em caso de sucesso,
-  popula `conn.assigns.current_user` com `%{id: ..., username: ...}`.
-  Em qualquer falha responde `401` e faz `halt`.
+  **Não valida** assinatura nem expiração do token — isso é feito pelo
+  API gateway antes da request chegar aqui. Este plug só rejeita se o
+  token estiver ausente/malformado ou sem o claim `sub`.
   """
 
   import Plug.Conn
@@ -15,10 +16,11 @@ defmodule TranscendenceChatWeb.Plugs.Authenticate do
 
   def call(conn, _opts) do
     with {:ok, token} <- fetch_token(conn),
-         {:ok, claims} <- JWT.verify(token) do
+         {:ok, claims} <- JWT.peek(token),
+         %{"sub" => sub} when is_binary(sub) and sub != "" <- claims do
       user = %{
-        id: claims["sub"],
-        username: claims["username"],
+        id: sub,
+        username: Map.get(claims, "username"),
         email: Map.get(claims, "email")
       }
 

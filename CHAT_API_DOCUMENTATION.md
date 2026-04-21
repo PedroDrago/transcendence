@@ -1,5 +1,21 @@
 # TranscendenceChat - API Documentation
 
+## Autenticacao
+
+Todas as rotas `/api/*` e a conexao WebSocket esperam um **JWT** emitido pelo Auth Service.
+
+- **REST**: header `Authorization: Bearer <access_token>`
+- **WebSocket**: query-param `token=<access_token>`
+
+> **Importante**: o chat **nao valida** assinatura nem expiracao do token — essa validacao e responsabilidade do API gateway, que fica a frente do chat. O chat apenas decodifica o payload para extrair `sub` (user_id UUID) e `username`. Nunca expor o chat diretamente para a internet sem o gateway.
+
+Claims lidos: `sub` (user_id UUID) e `username`. Outros claims sao ignorados.
+
+Respostas em caso de token ausente/malformado (ou sem `sub`):
+- REST: `401 { "error": "unauthorized" }`
+- Socket: `connect` retorna `:error` e a conexao e recusada
+
+O `user_id` **nunca** vem do body/query do cliente — e sempre extraido do JWT (`conn.assigns.current_user.id` no backend).
 
 ### REST API
 
@@ -7,44 +23,13 @@ Todos os endpoints retornam JSON. Os endpoints POST/PATCH recebem JSON no body (
 
 ---
 
-### POST `/api/login`
-
-Busca um usuario existente pelo username. **Nao cria usuarios** — o cadastro e feito pelo Auth Service.
-
-**Request:**
-```json
-{
-  "username": "joao"
-}
-```
-
-**Response (200):**
-```json
-{
-  "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-}
-```
-
-**Response (404):**
-```json
-{
-  "error": "User not found"
-}
-```
-
-- Endpoint opcional — se voce ja tem o `user_id` do JWT do Auth Service, pode usar direto
-- Util para buscar o UUID de um usuario pelo username
-
----
-
 ### POST `/api/conversation`
 
-Cria ou recupera uma conversa direta (1-a-1) entre dois usuarios.
+Cria ou recupera uma conversa direta (1-a-1) entre o usuario autenticado e outro usuario.
 
 **Request:**
 ```json
 {
-  "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "recipient_name": "maria"
 }
 ```
@@ -72,9 +57,9 @@ Cria ou recupera uma conversa direta (1-a-1) entre dois usuarios.
 
 ---
 
-### GET `/api/conversations?user_id={uuid}`
+### GET `/api/conversations`
 
-Lista todas as conversas do usuario (diretas e grupos), com a ultima mensagem de cada.
+Lista todas as conversas do usuario autenticado (diretas e grupos), com a ultima mensagem de cada.
 
 **Response (200):**
 ```json
@@ -125,7 +110,7 @@ Lista todas as conversas do usuario (diretas e grupos), com a ultima mensagem de
 
 ### GET `/api/messages?conversation_id={id}`
 
-Retorna todas as mensagens de uma conversa em ordem cronologica.
+Retorna todas as mensagens de uma conversa em ordem cronologica. O backend valida que o usuario autenticado pertence a conversa.
 
 **Response (200):**
 ```json
@@ -145,6 +130,11 @@ Retorna todas as mensagens de uma conversa em ordem cronologica.
 }
 ```
 
+**Response (403) — usuario nao pertence a conversa:**
+```json
+{ "error": "forbidden" }
+```
+
 - Ordenadas da mais antiga para a mais recente
 - `user_id` (UUID) indica quem enviou — compare com o seu `user_id` para distinguir mensagens enviadas/recebidas
 
@@ -154,12 +144,11 @@ Retorna todas as mensagens de uma conversa em ordem cronologica.
 
 ### POST `/api/group`
 
-Cria uma conversa de grupo. O criador se torna admin automaticamente.
+Cria uma conversa de grupo. O usuario autenticado se torna admin automaticamente.
 
 **Request:**
 ```json
 {
-  "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "name": "Projeto Transcendence",
   "member_ids": [
     "b2c3d4e5-f6a7-8901-bcde-f12345678901",
@@ -176,9 +165,8 @@ Cria uma conversa de grupo. O criador se torna admin automaticamente.
 }
 ```
 
-- `user_id` e o criador do grupo (vira admin)
-- `member_ids` sao os outros participantes (entram como member)
-- O criador nao precisa estar em `member_ids`
+- O criador (usuario autenticado) vira admin; nao precisa estar em `member_ids`
+- `member_ids` sao os outros participantes (entram como `member`)
 
 ---
 
@@ -189,13 +177,12 @@ Adiciona um membro ao grupo. Apenas admins podem executar.
 **Request:**
 ```json
 {
-  "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "new_member_id": "d4e5f6a7-b8c9-0123-def0-234567890123"
 }
 ```
 
-- `user_id` e quem esta fazendo a acao (deve ser admin)
 - `new_member_id` e quem sera adicionado
+- O requisitante e o usuario autenticado (precisa ser admin do grupo)
 
 **Response (200):** `{ "ok": true }`
 
@@ -205,12 +192,12 @@ Adiciona um membro ao grupo. Apenas admins podem executar.
 
 ---
 
-### DELETE `/api/group/:id/members/:user_id?requester_id={uuid}`
+### DELETE `/api/group/:id/members/:user_id`
 
 Remove um membro do grupo. Apenas admins podem executar.
 
 - `:user_id` no path e o membro a ser removido
-- `requester_id` no query param e quem esta fazendo a acao (deve ser admin)
+- O requisitante e o usuario autenticado (precisa ser admin do grupo)
 
 **Response (200):** `{ "ok": true }`
 
@@ -226,12 +213,9 @@ Atualiza o nome do grupo. Apenas admins podem executar.
 **Request:**
 ```json
 {
-  "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "name": "Novo Nome do Grupo"
 }
 ```
-
-- `user_id` e quem esta fazendo a acao (deve ser admin)
 
 **Response (200):** `{ "ok": true, "name": "Novo Nome do Grupo" }`
 
@@ -291,19 +275,20 @@ A comunicacao em tempo real usa Phoenix Channels sobre WebSocket.
 ### Conexao
 
 ```
-ws://localhost:4002/socket?user_id={user_id_uuid}
+ws://localhost:4002/socket?token={access_token}
 ```
 
 ```javascript
 import { Socket } from "phoenix";
 
 const socket = new Socket("ws://localhost:4002/socket", {
-  params: { user_id: userId }  // UUID string
+  params: { token: accessToken }  // JWT emitido pelo auth-service
 });
 socket.connect();
 ```
 
-O `user_id` (UUID) passado na conexao identifica o usuario em todos os channels.
+- O JWT e validado no `connect`; se invalido/expirado, a conexao e recusada
+- O `user_id` e extraido do claim `sub` do token — o cliente nao informa mais o `user_id`
 
 ---
 
@@ -319,8 +304,8 @@ const userChannel = socket.channel(`user:${userId}`);
 userChannel.join();
 ```
 
-- So o proprio usuario pode entrar no seu channel (valida `user_id` do socket)
-- `userId` e o UUID — ex: `user:a1b2c3d4-e5f6-7890-abcd-ef1234567890`
+- So o proprio usuario pode entrar no seu channel (valida `user_id` do socket contra o topico)
+- `userId` e o UUID extraido do JWT — ex: `user:a1b2c3d4-e5f6-7890-abcd-ef1234567890`
 - Entre neste channel logo apos conectar ao socket
 
 #### Evento recebido: `new_conversation_message`
@@ -403,7 +388,7 @@ chatChannel.join()
   // err = { "reason": "unauthorized" } se o usuario nao pertence a conversa
 ```
 
-- O backend valida que o `user_id` do socket e participante da conversa
+- O backend valida que o `user_id` do socket (vindo do JWT) e participante da conversa
 - Se nao for, o join retorna `{ "reason": "unauthorized" }`
 - `conversationId` e um **integer** (diferente de `user_id`)
 - Funciona tanto para conversas diretas quanto para grupos
@@ -594,37 +579,25 @@ chatChannel.on("group_updated", (payload) => {
 ```javascript
 import { Socket } from "phoenix";
 
-// 1. Cadastrar (uma vez)
-await fetch("http://localhost:4001/auth/register", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ username: "joao", password: "minhasenha123" })
-});
+// 1. Obter JWT do auth-service (fora do escopo deste doc)
+const accessToken = /* ... access_token retornado pelo login no auth ... */;
 
-// 2. Login — obter JWT
-const loginRes = await fetch("http://localhost:4001/auth/login", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ username: "joao", password: "minhasenha123" })
-});
-const { access_token } = await loginRes.json();
-
-// 3. Extrair user_id do JWT
-const claims = JSON.parse(atob(access_token.split(".")[1]));
+// 2. Extrair user_id do JWT (claim "sub")
+const claims = JSON.parse(atob(accessToken.split(".")[1]));
 const userId = claims.sub;       // UUID
 const username = claims.username;
 
-// 4. Conectar WebSocket ao Chat Service
+// 3. Conectar WebSocket ao Chat Service (token como query-param)
 const socket = new Socket("ws://localhost:4002/socket", {
-  params: { user_id: userId }
+  params: { token: accessToken }
 });
 socket.connect();
 
-// 5. Entrar no user channel (notificacoes + presenca)
+// 4. Entrar no user channel (notificacoes + presenca)
 const userChannel = socket.channel(`user:${userId}`);
 userChannel.join();
 
-// 5a. Inicializar lista de users online
+// 4a. Inicializar lista de users online
 let onlineUsers = new Set();
 
 userChannel.on("presence_state", (state) => {
@@ -636,7 +609,7 @@ userChannel.on("presence_diff", (diff) => {
   Object.keys(diff.leaves).forEach(uid => onlineUsers.delete(uid));
 });
 
-// 5b. Ouvir notificacoes de mensagens
+// 4b. Ouvir notificacoes de mensagens
 userChannel.on("new_conversation_message", (msg) => {
   // Ignorar se ja estamos no chat channel dessa conversa
   if (chatChannelsJoined.has(msg.conversation_id)) return;
@@ -645,11 +618,19 @@ userChannel.on("new_conversation_message", (msg) => {
   console.log(`${msg.sender_name}: ${msg.body}`);
 });
 
-// 6. Listar conversas existentes (diretas + grupos)
-const convRes = await fetch(`http://localhost:4002/api/conversations?user_id=${userId}`);
+// Helper: todas as chamadas REST precisam do Authorization
+const authHeaders = {
+  "Content-Type": "application/json",
+  "Authorization": `Bearer ${accessToken}`
+};
+
+// 5. Listar conversas existentes (diretas + grupos)
+const convRes = await fetch("http://localhost:4002/api/conversations", {
+  headers: authHeaders
+});
 const { conversations } = await convRes.json();
 
-// 7. Para cada conversa, fazer join no chat channel
+// 6. Para cada conversa, fazer join no chat channel
 conversations.forEach((conv) => {
   const ch = socket.channel(`chat:${conv.conversation_id}`);
   ch.join();
@@ -664,49 +645,54 @@ conversations.forEach((conv) => {
   ch.on("group_updated", (data) => { /* atualizar nome do grupo */ });
 });
 
-// 8a. Criar conversa direta
+// 7a. Criar conversa direta
 const newConvRes = await fetch("http://localhost:4002/api/conversation", {
   method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ user_id: userId, recipient_name: "maria" })
+  headers: authHeaders,
+  body: JSON.stringify({ recipient_name: "maria" })
 });
 const { conversation_id } = await newConvRes.json();
 
-// 8b. Criar grupo
+// 7b. Criar grupo
 const groupRes = await fetch("http://localhost:4002/api/group", {
   method: "POST",
-  headers: { "Content-Type": "application/json" },
+  headers: authHeaders,
   body: JSON.stringify({
-    user_id: userId,
     name: "Projeto Transcendence",
     member_ids: ["uuid-maria", "uuid-pedro"]
   })
 });
 const { conversation_id: groupId } = await groupRes.json();
 
-// 9. Carregar historico
-const msgsRes = await fetch(`http://localhost:4002/api/messages?conversation_id=${conversation_id}`);
+// 8. Carregar historico
+const msgsRes = await fetch(
+  `http://localhost:4002/api/messages?conversation_id=${conversation_id}`,
+  { headers: authHeaders }
+);
 const { messages } = await msgsRes.json();
 
-// 10. Entrar no chat channel da conversa
+// 9. Entrar no chat channel da conversa
 const chatChannel = socket.channel(`chat:${conversation_id}`);
 chatChannel.join();
 
-// 11. Enviar mensagem
+// 10. Enviar mensagem
 chatChannel.push("message", { body: "Opa, tudo bem?" });
 
-// 12. Indicar digitacao
+// 11. Indicar digitacao
 chatChannel.push("typing", { is_typing: true });
 
-// 13. Confirmar leitura
+// 12. Confirmar leitura
 chatChannel.push("messages_read", {});
 
-// 14. Verificar se user esta online
+// 13. Verificar se user esta online
 const isOnline = onlineUsers.has("uuid-maria");
 
-// 15. Consultar "visto por ultimo" se offline
+// 14. Consultar "visto por ultimo" se offline
 if (!isOnline) {
-  const lastSeenRes = await fetch(`http://localhost:4002/api/users/uuid-maria/last_seen`);
+  const lastSeenRes = await fetch(
+    "http://localhost:4002/api/users/uuid-maria/last_seen",
+    { headers: authHeaders }
+  );
   const { last_seen_at } = await lastSeenRes.json();
 }
 ```
@@ -715,28 +701,27 @@ if (!isOnline) {
 
 ## Tabela de referencia rapida
 
-### Auth Service (porta 4001)
-
-| Metodo | Rota | Body | Response |
-|--------|------|------|----------|
-| POST | `/auth/register` | `{ "username", "password" }` | `{ "message", "user": { "id", "username", "createdAt" } }` |
-| POST | `/auth/login` | `{ "username", "password" }` | `{ "access_token": "JWT..." }` |
-| PATCH | `/auth/password` | `{ "currentPassword", "newPassword" }` | (vazio, 200) |
-
 ### Chat Service — REST (porta 4002)
+
+Todas as rotas exigem `Authorization: Bearer <jwt>`.
 
 | Metodo | Rota | Body / Params | Response |
 |--------|------|---------------|----------|
-| POST | `/api/login` | `{ "username" }` | `{ "user_id": "uuid" }` |
-| POST | `/api/conversation` | `{ "user_id", "recipient_name" }` | `{ "conversation_id", "recipient_id", "recipient_name" }` |
-| GET | `/api/conversations` | `?user_id=uuid` | `{ "conversations": [...] }` |
+| POST | `/api/conversation` | `{ "recipient_name" }` | `{ "conversation_id", "recipient_id", "recipient_name" }` |
+| GET | `/api/conversations` | — | `{ "conversations": [...] }` |
 | GET | `/api/messages` | `?conversation_id=5` | `{ "messages": [...] }` |
-| POST | `/api/group` | `{ "user_id", "name", "member_ids" }` | `{ "conversation_id", "name" }` |
-| POST | `/api/group/:id/members` | `{ "user_id", "new_member_id" }` | `{ "ok": true }` |
-| DELETE | `/api/group/:id/members/:uid` | `?requester_id=uuid` | `{ "ok": true }` |
-| PATCH | `/api/group/:id` | `{ "user_id", "name" }` | `{ "ok": true, "name" }` |
+| POST | `/api/group` | `{ "name", "member_ids" }` | `{ "conversation_id", "name" }` |
+| POST | `/api/group/:id/members` | `{ "new_member_id" }` | `{ "ok": true }` |
+| DELETE | `/api/group/:id/members/:uid` | — | `{ "ok": true }` |
+| PATCH | `/api/group/:id` | `{ "name" }` | `{ "ok": true, "name" }` |
 | GET | `/api/users/online` | — | `{ "online": ["uuid", ...] }` |
 | GET | `/api/users/:uid/last_seen` | — | `{ "last_seen_at": "ISO8601" }` |
+
+### WebSocket — Conexao
+
+| Endpoint | Params | Descricao |
+|----------|--------|-----------|
+| `ws://localhost:4002/socket` | `?token=<jwt>` | JWT obrigatorio; conexao recusada se invalido |
 
 ### WebSocket — Eventos enviados (push)
 
@@ -767,16 +752,15 @@ if (!isOnline) {
 
 ## Checklist de implementacao
 
-### Auth
-- [ ] `POST /auth/register` — cadastrar usuario (username 3-20 chars, password 8-256 chars)
-- [ ] `POST /auth/login` — fazer login e guardar `access_token`
-- [ ] Decodificar JWT para extrair `user_id` (UUID) e `username`
+### Pre-requisito
+- [ ] Obter `access_token` do auth-service (fora deste doc)
+- [ ] Decodificar JWT para extrair `user_id` (claim `sub`) e `username`
 - [ ] Verificar expiracao do token e renovar se necessario
 
 ### Chat — Conversas diretas
-- [ ] Conectar ao WebSocket (`ws://localhost:4002/socket`) com `user_id` (UUID)
+- [ ] Conectar ao WebSocket (`ws://localhost:4002/socket`) com `token=<jwt>`
 - [ ] Entrar no `user:{user_id}` — ouvir `new_conversation_message`
-- [ ] `GET /api/conversations` — listar conversas do usuario
+- [ ] `GET /api/conversations` (com `Authorization: Bearer`) — listar conversas
 - [ ] Entrar no `chat:{id}` de cada conversa existente
 - [ ] `POST /api/conversation` — criar/obter conversa com outro usuario
 - [ ] `GET /api/messages` — carregar historico de mensagens
