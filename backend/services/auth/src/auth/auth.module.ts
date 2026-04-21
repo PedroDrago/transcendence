@@ -5,14 +5,21 @@ import { PassportModule } from '@nestjs/passport';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import {
+  GoogleAuthGuard,
+  GoogleCallbackGuard,
+  GoogleTestAuthGuard,
+  GoogleTestCallbackGuard,
+} from './guards/google-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 
 @Module({
   imports: [
     UsersModule,
-    PassportModule,
+    PassportModule.register({ session: false }),
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
@@ -24,6 +31,16 @@ import { LocalStrategy } from './strategies/local.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, LocalAuthGuard, JwtStrategy],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    LocalAuthGuard,
+    JwtStrategy,
+    GoogleStrategy,
+    GoogleAuthGuard,
+    GoogleCallbackGuard,
+    GoogleTestAuthGuard,
+    GoogleTestCallbackGuard,
+  ],
 })
 export class AuthModule {}
