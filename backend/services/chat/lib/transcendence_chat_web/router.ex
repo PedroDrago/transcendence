@@ -14,16 +14,21 @@ defmodule TranscendenceChatWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :authenticated_api do
+    plug TranscendenceChatWeb.Plugs.Authenticate
+  end
+
   scope "/", TranscendenceChatWeb do
     pipe_through :browser
 
     get "/", PageController, :home
   end
 
+  # Todas as rotas de conversa/mensagem/grupo/status exigem JWT válido.
+  # O user_id nunca vem do cliente — é extraído de `conn.assigns.current_user`.
   scope "/api", TranscendenceChatWeb do
-    pipe_through :api
+    pipe_through [:api, :authenticated_api]
 
-    post "/login", LoginController, :login
     post "/conversation", LoginController, :create_conversation
     get "/conversations", LoginController, :list_conversations
     get "/messages", LoginController, :list_messages

@@ -3,9 +3,15 @@ defmodule TranscendenceChatWeb.GroupController do
 
   alias TranscendenceChat.Chat
 
+  # Todas as actions deste controller rodam após o plug `Authenticate`,
+  # então `conn.assigns.current_user.id` é a única fonte confiável de
+  # identidade. O cliente não envia mais `user_id`/`requester_id`.
+
   # POST /api/group
-  # Body: {"user_id": "creator-uuid", "name": "Group Name", "member_ids": ["uuid1", "uuid2"]}
-  def create(conn, %{"user_id" => creator_id, "name" => name, "member_ids" => member_ids}) do
+  # Body: {"name": "Group Name", "member_ids": ["uuid1", "uuid2"]}
+  def create(conn, %{"name" => name, "member_ids" => member_ids}) do
+    creator_id = conn.assigns.current_user.id
+
     case Chat.create_group_conversation(creator_id, name, member_ids) do
       {:ok, conversation} ->
         conn
@@ -20,9 +26,10 @@ defmodule TranscendenceChatWeb.GroupController do
   end
 
   # POST /api/group/:id/members
-  # Body: {"user_id": "requester-uuid", "new_member_id": "uuid"}
-  def add_member(conn, %{"id" => id, "user_id" => requester_id, "new_member_id" => new_member_id}) do
+  # Body: {"new_member_id": "uuid"}
+  def add_member(conn, %{"id" => id, "new_member_id" => new_member_id}) do
     conversation_id = String.to_integer(id)
+    requester_id = conn.assigns.current_user.id
 
     if Chat.user_is_admin?(requester_id, conversation_id) do
       case Chat.add_group_member(conversation_id, new_member_id) do
@@ -35,9 +42,9 @@ defmodule TranscendenceChatWeb.GroupController do
   end
 
   # DELETE /api/group/:id/members/:user_id
-  # Query param: ?requester_id=uuid
-  def remove_member(conn, %{"id" => id, "user_id" => user_id, "requester_id" => requester_id}) do
+  def remove_member(conn, %{"id" => id, "user_id" => user_id}) do
     conversation_id = String.to_integer(id)
+    requester_id = conn.assigns.current_user.id
 
     if Chat.user_is_admin?(requester_id, conversation_id) do
       Chat.remove_group_member(conversation_id, user_id)
@@ -48,9 +55,10 @@ defmodule TranscendenceChatWeb.GroupController do
   end
 
   # PATCH /api/group/:id
-  # Body: {"user_id": "requester-uuid", "name": "New Name"}
-  def update(conn, %{"id" => id, "user_id" => requester_id, "name" => name}) do
+  # Body: {"name": "New Name"}
+  def update(conn, %{"id" => id, "name" => name}) do
     conversation_id = String.to_integer(id)
+    requester_id = conn.assigns.current_user.id
 
     if Chat.user_is_admin?(requester_id, conversation_id) do
       {:ok, _} = Chat.update_group_name(conversation_id, name)

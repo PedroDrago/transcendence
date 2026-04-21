@@ -627,9 +627,16 @@ function showChatInterface() {
 
 // --- Socket & Channels ---
 
+function authHeaders() {
+  return {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer " + accessToken
+  }
+}
+
 function connectSocket() {
   socket = new Phoenix.Socket("/socket", {
-    params: { user_id: userId }
+    params: { token: accessToken }
   })
   socket.connect()
 
@@ -648,7 +655,9 @@ async function handleNewConversationMessage(data) {
 
   if (channels[convId]) return
 
-  let messagesResp = await fetch("/api/messages?conversation_id=" + convId)
+  let messagesResp = await fetch("/api/messages?conversation_id=" + convId, {
+    headers: authHeaders()
+  })
   let messagesData = await messagesResp.json()
 
   conversations[convId] = {
@@ -663,7 +672,7 @@ async function handleNewConversationMessage(data) {
 }
 
 async function loadUserConversations() {
-  let resp = await fetch("/api/conversations?user_id=" + userId)
+  let resp = await fetch("/api/conversations", { headers: authHeaders() })
   let data = await resp.json()
 
   for (const conv of data.conversations) {
@@ -678,7 +687,10 @@ async function loadUserConversations() {
       }
     }
 
-    let messagesResp = await fetch("/api/messages?conversation_id=" + conv.conversation_id)
+    let messagesResp = await fetch(
+      "/api/messages?conversation_id=" + conv.conversation_id,
+      { headers: authHeaders() }
+    )
     let messagesData = await messagesResp.json()
     conversations[conv.conversation_id].messages = messagesData.messages
 
@@ -963,8 +975,8 @@ async function startNewConversation() {
 
   let resp = await fetch("/api/conversation", {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({user_id: userId, recipient_name: recipient})
+    headers: authHeaders(),
+    body: JSON.stringify({recipient_name: recipient})
   })
   let data = await resp.json()
 

@@ -22,6 +22,27 @@ http_opts =
 
 config :transcendence_chat, TranscendenceChatWeb.Endpoint, http: http_opts
 
+# JWT secret compartilhado com o auth-service (NestJS).
+# Em prod é obrigatório; em dev/test emitimos apenas um aviso pra facilitar
+# o onboarding, mas a validação de tokens vai falhar até a var estar setada.
+case System.get_env("JWT_SECRET") do
+  nil ->
+    if config_env() == :prod do
+      raise """
+      environment variable JWT_SECRET is missing.
+      It must match the JWT_SECRET used by the auth-service.
+      """
+    else
+      IO.warn(
+        "JWT_SECRET not set — chat JWT validation will reject every request. " <>
+          "Export it (same value as the auth-service) before starting the server."
+      )
+    end
+
+  _ ->
+    :ok
+end
+
 # Database configuration from environment variables (used in Docker and production)
 if System.get_env("DB_HOST") do
   config :transcendence_chat, TranscendenceChat.Repo,
