@@ -48,18 +48,20 @@ defmodule TranscendenceChat.Chat do
   # Filtra por type == "direct" pra não confundir com grupos que
   # por acaso tenham os mesmos dois membros.
   def get_or_create_conversation(user1_id, user2_id) do
+    [first_user_id, second_user_id] = Enum.sort([user1_id, user2_id])
+
     query =
       from c in Conversation,
         join: cu1 in ConversationUser, on: cu1.conversation_id == c.id,
         join: cu2 in ConversationUser, on: cu2.conversation_id == c.id,
         where:
           c.type == "direct" and
-          cu1.user_id == ^user1_id and
-          cu2.user_id == ^user2_id,
+          cu1.user_id == ^first_user_id and
+          cu2.user_id == ^second_user_id,
         limit: 1
 
     case Repo.one(query) do
-      nil -> create_conversation_between(user1_id, user2_id)
+      nil -> create_conversation_between(first_user_id, second_user_id)
       conversation -> {:ok, conversation}
     end
   end
