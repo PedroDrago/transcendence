@@ -103,6 +103,35 @@ services:
       timeout: 5s
       retries: 5
 
+  # User Management Service - NestJS
+  user-service:
+    build:
+      context: ../backend/services/user-management
+      dockerfile: Dockerfile
+    container_name: transcendence-user-prod
+    ports:
+      - "${USER_PORT}:${USER_PORT}"
+    environment:
+      - NODE_ENV=production
+      - PORT=${USER_PORT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=5432
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_NAME=${POSTGRES_DB}
+      - JWT_SECRET=${JWT_SECRET}
+    restart: always
+    networks:
+      - transcendence-network
+    depends_on:
+      - database
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:${USER_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
 networks:
   transcendence-network:
     driver: bridge
