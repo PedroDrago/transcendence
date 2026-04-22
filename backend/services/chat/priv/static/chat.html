@@ -401,6 +401,7 @@ body {
     <button class="auth-tab" onclick="switchAuthTab('register')">Cadastro</button>
   </div>
   <input id="auth-username" placeholder="Username" autocomplete="username">
+  <input id="auth-email" placeholder="Email" type="email" autocomplete="email" style="display:none;">
   <input id="auth-password" placeholder="Senha" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter') submitAuth()">
   <button class="auth-submit" onclick="submitAuth()">Entrar</button>
   <div id="auth-error" class="auth-error"></div>
@@ -479,12 +480,15 @@ let authMode = "login"
 function switchAuthTab(mode) {
   authMode = mode
   document.querySelectorAll(".auth-tab").forEach(t => t.classList.remove("active"))
+  let emailField = document.getElementById("auth-email")
   if (mode === "login") {
     document.querySelectorAll(".auth-tab")[0].classList.add("active")
     document.querySelector(".auth-submit").textContent = "Entrar"
+    emailField.style.display = "none"
   } else {
     document.querySelectorAll(".auth-tab")[1].classList.add("active")
     document.querySelector(".auth-submit").textContent = "Cadastrar"
+    emailField.style.display = ""
   }
   document.getElementById("auth-error").textContent = ""
   document.getElementById("auth-success").textContent = ""
@@ -498,6 +502,7 @@ function decodeJwt(token) {
 
 async function submitAuth() {
   let user = document.getElementById("auth-username").value.trim()
+  let email = document.getElementById("auth-email").value.trim()
   let pass = document.getElementById("auth-password").value
 
   document.getElementById("auth-error").textContent = ""
@@ -509,18 +514,22 @@ async function submitAuth() {
   }
 
   if (authMode === "register") {
-    await doRegister(user, pass)
+    if (!email) {
+      document.getElementById("auth-error").textContent = "Preencha o email"
+      return
+    }
+    await doRegister(user, email, pass)
   } else {
     await doLogin(user, pass)
   }
 }
 
-async function doRegister(user, pass) {
+async function doRegister(user, email, pass) {
   try {
     let resp = await fetch(AUTH_URL + "/auth/register", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({username: user, password: pass})
+      body: JSON.stringify({username: user, email: email, password: pass})
     })
     let data = await resp.json()
 
