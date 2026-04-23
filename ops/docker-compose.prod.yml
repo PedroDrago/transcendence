@@ -115,7 +115,7 @@ services:
       - NODE_ENV=production
       - PORT=${USER_PORT}
       - DB_HOST=${DB_HOST}
-      - DB_PORT=5432
+      - DB_PORT=5432 # TODO: change to env var
       - DB_USER=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
       - DB_NAME=${POSTGRES_DB}
