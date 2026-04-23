@@ -3,7 +3,6 @@
 set -e
 
 # Use PORT from environment or fallback to 3000
-APP_PORT=${PORT:-3000}
 DB_HOST_NAME=${DB_HOST:-database}
 DB_PORT_NUM=5432
 
