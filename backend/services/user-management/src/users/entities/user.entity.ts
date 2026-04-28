@@ -1,34 +1,40 @@
-import {
-	Column,
-	CreateDateColumn,
-	Entity,
-	PrimaryGeneratedColumn,
-	UpdateDateColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { IsString, IsNotEmpty, IsOptional, IsUrl, IsDateString } from 'class-validator';
 
-@Entity({ name: 'users' })
+@Entity('profiles')
 export class User {
-	@PrimaryGeneratedColumn('uuid')
-	id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-	@Column({ length: 100, unique: true })
-	username: string;
+  @Column({ unique: true })
+  @IsString()
+  @IsNotEmpty()
+  username: string;
 
-	@Column({ length: 255, unique: true })
-	email: string;
+  @Column({ nullable: true })
+  @IsString()
+  @IsOptional()
+  displayName: string;
 
-	@Column({ type: 'varchar', length: 120, nullable: true })
-	displayName: string | null;
+  @Column({ type: 'text', nullable: true })
+  @IsString()
+  @IsOptional()
+  bio: string;
 
-	@Column({ type: 'varchar', length: 255, nullable: true })
-	avatarUrl: string | null;
+  // Stores the date in 'YYYY-MM-DD' format
+  @Column({ type: 'date', nullable: true })
+  @IsDateString()
+  @IsOptional()
+  dateOfBirth: string;
 
-	@Column({ type: 'text', nullable: true })
-	bio: string | null;
+  @Column({ default: 'default-avatar.png' })
+  @IsUrl()
+  @IsOptional()
+  avatarUrl: string;
 
-	@CreateDateColumn()
-	createdAt: Date;
+  @CreateDateColumn()
+  createdAt: Date;
 
-	@UpdateDateColumn()
-	updatedAt: Date;
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
