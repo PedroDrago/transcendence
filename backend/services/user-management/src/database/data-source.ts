@@ -1,7 +1,9 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { CreateUsersTable1742600000000 } from './migrations/1742600000000-CreateUsersTable';
+import { config } from 'dotenv';
 import { User } from '../users/entities/user.entity';
+
+config();
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -10,6 +12,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER ?? 'postgres',
   password: process.env.DB_PASSWORD ?? 'postgres',
   database: process.env.DB_NAME ?? 'transcendence',
+  schema: 'user_management',
   entities: [User],
-  migrations: [CreateUsersTable1742600000000],
+  migrations: ['src/database/migrations/*.ts'],
 });
