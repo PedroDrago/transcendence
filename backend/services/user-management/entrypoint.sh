@@ -16,20 +16,17 @@ done
 
 echo "Database detected! Proceeding with startup..."
 
-# Run migrations to ensure the schema and tables are ready
-# as required by the subject
-if [ -f "dist/database/data-source.js" ]; then
-    echo "Running database migrations (production build found)..."
-    npm run migration:run:prod
-else
+# Run migrations and start server based on the environment
+if [ "$NODE_ENV" = "development" ]; then
     echo "Running database migrations (development mode)..."
     npm run migration:run
-fi
 
-if [ "$NODE_ENV" = "development" ]; then
     echo "Starting server in DEVELOPMENT mode (watch)..."
     exec npm run start:dev
 else
+    echo "Running database migrations (production mode)..."
+    npm run migration:run:prod
+
     echo "Starting server in PRODUCTION mode..."
     exec npm run start:prod
 fi
