@@ -60,3 +60,14 @@ build-front-end:
 build-back-end:
 	docker build -t transcendence-backend -f backend/api/transcendence-api-gateway/Dockerfile backend/api/transcendence-api-gateway/.
 	docker run -p 4000:4000 transcendence-backend
+
+
+# Development rules for user-management service (may be removed later)
+
+# Start only the database and user service for isolated development
+dev-user:
+	docker-compose -f ops/docker-compose.dev.yml up -d database user-service
+
+# Rule to stop and clean up if you need to reset the database quickly
+dev-user-clean:
+	docker-compose -f ops/docker-compose.dev.yml down -v
