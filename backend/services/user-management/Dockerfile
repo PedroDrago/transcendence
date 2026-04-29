@@ -1,4 +1,5 @@
-FROM node:22.15.1-alpine3.22
+# Pinned to node:22-alpine via SHA256 digest to prevent vulnerabilities and ensure immutability
+FROM node:22-alpine@sha256:8ea2348b068a9544dae7317b4f3aafcdc032df1647bb7d768a05a5cad1a7683f
 
 RUN apk add --no-cache netcat-openbsd
 
