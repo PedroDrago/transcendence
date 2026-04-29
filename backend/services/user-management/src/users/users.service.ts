@@ -18,7 +18,7 @@ export class UsersService {
 			throw new NotFoundException('User not found');
 		}
 
-		let age = null;
+		let age: number | null = null;
 		if (user.dateOfBirth) {
 			const dob = new Date(user.dateOfBirth);
 			const ageDifMs = Date.now() - dob.getTime();
