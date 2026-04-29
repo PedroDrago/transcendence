@@ -1,0 +1,41 @@
+services:
+  # Database - PostgreSQL
+  transcendence_database_postgres:
+    image: postgres:16-alpine
+    container_name: transcendence_database_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=transcendence
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-transcendence_prod}
+      - POSTGRES_DB=transcendence_prod
+    volumes:
+      - postgres-data-prod:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - transcendence-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U transcendence"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  transcendence_database_mongodb:
+    image: mongo:6.0
+    container_name: transcendence_database_mongodb
+    ports:
+        - "27017:27017"
+    environment:
+        - MONGO_INITDB_ROOT_USERNAME=admin
+        - MONGO_INITDB_ROOT_PASSWORD=${MONGOD_PASSWORD:-transcendence_prod}
+    networks:
+        - transcendence-network
+    volumes:
+        - mongo-data-prod:/data/db
+volumes:
+  postgres-data-prod:
+  mongo-data-prod:
+
+networks:
+  transcendence-network:
+    name: transcendence-network
+    driver: bridge

@@ -1,73 +1,41 @@
-.PHONY: all dev prod build-front-end build-back-end down-dev down-prod clean re wipe-db
+.PHONY: all full down prune re wipe-db dev-user dev-user-clean
 
-# Default target - runs development environment
-all: dev
+# Default target
+all: full
 
-# Development environment
-dev:
-	@echo "🚀 Starting development environment..."
-	cd ops && docker compose --env-file .env -f docker-compose.dev.yml up
+# Run all services (database, apis, ops)
+full:
+	docker compose -f ops/docker-compose.yml -f ops/docker-compose.service.yml -f ops/docker-compose.ops.yml up --build -d
 
-# Development environment in detached mode
-dev-d:
-	@echo "🚀 Starting development environment in background..."
-	cd ops && docker compose --env-file .env -f docker-compose.dev.yml up -d
+# Stop all services
+down:
+	docker compose -f ops/docker-compose.yml -f ops/docker-compose.service.yml -f ops/docker-compose.ops.yml down
 
-# Production environment
-prod:
-	@echo "🚀 Starting production environment..."
-	cd ops && docker compose --env-file .env -f docker-compose.prod.yml up -d
-
-# Stop development environment
-down-dev:
-	@echo "🛑 Stopping development environment..."
-	cd ops && docker compose --env-file .env -f docker-compose.dev.yml down
-
-# Stop production environment
-down-prod:
-	@echo "🛑 Stopping production environment..."
-	cd ops && docker compose --env-file .env -f docker-compose.prod.yml down
-
-# Clean all containers, volumes and images
-clean:
-	@echo "🧹 Cleaning up..."
-	cd ops && docker compose --env-file .env -f docker-compose.dev.yml down -v
-	cd ops && docker compose --env-file .env -f docker-compose.prod.yml down -v
+# Clean all unused containers, volumes, and images
+prune:
 	docker system prune -f
 
 # Clean everything and rebuild from scratch
 re:
 	@echo "🔄 Rebuilding from scratch..."
-	cd ops && docker compose --env-file .env -f docker-compose.dev.yml down -v --rmi all --remove-orphans
-	cd ops && docker compose --env-file .env -f docker-compose.prod.yml down -v --rmi all --remove-orphans
+	docker compose -f ops/docker-compose.yml -f ops/docker-compose.service.yml -f ops/docker-compose.ops.yml down -v --rmi all --remove-orphans
 	docker system prune -af
-	cd ops && docker compose --env-file .env -f docker-compose.dev.yml up --build
+	docker compose -f ops/docker-compose.yml -f ops/docker-compose.service.yml -f ops/docker-compose.ops.yml up --build -d
 
-# Wipe only the development database data
+# Wipe only the database data
 wipe-db:
-	@echo "🗑️ Wiping development database volume..."
-	cd ops && docker compose --env-file .env -f docker-compose.dev.yml stop database
-	cd ops && docker compose --env-file .env -f docker-compose.dev.yml rm -f database
-	docker volume rm -f ops_postgres-data-dev
-	cd ops && docker compose --env-file .env -f docker-compose.dev.yml up -d database
-
-# Build and run frontend standalone
-build-front-end:
-	docker build -t transcendence-frontend -f frontend/Dockerfile frontend/.
-	docker run -p 3000:3000 transcendence-frontend
-
-# Build and run backend standalone
-build-back-end:
-	docker build -t transcendence-backend -f backend/api/transcendence-api-gateway/Dockerfile backend/api/transcendence-api-gateway/.
-	docker run -p 4000:4000 transcendence-backend
-
+	@echo "🗑️ Wiping database volume..."
+	docker compose -f ops/docker-compose.yml -f ops/docker-compose.service.yml -f ops/docker-compose.ops.yml stop transcendence_database_postgres
+	docker compose -f ops/docker-compose.yml -f ops/docker-compose.service.yml -f ops/docker-compose.ops.yml rm -f transcendence_database_postgres
+	docker volume rm -f ops_postgres-data-prod
+	docker compose -f ops/docker-compose.yml -f ops/docker-compose.service.yml -f ops/docker-compose.ops.yml up -d transcendence_database_postgres
 
 # Development rules for user-management service (may be removed later)
 
-# Start only the database and user service for isolated development
+# Start only the database and user service for isolated development (hot-reloading)
 dev-user:
-	docker-compose -f ops/docker-compose.dev.yml up -d database user-service
+	docker compose -f ops/docker-compose.yml -f ops/docker-compose.dev-user.yml up -d transcendence_database_postgres transcendence_user_management
 
 # Rule to stop and clean up if you need to reset the database quickly
 dev-user-clean:
-	docker-compose -f ops/docker-compose.dev.yml down -v
+	docker compose -f ops/docker-compose.yml -f ops/docker-compose.dev-user.yml down -v

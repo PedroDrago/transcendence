@@ -2,13 +2,15 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { GatewayAuthModule } from './auth/auth.module';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    GatewayAuthModule,
-  ],
+  imports: [PrometheusModule.register({
+    // Configure your Prometheus options here
+    defaultLabels: {
+      app: 'transcendence-api-gateway',
+    },
+  })],
   controllers: [AppController],
   providers: [AppService],
 })
