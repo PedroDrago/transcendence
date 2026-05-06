@@ -12,6 +12,8 @@ COPY . .
 
 RUN npm run build && npm prune --omit=dev && npm cache clean --force
 
+RUN test -f /app/public/avatars/default-avatar.png && mkdir -p /app/uploads/avatars
+
 RUN chmod u+x ./entrypoint.sh
 
 RUN chown -R node:node /app

@@ -68,6 +68,8 @@ services:
     container_name: transcendence_user_management
     ports:
       - "${USER_PORT:-4002}:4002"
+    volumes:
+      - user-management-avatars:/app/uploads/avatars
     environment:
       - NODE_ENV=production
       - PORT=4002
@@ -93,3 +95,5 @@ networks:
     name: transcendence-network
     driver: bridge
 
+volumes:
+  user-management-avatars:
