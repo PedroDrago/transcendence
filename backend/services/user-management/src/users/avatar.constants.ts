@@ -7,6 +7,7 @@ export const AVATAR_IMAGE_SIZE_PIXELS = 256;
 export const AVATAR_UPLOAD_DIRECTORY = join(process.cwd(), 'uploads', 'avatars');
 
 export const DEFAULT_AVATAR_FILENAME = 'default-avatar.png';
+export const DEFAULT_AVATAR_MIME_TYPE = 'image/png';
 export const DEFAULT_AVATAR_PUBLIC_PATH = `${AVATAR_PUBLIC_PATH_PREFIX}/${DEFAULT_AVATAR_FILENAME}`;
 export const DEFAULT_AVATAR_ASSET_PATH = join(
   process.cwd(),
