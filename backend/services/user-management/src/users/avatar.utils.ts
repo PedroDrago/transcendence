@@ -3,6 +3,7 @@ import {
   AVATAR_ALLOWED_MIME_TYPES,
   AVATAR_EXTENSION_BY_MIME_TYPE,
   AVATAR_MAX_SIZE_BYTES,
+  AVATAR_OUTPUT_EXTENSION,
   AVATAR_PUBLIC_PATH_PREFIX,
   AVATAR_UPLOAD_DIRECTORY,
   AvatarExtension,
@@ -17,7 +18,7 @@ type AvatarImageInfo = {
 
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 const AVATAR_FILENAME_PATTERN =
-  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\.(jpg|png|webp)$/;
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\.webp$/;
 
 export function isAllowedAvatarMimeType(
   mimeType: string,
@@ -74,9 +75,8 @@ export function getValidatedAvatarImage(
 
 export function getAvatarFilename(
   userId: string,
-  extension: AvatarExtension,
 ): string {
-  return `${userId}.${extension}`;
+  return `${userId}.${AVATAR_OUTPUT_EXTENSION}`;
 }
 
 export function isSafeAvatarFilename(filename: string): boolean {
