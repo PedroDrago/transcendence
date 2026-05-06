@@ -134,6 +134,7 @@ services:
     volumes:
       - ../backend/services/user-management:/app
       - /app/node_modules
+      - user-management-avatars:/app/uploads/avatars
     command: sh -c "apk add --no-cache netcat-openbsd && npm install && sh ./entrypoint.sh"
     environment:
       - NODE_ENV=development
@@ -162,3 +163,4 @@ networks:
 
 volumes:
   postgres-data-dev:
+  user-management-avatars:
