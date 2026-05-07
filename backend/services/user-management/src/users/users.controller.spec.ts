@@ -13,7 +13,7 @@ import { UsersController } from './users.controller';
 import type { AvatarUploadFile } from './users.service';
 import { UsersService } from './users.service';
 
-const USER_ID = '550e8400-e29b-41d4-a716-446655440000';
+const USER_ID = '550e8400-e29b-41d4-a716-446655440001';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -32,7 +32,7 @@ describe('UsersController', () => {
   });
 
   afterEach(async () => {
-    await rm(AVATAR_UPLOAD_DIRECTORY, { recursive: true, force: true });
+    await rm(getAvatarUploadPath(`${USER_ID}.webp`), { force: true });
   });
 
   it('delegates avatar uploads to the service', async () => {
