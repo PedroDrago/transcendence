@@ -6,16 +6,17 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=transcendence
+      - POSTGRES_USER=${POSTGRES_USER:-transcendence}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-transcendence_prod}
-      - POSTGRES_DB=transcendence_prod
+      - POSTGRES_DB=${POSTGRES_DB:-transcendence_prod}
     volumes:
       - postgres-data-prod:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     restart: always
     networks:
       - transcendence-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U transcendence"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-transcendence}"]
       interval: 10s
       timeout: 5s
       retries: 5
