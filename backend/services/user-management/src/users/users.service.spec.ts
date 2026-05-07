@@ -17,7 +17,7 @@ import { getAvatarPublicPath, getAvatarUploadPath } from './avatar.utils';
 import { User } from './entities/user.entity';
 import { AvatarUploadFile, UsersService } from './users.service';
 
-const USER_ID = '550e8400-e29b-41d4-a716-446655440000';
+const USER_ID = '550e8400-e29b-41d4-a716-446655440002';
 const USER_AVATAR_PATH = getAvatarPublicPath(`${USER_ID}.webp`);
 
 type UsersRepositoryMock = jest.Mocked<Pick<Repository<User>, 'findOne' | 'save'>>;
@@ -36,7 +36,11 @@ describe('UsersService', () => {
   });
 
   afterEach(async () => {
-    await rm(AVATAR_UPLOAD_DIRECTORY, { recursive: true, force: true });
+    await Promise.all([
+      rm(getAvatarUploadPath(`${USER_ID}.webp`), { force: true }),
+      rm(getAvatarUploadPath(`${USER_ID}.jpg`), { force: true }),
+      rm(getAvatarUploadPath(`${USER_ID}.png`), { force: true }),
+    ]);
   });
 
   it('normalizes missing and legacy default avatar values', async () => {
