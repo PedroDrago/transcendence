@@ -1,0 +1,95 @@
+# dependencies
+node_modules/
+
+# environment variables
+#.env
+.env*
+!.env.example
+
+# development
+.git/
+.gitignore
+.dockerignore
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# testing
+coverage/
+.nyc_output/
+*.test.ts
+*.spec.ts
+**/__tests__/
+**/__mocks__/
+
+# build artifacts
+dist/
+build/
+*.tsbuildinfo
+server
+
+# logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+bun-debug.log*
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# os files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# documentation
+README.md
+CHANGELOG.md
+LICENSE
+docs/
+*.md
+
+# database
+*.db
+*.sqlite
+*.sqlite3
+
+# temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+**/*.trace
+**/*.zip
+**/*.tar.gz
+**/*.tgz
+
+# ci/cd
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+azure-pipelines.yml
+
+# drizzle
+.drizzle/
+
+# biome
+biome.json
+.biomeignore
+
+# package managers
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
