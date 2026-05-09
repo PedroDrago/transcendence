@@ -63,8 +63,8 @@ export default function LoginPage() {
           <p className="auth-kicker">Transcendence</p>
           <h1>Sign in</h1>
           <p className="auth-copy">
-            Use your username or email, or continue with Google. This is a simple
-            real auth page for manual backend testing, not final product UI.
+            Use your username or email, or continue with Google. This page talks to the
+            API gateway so you can exercise the backend entrypoint the frontend will use.
           </p>
         </div>
         <LanguagePicker />
@@ -73,7 +73,7 @@ export default function LoginPage() {
       <section className="auth-card auth-card--form">
         <form className="auth-form" onSubmit={handleSubmit}>
           <label className="auth-field">
-            <span>Auth service URL</span>
+            <span>API gateway URL</span>
             <input value={authBase} onChange={(event) => setAuthBase(event.target.value)} />
           </label>
           <label className="auth-field">

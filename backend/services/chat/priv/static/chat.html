@@ -462,7 +462,10 @@ body {
 <script src="https://cdn.jsdelivr.net/npm/phoenix@1.7.10/priv/static/phoenix.min.js"></script>
 
 <script>
-const AUTH_URL = "http://localhost:4001"
+const GATEWAY_URL = `${window.location.protocol}//${window.location.hostname}:4000`
+const AUTH_URL = GATEWAY_URL
+const CHAT_API_URL = GATEWAY_URL + "/chat"
+const SOCKET_URL = GATEWAY_URL + "/socket"
 
 let socket
 let channels = {}
@@ -552,7 +555,7 @@ async function doLogin(user, pass) {
     let resp = await fetch(AUTH_URL + "/auth/login", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({username: user, password: pass})
+      body: JSON.stringify({identifier: user, password: pass})
     })
     let data = await resp.json()
 
@@ -644,7 +647,7 @@ function authHeaders() {
 }
 
 function connectSocket() {
-  socket = new Phoenix.Socket("/socket", {
+  socket = new Phoenix.Socket(SOCKET_URL, {
     params: { token: accessToken }
   })
   socket.connect()
@@ -664,7 +667,7 @@ async function handleNewConversationMessage(data) {
 
   if (channels[convId]) return
 
-  let messagesResp = await fetch("/api/messages?conversation_id=" + convId, {
+  let messagesResp = await fetch(CHAT_API_URL + "/messages?conversation_id=" + convId, {
     headers: authHeaders()
   })
   let messagesData = await messagesResp.json()
@@ -681,7 +684,7 @@ async function handleNewConversationMessage(data) {
 }
 
 async function loadUserConversations() {
-  let resp = await fetch("/api/conversations", { headers: authHeaders() })
+  let resp = await fetch(CHAT_API_URL + "/conversations", { headers: authHeaders() })
   let data = await resp.json()
 
   for (const conv of data.conversations) {
@@ -697,7 +700,7 @@ async function loadUserConversations() {
     }
 
     let messagesResp = await fetch(
-      "/api/messages?conversation_id=" + conv.conversation_id,
+      CHAT_API_URL + "/messages?conversation_id=" + conv.conversation_id,
       { headers: authHeaders() }
     )
     let messagesData = await messagesResp.json()
@@ -982,7 +985,7 @@ async function startNewConversation() {
   let recipient = document.getElementById("recipient-input").value.trim()
   if (!recipient) { alert("Digite o username do destinatario"); return }
 
-  let resp = await fetch("/api/conversation", {
+  let resp = await fetch(CHAT_API_URL + "/conversation", {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({recipient_name: recipient})
