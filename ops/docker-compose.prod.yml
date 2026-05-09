@@ -144,6 +144,8 @@ services:
     container_name: transcendence-user-prod
     ports:
       - "${USER_PORT}:${USER_PORT}"
+    volumes:
+      - user-management-avatars:/app/uploads/avatars
     environment:
       - NODE_ENV=production
       - PORT=${USER_PORT}
@@ -171,3 +173,4 @@ networks:
 
 volumes:
   postgres-data-prod:
+  user-management-avatars:

@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { IsString, IsNotEmpty, IsOptional, IsUrl, IsDateString } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsDateString } from 'class-validator';
+import { DEFAULT_AVATAR_PUBLIC_PATH } from '../avatar.constants';
 
 @Entity('profiles')
 export class User {
@@ -27,8 +28,8 @@ export class User {
   @IsOptional()
   dateOfBirth: string;
 
-  @Column({ default: 'default-avatar.png' })
-  @IsUrl()
+  @Column({ default: DEFAULT_AVATAR_PUBLIC_PATH })
+  @IsString()
   @IsOptional()
   avatarUrl: string;
 
