@@ -1,0 +1,13 @@
+meta {
+  name: Get Health
+  type: http
+  seq: 1
+  tags: [
+    gateway
+    smoke
+  ]
+}
+
+get {
+  url: {{gateway_base}}/health
+}

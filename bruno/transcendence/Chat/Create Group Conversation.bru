@@ -1,0 +1,32 @@
+meta {
+  name: Create Group Conversation
+  type: http
+  seq: 5
+  tags: [
+    chat
+  ]
+}
+
+post {
+  url: {{chat_base}}/api/group
+}
+
+headers {
+  content-type: application/json
+  Authorization: Bearer {{access_token}}
+}
+
+body {
+  {
+    "name": "Study Group",
+    "member_ids": [
+      "{{second_user_id}}"
+    ]
+  }
+}
+
+script:post-response {
+  if (res.status === 201 && res.body && res.body.conversation_id) {
+    bru.setEnvVar("group_conversation_id", String(res.body.conversation_id));
+  }
+}

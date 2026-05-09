@@ -1,0 +1,25 @@
+meta {
+  name: Update My Profile
+  type: http
+  seq: 3
+  tags: [
+    user
+  ]
+}
+
+patch {
+  url: {{user_base}}/users/me
+}
+
+headers {
+  content-type: application/json
+  x-user-id: {{user_id}}
+}
+
+body {
+  {
+    "displayName": "{{display_name}}",
+    "bio": "{{bio}}",
+    "dateOfBirth": "{{date_of_birth}}"
+  }
+}

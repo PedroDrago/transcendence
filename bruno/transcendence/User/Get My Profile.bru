@@ -1,0 +1,17 @@
+meta {
+  name: Get My Profile
+  type: http
+  seq: 2
+  tags: [
+    user
+    smoke
+  ]
+}
+
+get {
+  url: {{user_base}}/users/me
+}
+
+headers {
+  x-user-id: {{user_id}}
+}

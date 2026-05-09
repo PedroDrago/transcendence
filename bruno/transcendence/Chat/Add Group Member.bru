@@ -1,0 +1,23 @@
+meta {
+  name: Add Group Member
+  type: http
+  seq: 6
+  tags: [
+    chat
+  ]
+}
+
+post {
+  url: {{chat_base}}/api/group/{{group_conversation_id}}/members
+}
+
+headers {
+  content-type: application/json
+  Authorization: Bearer {{access_token}}
+}
+
+body {
+  {
+    "new_member_id": "{{second_user_id}}"
+  }
+}

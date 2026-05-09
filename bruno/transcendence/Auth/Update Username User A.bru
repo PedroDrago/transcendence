@@ -1,0 +1,29 @@
+meta {
+  name: Update Username User A
+  type: http
+  seq: 7
+  tags: [
+    auth
+  ]
+}
+
+patch {
+  url: {{auth_base}}/auth/username
+}
+
+headers {
+  content-type: application/json
+  Authorization: Bearer {{access_token}}
+}
+
+body {
+  {
+    "username": "{{user_a_updated_username}}"
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body && res.body.access_token) {
+    bru.setEnvVar("access_token", res.body.access_token);
+  }
+}
