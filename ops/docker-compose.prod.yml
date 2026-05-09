@@ -6,14 +6,15 @@ services:
       dockerfile: Dockerfile
     container_name: transcendence-frontend-prod
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     environment:
       - NODE_ENV=production
+      - PORT=${FRONTEND_PORT}
     restart: always
     networks:
       - transcendence-network
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:' + process.env.PORT + '/login', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -26,10 +27,11 @@ services:
       dockerfile: Dockerfile
     container_name: transcendence-backend-prod
     ports:
-      - "4000:4000"
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
     environment:
       - NODE_ENV=production
-      - PORT=4000
+      - PORT=${BACKEND_PORT}
+      - JWT_SECRET=${JWT_SECRET}
     restart: always
     networks:
       - transcendence-network
@@ -37,7 +39,7 @@ services:
       database:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:4000/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:${BACKEND_PORT}/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -50,17 +52,24 @@ services:
       dockerfile: Dockerfile
     container_name: transcendence-auth-prod
     ports:
-      - "4001:4001"
+      - "${AUTH_PORT}:${AUTH_PORT}"
     environment:
       - NODE_ENV=production
-      - PORT=4001
+      - PORT=${AUTH_PORT}
       - JWT_SECRET=${JWT_SECRET}
-      - JWT_EXPIRES_IN=1h
-      - DB_HOST=database
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+      - FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - DB_HOST=${DB_HOST}
       - DB_PORT=5432
-      - DB_USER=transcendence
-      - DB_PASSWORD=${DATABASE_PASSWORD:-transcendence_prod}
-      - DB_NAME=transcendence_prod
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_NAME=${POSTGRES_DB}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}
+      - GOOGLE_TEST_CALLBACK_URL=${GOOGLE_TEST_CALLBACK_URL}
+      - FRONTEND_OAUTH_SUCCESS_URL=${FRONTEND_OAUTH_SUCCESS_URL}
     restart: always
     networks:
       - transcendence-network
@@ -68,7 +77,38 @@ services:
       database:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:4001/auth/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:${AUTH_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Chat Service - Phoenix/Elixir
+  chat-service:
+    build:
+      context: ../backend/services/chat
+      dockerfile: Dockerfile
+    container_name: transcendence-chat-prod
+    ports:
+      - "${CHAT_PORT:-4002}:${CHAT_PORT:-4002}"
+    environment:
+      - MIX_ENV=prod
+      - PORT=${CHAT_PORT:-4002}
+      - PHX_IP=0.0.0.0
+      - PHX_SERVER=true
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=5432
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_NAME=${POSTGRES_DB}
+    restart: always
+    networks:
+      - transcendence-network
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:${CHAT_PORT:-4002}/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -79,21 +119,53 @@ services:
     image: postgres:16-alpine
     container_name: transcendence-db-prod
     ports:
-      - "5432:5432"
+      - "${DB_HOST_PORT}:5432"
     environment:
-      - POSTGRES_USER=transcendence
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-transcendence_prod}
-      - POSTGRES_DB=transcendence_prod
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres-data-prod:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: always
     networks:
       - transcendence-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U transcendence"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # User Management Service - NestJS
+  user-service:
+    build:
+      context: ../backend/services/user-management
+      dockerfile: Dockerfile
+    container_name: transcendence-user-prod
+    ports:
+      - "${USER_PORT}:${USER_PORT}"
+    volumes:
+      - user-management-avatars:/app/uploads/avatars
+    environment:
+      - NODE_ENV=production
+      - PORT=${USER_PORT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=5432 # TODO: change to env var
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_NAME=${POSTGRES_DB}
+      - JWT_SECRET=${JWT_SECRET}
+    restart: always
+    networks:
+      - transcendence-network
+    depends_on:
+      - database
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:${USER_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 networks:
   transcendence-network:
@@ -101,3 +173,4 @@ networks:
 
 volumes:
   postgres-data-prod:
+  user-management-avatars:
