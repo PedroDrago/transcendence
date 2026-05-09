@@ -53,15 +53,7 @@ JWT_EXPIRES_IN=1h
 ### Full stack
 ```bash
 # from project root
-make dev
-# or
-docker compose -f ops/docker-compose.dev.yml up
-```
-
-### Standalone (auth + its own DB)
-```bash
-# from backend/services/auth/
-docker compose up --build
+make up
 ```
 
 ### Local (no Docker)
@@ -75,7 +67,7 @@ npm run start:dev
 ## Tests
 
 End-to-end tests hit real endpoints against a dedicated `transcendence_test` database.
-Requires the dev postgres to be running (`make dev` or just the database service).
+Requires the shared postgres to be running (`make up` or the `database` service).
 
 ```bash
 # from backend/services/auth/

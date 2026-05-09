@@ -1,0 +1,12 @@
+meta {
+  name: Get Uploaded Avatar
+  type: http
+  seq: 6
+  tags: [
+    user
+  ]
+}
+
+get {
+  url: {{user_base}}/users/avatars/{{avatar_filename}}
+}

@@ -1,0 +1,30 @@
+meta {
+  name: Register User B
+  type: http
+  seq: 3
+  tags: [
+    auth
+  ]
+}
+
+post {
+  url: {{auth_base}}/auth/register
+}
+
+headers {
+  content-type: application/json
+}
+
+body {
+  {
+    "username": "{{user_b_username}}",
+    "email": "{{user_b_email}}",
+    "password": "{{user_b_password}}"
+  }
+}
+
+script:post-response {
+  if (res.status === 201 && res.body && res.body.user && res.body.user.id) {
+    bru.setEnvVar("second_user_id", res.body.user.id);
+  }
+}

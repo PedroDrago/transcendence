@@ -1,0 +1,30 @@
+meta {
+  name: Login User A
+  type: http
+  seq: 4
+  tags: [
+    auth
+    smoke
+  ]
+}
+
+post {
+  url: {{auth_base}}/auth/login
+}
+
+headers {
+  content-type: application/json
+}
+
+body {
+  {
+    "identifier": "{{user_a_email}}",
+    "password": "{{user_a_password}}"
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body && res.body.access_token) {
+    bru.setEnvVar("access_token", res.body.access_token);
+  }
+}
