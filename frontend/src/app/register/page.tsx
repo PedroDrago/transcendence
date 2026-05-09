@@ -61,8 +61,8 @@ export default function RegisterPage() {
           <p className="auth-kicker">Transcendence</p>
           <h1>Create account</h1>
           <p className="auth-copy">
-            Basic registration against the auth service. This page is intentionally
-            simple so you can verify the backend flow quickly.
+            Basic registration through the API gateway. This page stays simple so you can
+            verify the public backend flow quickly.
           </p>
         </div>
         <LanguagePicker />
@@ -71,7 +71,7 @@ export default function RegisterPage() {
       <section className="auth-card auth-card--form">
         <form className="auth-form" onSubmit={handleSubmit}>
           <label className="auth-field">
-            <span>Auth service URL</span>
+            <span>API gateway URL</span>
             <input value={authBase} onChange={(event) => setAuthBase(event.target.value)} />
           </label>
           <label className="auth-field">

@@ -72,12 +72,24 @@ services:
       context: ./backend/api/transcendence-api-gateway
       dockerfile: Dockerfile
     restart: unless-stopped
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      chat-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
     ports:
       - "${BACKEND_PORT}:4000"
     environment:
       NODE_ENV: production
       PORT: 4000
       JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      AUTH_SERVICE_URL: http://auth-service:4001
+      USER_SERVICE_URL: http://user-service:3002
+      CHAT_SERVICE_URL: http://chat-service:4002
     healthcheck:
       test:
         - CMD-SHELL
