@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Chat</title>
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #1a1a2e;
+  color: #eee;
+  min-height: 100vh;
+}
+
+/* Auth Screen */
+#auth-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 16px;
+}
+
+#auth-screen h2 {
+  font-size: 2rem;
+  color: #fff;
+}
+
+#auth-screen .auth-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 8px;
+}
+
+#auth-screen .auth-tab {
+  padding: 10px 28px;
+  border: none;
+  background: #16213e;
+  color: #888;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#auth-screen .auth-tab:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+#auth-screen .auth-tab:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+#auth-screen .auth-tab.active {
+  background: #e94560;
+  color: #fff;
+}
+
+#auth-screen input {
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #16213e;
+  color: #fff;
+  font-size: 1rem;
+  width: 280px;
+}
+
+#auth-screen button.auth-submit {
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+  background: #e94560;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  width: 280px;
+}
+
+#auth-screen button.auth-submit:hover {
+  background: #ff6b6b;
+}
+
+#auth-screen .auth-error {
+  color: #ff6b6b;
+  font-size: 0.9rem;
+  max-width: 280px;
+  text-align: center;
+}
+
+#auth-screen .auth-success {
+  color: #4caf50;
+  font-size: 0.9rem;
+  max-width: 280px;
+  text-align: center;
+}
+
+/* Chat Container */
+#chat-container {
+  display: none;
+  height: 100vh;
+}
+
+.chat-layout {
+  display: flex;
+  height: 100%;
+}
+
+/* Main Chat Area */
+.chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #16213e;
+}
+
+.chat-header {
+  padding: 16px 24px;
+  background: #0f3460;
+  border-bottom: 1px solid #1a1a2e;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chat-header h3 {
+  font-size: 1.2rem;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.message {
+  padding: 10px 14px;
+  border-radius: 12px;
+  max-width: 70%;
+  word-wrap: break-word;
+}
+
+.message.received {
+  background: #0f3460;
+  align-self: flex-start;
+}
+
+.message.sent {
+  background: #e94560;
+  align-self: flex-end;
+}
+
+.message .sender {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+
+.message .read-status {
+  font-size: 0.7rem;
+  opacity: 0.6;
+  text-align: right;
+  margin-top: 4px;
+}
+
+.typing-indicator {
+  padding: 4px 16px;
+  font-size: 0.8rem;
+  color: #888;
+  font-style: italic;
+  height: 24px;
+}
+
+.chat-input {
+  padding: 16px;
+  background: #0f3460;
+  display: flex;
+  gap: 12px;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #16213e;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.chat-input button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  background: #e94560;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.chat-input button:hover {
+  background: #ff6b6b;
+}
+
+/* Sidebar - Conversations List */
+.sidebar {
+  width: 300px;
+  background: #0f3460;
+  border-left: 1px solid #1a1a2e;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 16px;
+  border-bottom: 1px solid #1a1a2e;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar-header h4 {
+  font-size: 1rem;
+}
+
+.btn-new-message {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #e94560;
+  color: #fff;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-new-message:hover {
+  background: #ff6b6b;
+}
+
+.conversations-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.conversation-item {
+  padding: 14px 16px;
+  border-bottom: 1px solid #1a1a2e;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.conversation-item:hover,
+.conversation-item.active {
+  background: #16213e;
+}
+
+.conversation-item .name {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.conversation-item .preview {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* No conversation selected */
+.no-chat-selected {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+/* Active chat container */
+.active-chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal {
+  background: #16213e;
+  padding: 24px;
+  border-radius: 12px;
+  width: 320px;
+}
+
+.modal h3 {
+  margin-bottom: 16px;
+}
+
+.modal input {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #0f3460;
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 16px;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.modal-buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-cancel {
+  background: #333;
+  color: #fff;
+}
+
+.btn-confirm {
+  background: #e94560;
+  color: #fff;
+}
+
+.btn-confirm:hover {
+  background: #ff6b6b;
+}
+
+/* User info */
+.user-info {
+  padding: 12px 16px;
+  background: #1a1a2e;
+  font-size: 0.85rem;
+  color: #888;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-logout {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #444;
+  color: #fff;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-logout:hover {
+  background: #666;
+}
+</style>
+</head>
+
+<body>
+
+<!-- Auth Screen -->
+<div id="auth-screen">
+  <h2>Transcendence Chat</h2>
+  <div class="auth-tabs">
+    <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+    <button class="auth-tab" onclick="switchAuthTab('register')">Cadastro</button>
+  </div>
+  <input id="auth-username" placeholder="Username" autocomplete="username">
+  <input id="auth-email" placeholder="Email" type="email" autocomplete="email" style="display:none;">
+  <input id="auth-password" placeholder="Senha" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter') submitAuth()">
+  <button class="auth-submit" onclick="submitAuth()">Entrar</button>
+  <div id="auth-error" class="auth-error"></div>
+  <div id="auth-success" class="auth-success"></div>
+</div>
+
+<!-- Chat Container -->
+<div id="chat-container">
+  <div class="chat-layout">
+
+    <!-- Main Chat Area -->
+    <div class="chat-main">
+      <div id="no-chat" class="no-chat-selected">
+        Selecione uma conversa ou inicie uma nova
+      </div>
+
+      <div id="active-chat" class="active-chat-container" style="display:none;">
+        <div class="chat-header">
+          <h3 id="chat-with">Conversa</h3>
+        </div>
+        <div id="chat-messages" class="chat-messages"></div>
+        <div id="typing-indicator" class="typing-indicator"></div>
+        <div class="chat-input">
+          <input id="msg-input" placeholder="Digite sua mensagem..." onkeydown="handleKeyPress(event)" oninput="emitTyping()">
+          <button onclick="sendMsg()">Enviar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h4>Conversas</h4>
+        <button class="btn-new-message" onclick="openNewMessageModal()">+ Nova</button>
+      </div>
+      <div id="conversations-list" class="conversations-list"></div>
+      <div class="user-info">
+        <div>Logado como: <strong id="logged-user"></strong></div>
+        <button class="btn-logout" onclick="logout()">Sair</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- New Message Modal -->
+<div id="new-message-modal" class="modal-overlay">
+  <div class="modal">
+    <h3>Nova Conversa</h3>
+    <input id="recipient-input" placeholder="Username do destinatario">
+    <div class="modal-buttons">
+      <button class="btn-cancel" onclick="closeNewMessageModal()">Cancelar</button>
+      <button class="btn-confirm" onclick="startNewConversation()">Iniciar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/phoenix@1.7.10/priv/static/phoenix.min.js"></script>
+
+<script>
+const AUTH_URL = "http://localhost:4001"
+
+let socket
+let channels = {}
+let userId
+let username
+let accessToken
+let currentConversationId = null
+let conversations = {}
+let typingTimers = {}
+let myTypingTimer = null
+let authMode = "login"
+
+// --- Auth ---
+
+function switchAuthTab(mode) {
+  authMode = mode
+  document.querySelectorAll(".auth-tab").forEach(t => t.classList.remove("active"))
+  let emailField = document.getElementById("auth-email")
+  if (mode === "login") {
+    document.querySelectorAll(".auth-tab")[0].classList.add("active")
+    document.querySelector(".auth-submit").textContent = "Entrar"
+    emailField.style.display = "none"
+  } else {
+    document.querySelectorAll(".auth-tab")[1].classList.add("active")
+    document.querySelector(".auth-submit").textContent = "Cadastrar"
+    emailField.style.display = ""
+  }
+  document.getElementById("auth-error").textContent = ""
+  document.getElementById("auth-success").textContent = ""
+}
+
+function decodeJwt(token) {
+  let payload = token.split(".")[1]
+  let decoded = atob(payload.replace(/-/g, "+").replace(/_/g, "/"))
+  return JSON.parse(decoded)
+}
+
+async function submitAuth() {
+  let user = document.getElementById("auth-username").value.trim()
+  let email = document.getElementById("auth-email").value.trim()
+  let pass = document.getElementById("auth-password").value
+
+  document.getElementById("auth-error").textContent = ""
+  document.getElementById("auth-success").textContent = ""
+
+  if (!user || !pass) {
+    document.getElementById("auth-error").textContent = "Preencha username e senha"
+    return
+  }
+
+  if (authMode === "register") {
+    if (!email) {
+      document.getElementById("auth-error").textContent = "Preencha o email"
+      return
+    }
+    await doRegister(user, email, pass)
+  } else {
+    await doLogin(user, pass)
+  }
+}
+
+async function doRegister(user, email, pass) {
+  try {
+    let resp = await fetch(AUTH_URL + "/auth/register", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({username: user, email: email, password: pass})
+    })
+    let data = await resp.json()
+
+    if (!resp.ok) {
+      let msg = data.message
+      if (Array.isArray(msg)) msg = msg.join(", ")
+      document.getElementById("auth-error").textContent = msg || "Erro no cadastro"
+      return
+    }
+
+    document.getElementById("auth-success").textContent = "Cadastro realizado! Fazendo login..."
+    await doLogin(user, pass)
+  } catch (e) {
+    document.getElementById("auth-error").textContent = "Erro de conexao com o servico de auth"
+  }
+}
+
+async function doLogin(user, pass) {
+  try {
+    let resp = await fetch(AUTH_URL + "/auth/login", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({username: user, password: pass})
+    })
+    let data = await resp.json()
+
+    if (!resp.ok) {
+      let msg = data.message
+      if (Array.isArray(msg)) msg = msg.join(", ")
+      document.getElementById("auth-error").textContent = msg || "Credenciais invalidas"
+      return
+    }
+
+    accessToken = data.access_token
+    let claims = decodeJwt(accessToken)
+    userId = claims.sub
+    username = claims.username
+
+    saveLogin()
+    showChatInterface()
+    connectSocket()
+  } catch (e) {
+    document.getElementById("auth-error").textContent = "Erro de conexao com o servico de auth"
+  }
+}
+
+// --- Session persistence ---
+
+function saveLogin() {
+  localStorage.setItem("chat_username", username)
+  localStorage.setItem("chat_userId", userId)
+  localStorage.setItem("chat_token", accessToken)
+}
+
+function loadLogin() {
+  let savedUsername = localStorage.getItem("chat_username")
+  let savedUserId = localStorage.getItem("chat_userId")
+  let savedToken = localStorage.getItem("chat_token")
+  if (savedUsername && savedUserId && savedToken) {
+    username = savedUsername
+    userId = savedUserId
+    accessToken = savedToken
+
+    // Check if token is expired
+    try {
+      let claims = decodeJwt(accessToken)
+      if (claims.exp && claims.exp * 1000 < Date.now()) {
+        clearLogin()
+        return false
+      }
+    } catch (e) {
+      clearLogin()
+      return false
+    }
+
+    return true
+  }
+  return false
+}
+
+function clearLogin() {
+  localStorage.removeItem("chat_username")
+  localStorage.removeItem("chat_userId")
+  localStorage.removeItem("chat_token")
+}
+
+function logout() {
+  clearLogin()
+  location.reload()
+}
+
+window.onload = function() {
+  if (loadLogin()) {
+    showChatInterface()
+    connectSocket()
+  }
+}
+
+function showChatInterface() {
+  document.getElementById("auth-screen").style.display = "none"
+  document.getElementById("chat-container").style.display = "block"
+  document.getElementById("logged-user").textContent = username
+}
+
+// --- Socket & Channels ---
+
+function authHeaders() {
+  return {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer " + accessToken
+  }
+}
+
+function connectSocket() {
+  socket = new Phoenix.Socket("/socket", {
+    params: { token: accessToken }
+  })
+  socket.connect()
+
+  let userChannel = socket.channel("user:" + userId)
+  userChannel.join()
+
+  userChannel.on("new_conversation_message", data => {
+    handleNewConversationMessage(data)
+  })
+
+  loadUserConversations()
+}
+
+async function handleNewConversationMessage(data) {
+  let convId = data.conversation_id
+
+  if (channels[convId]) return
+
+  let messagesResp = await fetch("/api/messages?conversation_id=" + convId, {
+    headers: authHeaders()
+  })
+  let messagesData = await messagesResp.json()
+
+  conversations[convId] = {
+    name: data.sender_name,
+    messages: messagesData.messages,
+    unreadCount: 1,
+    otherRead: false
+  }
+
+  joinConversationChannel(convId, data.sender_name)
+  updateConversationsList()
+}
+
+async function loadUserConversations() {
+  let resp = await fetch("/api/conversations", { headers: authHeaders() })
+  let data = await resp.json()
+
+  for (const conv of data.conversations) {
+    if (!conversations[conv.conversation_id]) {
+      let lastMsgUserId = conv.last_message ? conv.last_message.user_id : null
+
+      conversations[conv.conversation_id] = {
+        name: conv.other_user_name,
+        messages: [],
+        unreadCount: (conv.last_message && lastMsgUserId !== userId) ? 1 : 0,
+        otherRead: false
+      }
+    }
+
+    let messagesResp = await fetch(
+      "/api/messages?conversation_id=" + conv.conversation_id,
+      { headers: authHeaders() }
+    )
+    let messagesData = await messagesResp.json()
+    conversations[conv.conversation_id].messages = messagesData.messages
+
+    joinConversationChannel(conv.conversation_id, conv.other_user_name)
+  }
+
+  updateConversationsList()
+}
+
+function joinConversationChannel(conversationId, recipientName) {
+  conversationId = Number(conversationId)
+  if (channels[conversationId]) return
+
+  let channel = socket.channel("chat:" + conversationId)
+
+  channel.join()
+    .receive("ok", () => console.log("Joined conversation", conversationId))
+    .receive("error", resp => console.log("Unable to join", resp))
+
+  channel.on("message", msg => {
+    if (!conversations[conversationId]) {
+      conversations[conversationId] = { name: recipientName, messages: [], unreadCount: 0, otherRead: false }
+    }
+
+    let conv = conversations[conversationId]
+    conv.messages.push(msg)
+
+    let isMine = msg.user_id === userId
+
+    if (isMine) {
+      conv.otherRead = false
+    }
+
+    if (!isMine && currentConversationId !== conversationId) {
+      conv.unreadCount = (conv.unreadCount || 0) + 1
+    }
+
+    if (!isMine && currentConversationId === conversationId) {
+      channel.push("messages_read", {})
+    }
+
+    if (currentConversationId === conversationId) {
+      renderMessages(conversationId)
+    }
+
+    if (!isMine) {
+      clearTypingIndicator(conversationId)
+    }
+
+    updateConversationsList()
+  })
+
+  channel.on("typing", data => {
+    if (data.user_id === userId) return
+
+    if (data.is_typing) {
+      setTypingIndicator(conversationId, recipientName)
+    } else {
+      clearTypingIndicator(conversationId)
+    }
+  })
+
+  channel.on("messages_read", data => {
+    if (data.user_id === userId) return
+
+    let conv = conversations[conversationId]
+    if (conv) {
+      conv.otherRead = true
+      if (currentConversationId === conversationId) {
+        renderMessages(conversationId)
+      }
+    }
+  })
+
+  channels[conversationId] = channel
+}
+
+// --- Typing ---
+
+function setTypingIndicator(conversationId, name) {
+  if (!typingTimers[conversationId]) {
+    typingTimers[conversationId] = {}
+  }
+
+  clearTimeout(typingTimers[conversationId].timeout)
+
+  typingTimers[conversationId].active = true
+
+  typingTimers[conversationId].timeout = setTimeout(() => {
+    clearTypingIndicator(conversationId)
+  }, 3000)
+
+  if (currentConversationId === conversationId) {
+    document.getElementById("typing-indicator").textContent = name + " esta digitando..."
+  }
+}
+
+function clearTypingIndicator(conversationId) {
+  if (typingTimers[conversationId]) {
+    clearTimeout(typingTimers[conversationId].timeout)
+    typingTimers[conversationId].active = false
+  }
+
+  if (currentConversationId === conversationId) {
+    document.getElementById("typing-indicator").textContent = ""
+  }
+}
+
+function emitTyping() {
+  if (!currentConversationId || !channels[currentConversationId]) return
+
+  let channel = channels[currentConversationId]
+  channel.push("typing", { is_typing: true })
+
+  clearTimeout(myTypingTimer)
+  myTypingTimer = setTimeout(() => {
+    channel.push("typing", { is_typing: false })
+  }, 2000)
+}
+
+// --- Conversation management ---
+
+function joinConversation(conversationId, recipientName) {
+  if (channels[conversationId]) {
+    selectConversation(conversationId)
+    return
+  }
+
+  if (!conversations[conversationId]) {
+    conversations[conversationId] = { name: recipientName, messages: [], unreadCount: 0, otherRead: false }
+  }
+
+  joinConversationChannel(conversationId, recipientName)
+  updateConversationsList()
+  selectConversation(conversationId)
+}
+
+function selectConversation(conversationId) {
+  currentConversationId = Number(conversationId)
+
+  document.getElementById("no-chat").style.display = "none"
+  document.getElementById("active-chat").style.display = "flex"
+
+  let conv = conversations[conversationId]
+  document.getElementById("chat-with").textContent = conv ? conv.name : "Conversa"
+
+  if (conv) {
+    conv.unreadCount = 0
+    if (channels[conversationId]) {
+      channels[conversationId].push("messages_read", {})
+    }
+  }
+
+  if (typingTimers[conversationId] && typingTimers[conversationId].active) {
+    document.getElementById("typing-indicator").textContent = conv.name + " esta digitando..."
+  } else {
+    document.getElementById("typing-indicator").textContent = ""
+  }
+
+  renderMessages(conversationId)
+  updateConversationsList()
+  document.getElementById("msg-input").focus()
+}
+
+function renderMessages(conversationId) {
+  let container = document.getElementById("chat-messages")
+  container.innerHTML = ""
+
+  let conv = conversations[conversationId]
+  if (!conv) return
+
+  conv.messages.forEach((msg, index) => {
+    let isMine = msg.user_id === userId
+
+    let div = document.createElement("div")
+    div.className = "message " + (isMine ? "sent" : "received")
+
+    let sender = document.createElement("div")
+    sender.className = "sender"
+    sender.textContent = isMine ? "Voce" : conv.name
+
+    let body = document.createElement("div")
+    body.textContent = msg.body
+
+    div.appendChild(sender)
+    div.appendChild(body)
+
+    let isLastMessage = index === conv.messages.length - 1
+    if (isMine && isLastMessage) {
+      let status = document.createElement("div")
+      status.className = "read-status"
+      status.textContent = conv.otherRead ? "Lido" : "Enviado"
+      div.appendChild(status)
+    }
+
+    container.appendChild(div)
+  })
+
+  container.scrollTop = container.scrollHeight
+}
+
+function updateConversationsList() {
+  let list = document.getElementById("conversations-list")
+  list.innerHTML = ""
+
+  Object.keys(conversations).forEach(convId => {
+    let conv = conversations[convId]
+    let lastMsg = conv.messages[conv.messages.length - 1]
+
+    let div = document.createElement("div")
+    div.className = "conversation-item" + (currentConversationId == convId ? " active" : "")
+    div.onclick = () => selectConversation(convId)
+
+    let nameContainer = document.createElement("div")
+    nameContainer.style.display = "flex"
+    nameContainer.style.justifyContent = "space-between"
+    nameContainer.style.alignItems = "center"
+
+    let name = document.createElement("div")
+    name.className = "name"
+    name.textContent = conv.name
+
+    nameContainer.appendChild(name)
+
+    if (conv.unreadCount > 0) {
+      let badge = document.createElement("span")
+      badge.style.background = "#e94560"
+      badge.style.color = "#fff"
+      badge.style.borderRadius = "12px"
+      badge.style.padding = "2px 8px"
+      badge.style.fontSize = "0.75rem"
+      badge.style.fontWeight = "bold"
+      badge.textContent = conv.unreadCount
+      nameContainer.appendChild(badge)
+    }
+
+    let preview = document.createElement("div")
+    preview.className = "preview"
+    preview.textContent = lastMsg ? lastMsg.body : "Sem mensagens"
+
+    div.appendChild(nameContainer)
+    div.appendChild(preview)
+    list.appendChild(div)
+  })
+}
+
+function sendMsg() {
+  if (!currentConversationId) return
+
+  let input = document.getElementById("msg-input")
+  let text = input.value.trim()
+  if (!text) return
+
+  clearTimeout(myTypingTimer)
+  channels[currentConversationId].push("typing", { is_typing: false })
+
+  channels[currentConversationId].push("message", { body: text })
+  input.value = ""
+}
+
+function handleKeyPress(e) {
+  if (e.key === "Enter") {
+    sendMsg()
+  } else {
+    emitTyping()
+  }
+}
+
+function openNewMessageModal() {
+  document.getElementById("new-message-modal").classList.add("active")
+  document.getElementById("recipient-input").focus()
+}
+
+function closeNewMessageModal() {
+  document.getElementById("new-message-modal").classList.remove("active")
+  document.getElementById("recipient-input").value = ""
+}
+
+async function startNewConversation() {
+  let recipient = document.getElementById("recipient-input").value.trim()
+  if (!recipient) { alert("Digite o username do destinatario"); return }
+
+  let resp = await fetch("/api/conversation", {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({recipient_name: recipient})
+  })
+  let data = await resp.json()
+
+  if (data.error) { alert(data.error); return }
+
+  closeNewMessageModal()
+  joinConversation(data.conversation_id, data.recipient_name)
+}
+</script>
+
+</body>
+</html>

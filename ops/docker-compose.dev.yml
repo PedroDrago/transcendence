@@ -54,6 +54,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
       - FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
       - DB_HOST=${DB_HOST}
       - DB_PORT=5432
       - DB_USER=${POSTGRES_USER}
@@ -71,6 +72,36 @@ services:
     depends_on:
       - database
 
+  # Chat Service - Phoenix/Elixir
+  chat-service:
+    build:
+      context: ../backend/services/chat
+      dockerfile: Dockerfile.dev
+    container_name: transcendence-chat-dev
+    ports:
+      - "${CHAT_PORT:-4002}:${CHAT_PORT:-4002}"
+    volumes:
+      - ../backend/services/chat:/app
+      - /app/deps
+      - /app/_build
+    environment:
+      - MIX_ENV=dev
+      - PORT=${CHAT_PORT:-4002}
+      - PHX_IP=0.0.0.0
+      - PHX_SERVER=true
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=5432
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_NAME=${POSTGRES_DB}
+    command: sh -c "mix deps.get && mix deps.compile && mix ecto.create && mix ecto.migrate && mix phx.server"
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - transcendence-network
+
   # Database - PostgreSQL
   database:
     image: postgres:16-alpine
@@ -87,6 +118,11 @@ services:
     restart: unless-stopped
     networks:
       - transcendence-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   # User Management Service - NestJS
   user-service:

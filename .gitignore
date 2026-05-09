@@ -23,6 +23,14 @@
 # misc
 .DS_Store
 *.pem
+erl_crash.dump
+
+# Elixir/Phoenix
+_build/
+deps/
+*.db
+*.db-shm
+*.db-wal
 
 # debug
 npm-debug.log*
