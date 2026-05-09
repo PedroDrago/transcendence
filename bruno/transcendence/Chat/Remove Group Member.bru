@@ -1,0 +1,16 @@
+meta {
+  name: Remove Group Member
+  type: http
+  seq: 7
+  tags: [
+    chat
+  ]
+}
+
+delete {
+  url: {{chat_base}}/api/group/{{group_conversation_id}}/members/{{second_user_id}}
+}
+
+headers {
+  Authorization: Bearer {{access_token}}
+}

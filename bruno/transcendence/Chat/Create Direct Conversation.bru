@@ -1,0 +1,30 @@
+meta {
+  name: Create Direct Conversation
+  type: http
+  seq: 2
+  tags: [
+    chat
+    smoke
+  ]
+}
+
+post {
+  url: {{chat_base}}/api/conversation
+}
+
+headers {
+  content-type: application/json
+  Authorization: Bearer {{access_token}}
+}
+
+body {
+  {
+    "recipient_name": "{{user_b_username}}"
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body && res.body.conversation_id) {
+    bru.setEnvVar("conversation_id", String(res.body.conversation_id));
+  }
+}

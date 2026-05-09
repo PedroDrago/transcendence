@@ -11,4 +11,4 @@ RUN mix deps.get
 
 COPY . .
 
-CMD ["sh", "-c", "mix ecto.create && mix ecto.migrate && mix phx.server"]
+CMD ["sh", "-c", "mix ecto.migrate && mix phx.server"]

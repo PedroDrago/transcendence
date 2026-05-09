@@ -1,0 +1,17 @@
+meta {
+  name: List Conversations
+  type: http
+  seq: 3
+  tags: [
+    chat
+    smoke
+  ]
+}
+
+get {
+  url: {{chat_base}}/api/conversations
+}
+
+headers {
+  Authorization: Bearer {{access_token}}
+}

@@ -1,0 +1,16 @@
+meta {
+  name: Get Last Seen
+  type: http
+  seq: 10
+  tags: [
+    chat
+  ]
+}
+
+get {
+  url: {{chat_base}}/api/users/{{second_user_id}}/last_seen
+}
+
+headers {
+  Authorization: Bearer {{access_token}}
+}

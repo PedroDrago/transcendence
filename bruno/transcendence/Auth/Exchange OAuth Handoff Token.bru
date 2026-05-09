@@ -1,0 +1,28 @@
+meta {
+  name: Exchange OAuth Handoff Token
+  type: http
+  seq: 9
+  tags: [
+    auth
+  ]
+}
+
+post {
+  url: {{auth_base}}/auth/oauth/exchange
+}
+
+headers {
+  content-type: application/json
+}
+
+body {
+  {
+    "token": "{{oauth_handoff_token}}"
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body && res.body.access_token) {
+    bru.setEnvVar("access_token", res.body.access_token);
+  }
+}
