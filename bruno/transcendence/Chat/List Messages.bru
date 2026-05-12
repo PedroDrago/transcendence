@@ -1,0 +1,16 @@
+meta {
+  name: List Messages
+  type: http
+  seq: 4
+  tags: [
+    chat
+  ]
+}
+
+get {
+  url: {{chat_base}}/api/messages?conversation_id={{conversation_id}}
+}
+
+headers {
+  Authorization: Bearer {{access_token}}
+}

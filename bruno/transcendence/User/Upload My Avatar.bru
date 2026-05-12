@@ -1,0 +1,27 @@
+meta {
+  name: Upload My Avatar
+  type: http
+  seq: 4
+  tags: [
+    user
+  ]
+}
+
+patch {
+  url: {{user_base}}/users/me/avatar
+}
+
+headers {
+  x-user-id: {{user_id}}
+}
+
+body:multipart-form {
+  avatar: choose-a-file-in-bruno-body-tab
+}
+
+script:post-response {
+  if (res.status === 200 && res.body && res.body.avatarUrl) {
+    var parts = res.body.avatarUrl.split("/");
+    bru.setEnvVar("avatar_filename", parts[parts.length - 1]);
+  }
+}

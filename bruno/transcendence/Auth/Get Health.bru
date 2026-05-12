@@ -1,0 +1,13 @@
+meta {
+  name: Get Health
+  type: http
+  seq: 1
+  tags: [
+    auth
+    smoke
+  ]
+}
+
+get {
+  url: {{auth_base}}/health
+}

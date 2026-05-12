@@ -1,20 +1,45 @@
-all: full
+.PHONY: all up up-d down build logs ps clean fclean re reset dev-user dev-user-clean
 
-full:
-	docker compose -f ops/docker-compose.yml -f ops/docker-compose.service.yml -f ops/docker-compose.ops.yml up --build -d
+COMPOSE = docker compose --env-file .env
+
+all: up
+
+up:
+	$(COMPOSE) up --build
+
+up-d:
+	$(COMPOSE) up --build -d
 
 down:
-	docker compose -f ops/docker-compose.yml -f ops/docker-compose.service.yml -f ops/docker-compose.ops.yml down
+	$(COMPOSE) down --remove-orphans
 
-prune:
-	docker system prune -f
+build:
+	$(COMPOSE) build
 
-# Start only the database and user service for isolated development (hot-reloading)
+logs:
+	$(COMPOSE) logs -f
+
+ps:
+	$(COMPOSE) ps
+
+# Soft clean: stops containers and removes them along with volumes and networks
+clean:
+	$(COMPOSE) down --volumes --remove-orphans
+
+# Deep clean: does 'clean', plus removes all images and prunes the docker system completely
+fclean: clean
+	$(COMPOSE) down --rmi all
+	docker system prune -af
+
+# Rebuild from scratch
+re: fclean up
+
+reset: clean
+
+# Start only the database and user service for isolated development
 dev-user:
-	docker compose -f ops/docker-compose.yml -f ops/docker-compose.dev-user.yml up -d transcendence_database_postgres transcendence_user_management
+	$(COMPOSE) up -d database user-service
 
-# Rule to stop and clean up if you need to reset the database quickly
+# Stop and wipe volumes for the entire environment
 dev-user-clean:
-	docker compose -f ops/docker-compose.yml -f ops/docker-compose.dev-user.yml down -v
-
-.PHONY: all full down dev-user dev-user-clean
+	$(COMPOSE) down -v

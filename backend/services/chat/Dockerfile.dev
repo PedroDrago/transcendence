@@ -1,0 +1,14 @@
+FROM elixir:1.17-alpine
+
+RUN apk add --no-cache build-base git inotify-tools
+
+WORKDIR /app
+
+RUN mix local.hex --force && mix local.rebar --force
+
+COPY mix.exs mix.lock ./
+RUN mix deps.get
+
+COPY . .
+
+CMD ["sh", "-c", "mix ecto.migrate && mix phx.server"]

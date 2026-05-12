@@ -1,0 +1,201 @@
+services:
+  database:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "${DB_HOST_PORT}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - transcendence
+
+  db-bootstrap:
+    image: postgres:16-alpine
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ./ops/init.sql:/bootstrap/init.sql:ro
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        export PGPASSWORD="$${POSTGRES_PASSWORD}"
+        psql \
+          --host=database \
+          --username="$${POSTGRES_USER}" \
+          --dbname="$${POSTGRES_DB}" \
+          --file=/bootstrap/init.sql
+    networks:
+      - transcendence
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT}:3000"
+    command: npm start -- --hostname 0.0.0.0 --port 3000
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -q -O /dev/null http://127.0.0.1:3000/ || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - transcendence
+
+  gateway:
+    build:
+      context: ./backend/api/transcendence-api-gateway
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT}:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      JWT_SECRET: ${JWT_SECRET}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -q -O /dev/null http://127.0.0.1:4000/health || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - transcendence
+
+  auth-service:
+    build:
+      context: ./backend/services/auth
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db-bootstrap:
+        condition: service_completed_successfully
+    ports:
+      - "${AUTH_PORT}:4001"
+    environment:
+      NODE_ENV: production
+      PORT: 4001
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
+      GOOGLE_TEST_CALLBACK_URL: ${GOOGLE_TEST_CALLBACK_URL}
+      FRONTEND_OAUTH_SUCCESS_URL: ${FRONTEND_OAUTH_SUCCESS_URL}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -q -O /dev/null http://127.0.0.1:4001/health || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - transcendence
+
+  chat-service:
+    build:
+      context: ./backend/services/chat
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    depends_on:
+      db-bootstrap:
+        condition: service_completed_successfully
+    ports:
+      - "${CHAT_PORT}:4002"
+    environment:
+      MIX_ENV: dev
+      PORT: 4002
+      PHX_IP: 0.0.0.0
+      PHX_SERVER: "true"
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+      DEV_SECRET_KEY_BASE: ${DEV_SECRET_KEY_BASE}
+    command: sh -c "mix ecto.migrate && mix phx.server"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -q -O /dev/null http://127.0.0.1:4002/ || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - transcendence
+
+  user-service:
+    build:
+      context: ./backend/services/user-management
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db-bootstrap:
+        condition: service_completed_successfully
+    ports:
+      - "${USER_PORT}:3002"
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - user-management-avatars:/app/uploads/avatars
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -q -O /dev/null http://127.0.0.1:3002/health || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - transcendence
+
+networks:
+  transcendence:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  user-management-avatars:

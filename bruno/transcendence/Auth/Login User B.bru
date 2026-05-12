@@ -1,0 +1,29 @@
+meta {
+  name: Login User B
+  type: http
+  seq: 5
+  tags: [
+    auth
+  ]
+}
+
+post {
+  url: {{auth_base}}/auth/login
+}
+
+headers {
+  content-type: application/json
+}
+
+body {
+  {
+    "identifier": "{{user_b_email}}",
+    "password": "{{user_b_password}}"
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body && res.body.access_token) {
+    bru.setEnvVar("second_access_token", res.body.access_token);
+  }
+}

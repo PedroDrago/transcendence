@@ -1,0 +1,23 @@
+meta {
+  name: Rename Group Conversation
+  type: http
+  seq: 8
+  tags: [
+    chat
+  ]
+}
+
+patch {
+  url: {{chat_base}}/api/group/{{group_conversation_id}}
+}
+
+headers {
+  content-type: application/json
+  Authorization: Bearer {{access_token}}
+}
+
+body {
+  {
+    "name": "Study Group Renamed"
+  }
+}
