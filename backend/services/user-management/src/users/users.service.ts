@@ -10,6 +10,7 @@ import { mkdir, rename, unlink, writeFile } from 'node:fs/promises';
 import sharp from 'sharp';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import {
 	AVATAR_IMAGE_SIZE_PIXELS,
@@ -39,6 +40,15 @@ export class UsersService {
 		private usersRepository: Repository<User>,
 	) { }
 
+	async create(createUserDto: CreateUserDto) {
+		const user = this.usersRepository.create({
+			id: createUserDto.id,
+			username: createUserDto.username,
+		});
+		await this.usersRepository.save(user);
+		return this.serializeProfile(user);
+	}
+
 	async findOne(id: string) {
 		const user = await this.usersRepository.findOne({ where: { id } });
 
@@ -60,6 +70,16 @@ export class UsersService {
 		await this.usersRepository.save(user);
 
 		return this.findOne(id);
+	}
+
+	async remove(id: string) {
+		const user = await this.usersRepository.findOne({ where: { id } });
+
+		if (!user) {
+			throw new NotFoundException('User not found');
+		}
+
+		await this.usersRepository.remove(user);
 	}
 
 	async updateAvatar(id: string, file: AvatarUploadFile | undefined) {
