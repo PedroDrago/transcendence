@@ -8,6 +8,8 @@ import {
 	NotFoundException,
 	Param,
 	Patch,
+	Post,
+	Delete,
 	Res,
 	UploadedFile,
 	UseInterceptors,
@@ -16,6 +18,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { UsersService } from './users.service';
 import type { AvatarUploadFile } from './users.service';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import {
 	AVATAR_FIELD_NAME,
@@ -30,6 +33,11 @@ import { getAvatarUploadPath, isSafeAvatarFilename } from './avatar.utils';
 @Controller('users')
 export class UsersController {
 	constructor(private readonly usersService: UsersService) { }
+
+	@Post()
+	create(@Body() createUserDto: CreateUserDto) {
+		return this.usersService.create(createUserDto);
+	}
 
 	@Get('me')
 	findMe(@Headers('x-user-id') userId: string) {
@@ -101,5 +109,10 @@ export class UsersController {
 	@Get(':id')
 	findOne(@Param('id') id: string) {
 		return this.usersService.findOne(id);
+	}
+
+	@Delete(':id')
+	remove(@Param('id') id: string) {
+		return this.usersService.remove(id);
 	}
 }
