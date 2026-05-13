@@ -18,7 +18,7 @@ const USER_ID = '550e8400-e29b-41d4-a716-446655440001';
 describe('UsersController', () => {
   let controller: UsersController;
   let usersService: jest.Mocked<
-    Pick<UsersService, 'findOne' | 'update' | 'updateAvatar'>
+    Pick<UsersService, 'findOne' | 'update' | 'updateAvatar' | 'create' | 'remove'>
   >;
 
   beforeEach(() => {
@@ -26,6 +26,8 @@ describe('UsersController', () => {
       findOne: jest.fn(),
       update: jest.fn(),
       updateAvatar: jest.fn(),
+      create: jest.fn(),
+      remove: jest.fn(),
     };
 
     controller = new UsersController(usersService as unknown as UsersService);
@@ -33,6 +35,24 @@ describe('UsersController', () => {
 
   afterEach(async () => {
     await rm(getAvatarUploadPath(`${USER_ID}.webp`), { force: true });
+  });
+
+  it('delegates profile creation to the service', async () => {
+    const createUserDto = { id: USER_ID, username: 'alice' };
+    const profile = { id: USER_ID, username: 'alice', avatarUrl: '/users/avatars/default.webp' };
+    usersService.create.mockResolvedValue(profile as any);
+
+    await expect(controller.create(createUserDto)).resolves.toBe(profile);
+
+    expect(usersService.create).toHaveBeenCalledWith(createUserDto);
+  });
+
+  it('delegates profile removal to the service', async () => {
+    usersService.remove.mockResolvedValue(undefined);
+
+    await expect(controller.remove(USER_ID)).resolves.toBeUndefined();
+
+    expect(usersService.remove).toHaveBeenCalledWith(USER_ID);
   });
 
   it('delegates avatar uploads to the service', async () => {

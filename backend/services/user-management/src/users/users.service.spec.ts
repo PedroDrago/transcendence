@@ -20,7 +20,7 @@ import { AvatarUploadFile, UsersService } from './users.service';
 const USER_ID = '550e8400-e29b-41d4-a716-446655440002';
 const USER_AVATAR_PATH = getAvatarPublicPath(`${USER_ID}.webp`);
 
-type UsersRepositoryMock = jest.Mocked<Pick<Repository<User>, 'findOne' | 'save'>>;
+type UsersRepositoryMock = jest.Mocked<Pick<Repository<User>, 'findOne' | 'save' | 'create' | 'remove'>>;
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -30,6 +30,8 @@ describe('UsersService', () => {
     usersRepository = {
       findOne: jest.fn(),
       save: jest.fn(async (user: User) => user),
+      create: jest.fn(),
+      remove: jest.fn(),
     };
 
     service = new UsersService(usersRepository as unknown as Repository<User>);
@@ -60,6 +62,38 @@ describe('UsersService', () => {
     await expect(service.findOne(USER_ID)).rejects.toBeInstanceOf(
       NotFoundException,
     );
+  });
+
+  it('creates a user and returns a serialized profile', async () => {
+    const createUserDto = { id: USER_ID, username: 'alice' };
+    const user = createUser();
+    usersRepository.create.mockReturnValue(user);
+    usersRepository.save.mockResolvedValue(user);
+
+    await expect(service.create(createUserDto as any)).resolves.toMatchObject({
+      id: USER_ID,
+      username: 'alice',
+    });
+
+    expect(usersRepository.create).toHaveBeenCalledWith(createUserDto);
+    expect(usersRepository.save).toHaveBeenCalledWith(user);
+  });
+
+  it('removes a user successfully', async () => {
+    const user = createUser();
+    usersRepository.findOne.mockResolvedValue(user);
+    usersRepository.remove.mockResolvedValue(user);
+
+    await expect(service.remove(USER_ID)).resolves.toBeUndefined();
+
+    expect(usersRepository.findOne).toHaveBeenCalledWith({ where: { id: USER_ID } });
+    expect(usersRepository.remove).toHaveBeenCalledWith(user);
+  });
+
+  it('throws NotFoundException when removing a non-existent user', async () => {
+    usersRepository.findOne.mockResolvedValue(null);
+
+    await expect(service.remove(USER_ID)).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('processes valid avatars as 256px WebP files and persists the relative URL', async () => {
