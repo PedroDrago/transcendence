@@ -13,6 +13,8 @@ import {
 	Res,
 	UploadedFile,
 	UseInterceptors,
+	HttpCode,
+	HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
@@ -35,6 +37,7 @@ export class UsersController {
 	constructor(private readonly usersService: UsersService) { }
 
 	@Post()
+	@HttpCode(HttpStatus.CREATED)
 	create(@Body() createUserDto: CreateUserDto) {
 		return this.usersService.create(createUserDto);
 	}
@@ -112,7 +115,9 @@ export class UsersController {
 	}
 
 	@Delete(':id')
-	remove(@Param('id') id: string) {
-		return this.usersService.remove(id);
+	@HttpCode(HttpStatus.NO_CONTENT)
+	async remove(@Param('id') id: string): Promise<void> {
+		await this.usersService.remove(id);
+		return;
 	}
 }
