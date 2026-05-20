@@ -1,153 +1,185 @@
 import {
-	BadRequestException,
-	Injectable,
-	NotFoundException,
-	PayloadTooLargeException,
-	UnsupportedMediaTypeException,
+    BadRequestException,
+    ConflictException,
+    Injectable,
+    Logger,
+    NotFoundException,
+    PayloadTooLargeException,
+    UnsupportedMediaTypeException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { mkdir, rename, unlink, writeFile } from 'node:fs/promises';
 import sharp from 'sharp';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import {
-	AVATAR_IMAGE_SIZE_PIXELS,
-	AVATAR_LEGACY_EXTENSIONS,
-	AVATAR_UPLOAD_DIRECTORY,
-	DEFAULT_AVATAR_FILENAME,
-	DEFAULT_AVATAR_PUBLIC_PATH,
+    AVATAR_IMAGE_SIZE_PIXELS,
+    AVATAR_LEGACY_EXTENSIONS,
+    AVATAR_UPLOAD_DIRECTORY,
+    DEFAULT_AVATAR_FILENAME,
+    DEFAULT_AVATAR_PUBLIC_PATH,
 } from './avatar.constants';
 import {
-	getAvatarFilename,
-	getAvatarPublicPath,
-	getAvatarUploadPath,
-	getValidatedAvatarImage,
-	isAvatarFileSizeAllowed,
+    getAvatarFilename,
+    getAvatarPublicPath,
+    getAvatarUploadPath,
+    getValidatedAvatarImage,
+    isAvatarFileSizeAllowed,
 } from './avatar.utils';
 
 export type AvatarUploadFile = {
-	buffer?: Buffer;
-	mimetype?: string;
-	size?: number;
+    buffer?: Buffer;
+    mimetype?: string;
+    size?: number;
 };
 
 @Injectable()
 export class UsersService {
-	constructor(
-		@InjectRepository(User)
-		private usersRepository: Repository<User>,
-	) { }
+    private readonly logger = new Logger(UsersService.name);
 
-	async findOne(id: string) {
-		const user = await this.usersRepository.findOne({ where: { id } });
+    constructor(
+        @InjectRepository(User)
+        private usersRepository: Repository<User>,
+    ) { }
 
-		if (!user) {
-			throw new NotFoundException('User not found');
-		}
+    async create(createUserDto: CreateUserDto) {
+        const existing = await this.usersRepository.findOne({
+            where: [{ id: createUserDto.id }, { username: createUserDto.username }],
+        });
 
-		return this.serializeProfile(user);
-	}
+        if (existing) {
+            if (existing.id === createUserDto.id) {
+                throw new ConflictException('User already exists');
+            }
+            throw new ConflictException('Username is already taken');
+        }
 
-	async update(id: string, updateProfileDto: UpdateProfileDto) {
-		const user = await this.usersRepository.findOne({ where: { id } });
+        const user = this.usersRepository.create({
+            id: createUserDto.id,
+            username: createUserDto.username,
+        });
+        await this.usersRepository.save(user);
+        return this.serializeProfile(user);
+    }
 
-		if (!user) {
-			throw new NotFoundException('User not found');
-		}
+    async findOne(id: string) {
+        const user = await this.usersRepository.findOne({ where: { id } });
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+        return this.serializeProfile(user);
+    }
 
-		Object.assign(user, updateProfileDto);
-		await this.usersRepository.save(user);
+    async update(id: string, updateProfileDto: UpdateProfileDto) {
+        const user = await this.usersRepository.findOne({ where: { id } });
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
 
-		return this.findOne(id);
-	}
+        Object.assign(user, updateProfileDto);
+        await this.usersRepository.save(user);
+        return this.serializeProfile(user);
+    }
 
-	async updateAvatar(id: string, file: AvatarUploadFile | undefined) {
-		const user = await this.usersRepository.findOne({ where: { id } });
+    async remove(id: string) {
+        const user = await this.usersRepository.findOne({ where: { id } });
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
 
-		if (!user) {
-			throw new NotFoundException('User not found');
-		}
+        if (user.avatarUrl && !user.avatarUrl.includes(DEFAULT_AVATAR_FILENAME)) {
+            try {
+                const filename = user.avatarUrl.split('/').pop();
+                if (filename) await unlink(getAvatarUploadPath(filename));
+            } catch (error) {
+                this.logger.error(`Failed to remove avatar from user ${id}: ${(error as Error).message}`,);
+            }
+        }
 
-		if (!file?.buffer || !file.mimetype || typeof file.size !== 'number') {
-			throw new BadRequestException('Missing avatar file');
-		}
+        await this.usersRepository.delete(id);
+    }
 
-		if (!isAvatarFileSizeAllowed(file.size)) {
-			throw new PayloadTooLargeException('Avatar must be 2MB or smaller');
-		}
+    async updateAvatar(id: string, file: AvatarUploadFile | undefined) {
+        const user = await this.usersRepository.findOne({ where: { id } });
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
 
-		if (!getValidatedAvatarImage(file.mimetype, file.buffer)) {
-			throw new UnsupportedMediaTypeException(
-				'Avatar must be a JPEG, PNG, or WebP image',
-			);
-		}
+        if (!file?.buffer || !file.mimetype || typeof file.size !== 'number') {
+            throw new BadRequestException('Missing avatar file');
+        }
 
-		const avatarFilename = getAvatarFilename(user.id);
-		const avatarPath = getAvatarUploadPath(avatarFilename);
-		const temporaryAvatarPath = `${avatarPath}.tmp`;
-		let processedAvatar: Buffer;
+        if (!isAvatarFileSizeAllowed(file.size)) {
+            throw new PayloadTooLargeException('Avatar must be 2MB or smaller');
+        }
 
-		try {
-			processedAvatar = await sharp(file.buffer)
-				.rotate()
-				.resize(AVATAR_IMAGE_SIZE_PIXELS, AVATAR_IMAGE_SIZE_PIXELS, {
-					fit: 'cover',
-				})
-				.webp({ quality: 82 })
-				.toBuffer();
-		} catch {
-			throw new UnsupportedMediaTypeException('Avatar image could not be processed');
-		}
+        if (!getValidatedAvatarImage(file.mimetype, file.buffer)) {
+            throw new UnsupportedMediaTypeException('Avatar must be a JPEG, PNG, or WebP image',);
+        }
 
-		await mkdir(AVATAR_UPLOAD_DIRECTORY, { recursive: true });
-		await writeFile(temporaryAvatarPath, processedAvatar);
-		await rename(temporaryAvatarPath, avatarPath);
-		await this.removeLegacyAvatarFiles(user.id);
+        const avatarFilename = getAvatarFilename(user.id);
+        const avatarPath = getAvatarUploadPath(avatarFilename);
+        const temporaryAvatarPath = `${avatarPath}.tmp`;
 
-		user.avatarUrl = getAvatarPublicPath(avatarFilename);
-		await this.usersRepository.save(user);
+        let processedAvatar: Buffer;
+        try {
+            processedAvatar = await sharp(file.buffer)
+                .rotate()
+                .resize(AVATAR_IMAGE_SIZE_PIXELS, AVATAR_IMAGE_SIZE_PIXELS, {fit: 'cover',})
+                .webp({ quality: 82 })
+                .toBuffer();
+        } catch {
+            throw new UnsupportedMediaTypeException('Avatar image could not be processed',);
+        }
 
-		return this.findOne(id);
-	}
+        await mkdir(AVATAR_UPLOAD_DIRECTORY, { recursive: true });
+        await writeFile(temporaryAvatarPath, processedAvatar);
+        await rename(temporaryAvatarPath, avatarPath);
+        await this.removeLegacyAvatarFiles(user.id);
 
-	private serializeProfile(user: User) {
-		let age: number | null = null;
-		if (user.dateOfBirth) {
-			const dob = new Date(user.dateOfBirth);
-			const ageDifMs = Date.now() - dob.getTime();
-			const ageDate = new Date(ageDifMs);
-			age = Math.abs(ageDate.getUTCFullYear() - 1970);
-		}
+        user.avatarUrl = getAvatarPublicPath(avatarFilename);
+        await this.usersRepository.save(user);
 
-		const { dateOfBirth, ...userWithoutDob } = user;
+        return this.serializeProfile(user);
+    }
 
-		return {
-			...userWithoutDob,
-			avatarUrl: this.normalizeAvatarUrl(user.avatarUrl),
-			age,
-		};
-	}
+    private serializeProfile(user: User) {
+        let age: number | null = null;
+        if (user.dateOfBirth) {
+            const dob = new Date(user.dateOfBirth);
+            const ageDifMs = Date.now() - dob.getTime();
+            const ageDate = new Date(ageDifMs);
+            age = Math.abs(ageDate.getUTCFullYear() - 1970);
+        }
 
-	private normalizeAvatarUrl(avatarUrl?: string | null): string {
-		if (!avatarUrl || avatarUrl === DEFAULT_AVATAR_FILENAME) {
-			return DEFAULT_AVATAR_PUBLIC_PATH;
-		}
+        const { dateOfBirth, ...userWithoutDob } = user;
+        return {
+            ...userWithoutDob,
+            avatarUrl: this.normalizeAvatarUrl(user.avatarUrl),
+            age,
+        };
+    }
 
-		return avatarUrl;
-	}
+    private normalizeAvatarUrl(avatarUrl?: string | null): string {
+        if (!avatarUrl || avatarUrl === DEFAULT_AVATAR_FILENAME) {
+            return DEFAULT_AVATAR_PUBLIC_PATH;
+        }
+        return avatarUrl;
+    }
 
-	private async removeLegacyAvatarFiles(userId: string): Promise<void> {
-		await Promise.all(
-			AVATAR_LEGACY_EXTENSIONS.map(async (extension) => {
-				try {
-					await unlink(getAvatarUploadPath(`${userId}.${extension}`));
-				} catch (error) {
-					if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-						throw error;
-					}
-				}
-			}),
-		);
-	}
+    private async removeLegacyAvatarFiles(userId: string): Promise<void> {
+        await Promise.all(
+            AVATAR_LEGACY_EXTENSIONS.map(async (extension) => {
+                try {
+                    await unlink(getAvatarUploadPath(`${userId}.${extension}`));
+                } catch (error) {
+                    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+                        throw error;
+                    }
+                }
+            }),
+        );
+    }
 }
