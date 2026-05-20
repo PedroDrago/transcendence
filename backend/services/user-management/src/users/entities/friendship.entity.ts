@@ -21,11 +21,11 @@ export class Friendship {
   @Column({ type: 'varchar', length: 20, default: FriendshipStatus.PENDING })
   status: FriendshipStatus | string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'requesterId' })
   requester: User;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'addresseeId' })
   addressee: User;
 
