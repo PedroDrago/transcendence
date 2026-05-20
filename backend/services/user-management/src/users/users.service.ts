@@ -45,10 +45,15 @@ export class UsersService {
     ) { }
 
     async create(createUserDto: CreateUserDto) {
-        // Blindagem contra duplicidade (Internal communication safety)
-        const existing = await this.usersRepository.findOne({ where: { id: createUserDto.id } });
+        const existing = await this.usersRepository.findOne({
+            where: [{ id: createUserDto.id }, { username: createUserDto.username }],
+        });
+
         if (existing) {
-            throw new ConflictException('User already exists');
+            if (existing.id === createUserDto.id) {
+                throw new ConflictException('User already exists');
+            }
+            throw new ConflictException('Username is already taken');
         }
 
         const user = this.usersRepository.create({
@@ -84,13 +89,12 @@ export class UsersService {
             throw new NotFoundException('User not found');
         }
 
-        // Limpeza física: se o usuário tinha um avatar custom, apaga do disco
         if (user.avatarUrl && !user.avatarUrl.includes(DEFAULT_AVATAR_FILENAME)) {
             try {
                 const filename = user.avatarUrl.split('/').pop();
                 if (filename) await unlink(getAvatarUploadPath(filename));
             } catch (error) {
-                this.logger.error(`Falha ao remover avatar de ${id}: ${(error as Error).message}`);
+                this.logger.error(`Failed to remove avatar from user ${id}: ${(error as Error).message}`,);
             }
         }
 
@@ -112,7 +116,7 @@ export class UsersService {
         }
 
         if (!getValidatedAvatarImage(file.mimetype, file.buffer)) {
-            throw new UnsupportedMediaTypeException('Avatar must be a JPEG, PNG, or WebP image');
+            throw new UnsupportedMediaTypeException('Avatar must be a JPEG, PNG, or WebP image',);
         }
 
         const avatarFilename = getAvatarFilename(user.id);
@@ -123,11 +127,11 @@ export class UsersService {
         try {
             processedAvatar = await sharp(file.buffer)
                 .rotate()
-                .resize(AVATAR_IMAGE_SIZE_PIXELS, AVATAR_IMAGE_SIZE_PIXELS, { fit: 'cover' })
+                .resize(AVATAR_IMAGE_SIZE_PIXELS, AVATAR_IMAGE_SIZE_PIXELS, {fit: 'cover',})
                 .webp({ quality: 82 })
                 .toBuffer();
         } catch {
-            throw new UnsupportedMediaTypeException('Avatar image could not be processed');
+            throw new UnsupportedMediaTypeException('Avatar image could not be processed',);
         }
 
         await mkdir(AVATAR_UPLOAD_DIRECTORY, { recursive: true });
