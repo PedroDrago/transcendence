@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Friendship, FriendshipStatus } from './entities/friendship.entity';
 import { User } from './entities/user.entity';
+import { UsersService } from './users.service';
 
 @Injectable()
 export class FriendsService {
@@ -11,6 +12,7 @@ export class FriendsService {
     private readonly friendshipRepository: Repository<Friendship>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly usersService: UsersService,
   ) {}
 
   async sendRequest(requesterId: string, addresseeId: string): Promise<Friendship> {
@@ -23,6 +25,7 @@ export class FriendsService {
       throw new NotFoundException('Addressee not found.');
     }
 
+    // Check for existing friendship to handle the REJECTED state machine
     const existingFriendship = await this.friendshipRepository.findOne({
       where: [
         { requesterId, addresseeId },
@@ -37,21 +40,28 @@ export class FriendsService {
       if (existingFriendship.status === FriendshipStatus.ACCEPTED) {
         throw new ConflictException('These users are already friends.');
       }
-
-      // If it was rejected, we can allow sending a new request by updating the old one
+      
+      // If it was rejected, we allow sending a new request by reviving the old one
       existingFriendship.requesterId = requesterId;
       existingFriendship.addresseeId = addresseeId;
       existingFriendship.status = FriendshipStatus.PENDING;
       return this.friendshipRepository.save(existingFriendship);
     }
 
-    const newFriendship = this.friendshipRepository.create({
-      requesterId,
-      addresseeId,
-      status: FriendshipStatus.PENDING,
-    });
-
-    return this.friendshipRepository.save(newFriendship);
+    try {
+      const newFriendship = this.friendshipRepository.create({
+        requesterId,
+        addresseeId,
+        status: FriendshipStatus.PENDING,
+      });
+      return await this.friendshipRepository.save(newFriendship);
+    } catch (error) {
+      // Postgres Unique Violation error code (handles race conditions)
+      if ((error as any).code === '23505') {
+        throw new ConflictException('A friend request already exists between these users.');
+      }
+      throw error;
+    }
   }
 
   async updateRequestStatus(userId: string, friendshipId: string, status: FriendshipStatus): Promise<Friendship> {
@@ -73,7 +83,7 @@ export class FriendsService {
     return this.friendshipRepository.save(friendship);
   }
 
-  async getFriends(userId: string): Promise<User[]> {
+  async getFriends(userId: string) {
     const friendships = await this.friendshipRepository.find({
       where: [
         { requesterId: userId, status: FriendshipStatus.ACCEPTED },
@@ -82,14 +92,23 @@ export class FriendsService {
       relations: ['requester', 'addressee'],
     });
 
-    // Map over friendships and return the *other* user
-    return friendships.map(f => (f.requesterId === userId ? f.addressee : f.requester));
+    // Map over friendships, return the *other* user, and serialize it to prevent data leaks
+    return friendships.map(f => {
+      const friendEntity = f.requesterId === userId ? f.addressee : f.requester;
+      return this.usersService.serializeProfile(friendEntity);
+    });
   }
 
-  async getPendingRequests(userId: string): Promise<Friendship[]> {
-    return this.friendshipRepository.find({
+  async getPendingRequests(userId: string) {
+    const requests = await this.friendshipRepository.find({
       where: { addresseeId: userId, status: FriendshipStatus.PENDING },
-      relations: ['requester'], // Include requester details so the user knows who sent it
+      relations: ['requester'], // Include requester details
     });
+
+    // Serialize the requester profile to prevent data leaks
+    return requests.map(req => ({
+      ...req,
+      requester: this.usersService.serializeProfile(req.requester),
+    }));
   }
 }
