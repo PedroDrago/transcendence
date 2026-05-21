@@ -5,10 +5,11 @@ import { UsersController } from './users.controller';
 import { User } from './entities/user.entity';
 import { Friendship } from './entities/friendship.entity';
 import { FriendsService } from './friends.service';
+import { FriendsController } from './friends.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Friendship])],
-  controllers: [UsersController],
+  controllers: [UsersController, FriendsController],
   providers: [UsersService, FriendsService],
 })
 export class UsersModule {}
