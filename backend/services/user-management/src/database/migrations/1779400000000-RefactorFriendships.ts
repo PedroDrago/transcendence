@@ -12,10 +12,14 @@ export class RefactorFriendships1779400000000 implements MigrationInterface {
 
         // Add unique index to prevent duplicate relationships regardless of direction
         await queryRunner.query(`CREATE UNIQUE INDEX "IDX_friendships_users" ON "user_management"."friendships" (LEAST("requesterId"::text, "addresseeId"::text), GREATEST("requesterId"::text, "addresseeId"::text))`);
+
+        // Add CHECK constraint to prevent self-requests at the DB level
+        await queryRunner.query(`ALTER TABLE "user_management"."friendships" ADD CONSTRAINT "CHK_friendships_no_self" CHECK ("requesterId" <> "addresseeId")`);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        // Remove unique index
+        // Remove constraints and index
+        await queryRunner.query(`ALTER TABLE "user_management"."friendships" DROP CONSTRAINT "CHK_friendships_no_self"`);
         await queryRunner.query(`DROP INDEX "user_management"."IDX_friendships_users"`);
 
         // Revert enum back to varchar

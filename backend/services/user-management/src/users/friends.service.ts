@@ -20,7 +20,14 @@ export class FriendsService {
       throw new BadRequestException('You cannot send a friend request to yourself.');
     }
 
-    const addressee = await this.userRepository.findOne({ where: { id: addresseeId } });
+    const [requester, addressee] = await Promise.all([
+      this.userRepository.findOne({ where: { id: requesterId } }),
+      this.userRepository.findOne({ where: { id: addresseeId } }),
+    ]);
+
+    if (!requester) {
+      throw new NotFoundException('Requester not found.');
+    }
     if (!addressee) {
       throw new NotFoundException('Addressee not found.');
     }
@@ -40,7 +47,7 @@ export class FriendsService {
       if (existingFriendship.status === FriendshipStatus.ACCEPTED) {
         throw new ConflictException('These users are already friends.');
       }
-      
+
       // If it was rejected, we allow sending a new request by reviving the old one
       existingFriendship.requesterId = requesterId;
       existingFriendship.addresseeId = addresseeId;
