@@ -145,7 +145,7 @@ export class UsersService {
         return this.serializeProfile(user);
     }
 
-    private serializeProfile(user: User) {
+    public serializeProfile(user: User) {
         let age: number | null = null;
         if (user.dateOfBirth) {
             const dob = new Date(user.dateOfBirth);
