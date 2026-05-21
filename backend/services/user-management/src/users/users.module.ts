@@ -9,7 +9,7 @@ import { FriendsController } from './friends.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Friendship])],
-  controllers: [UsersController, FriendsController],
+  controllers: [FriendsController, UsersController],
   providers: [UsersService, FriendsService],
 })
 export class UsersModule {}
