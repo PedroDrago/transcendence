@@ -18,8 +18,8 @@ export class Friendship {
   @Column({ type: 'uuid' })
   addresseeId: string;
 
-  @Column({ type: 'varchar', length: 20, default: FriendshipStatus.PENDING })
-  status: FriendshipStatus | string;
+  @Column({ type: 'enum', enum: FriendshipStatus, default: FriendshipStatus.PENDING })
+  status: FriendshipStatus;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'requesterId' })
