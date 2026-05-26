@@ -34,47 +34,51 @@ export class FriendsService {
       throw new NotFoundException('Addressee not found.');
     }
 
-    if (await this.blockService.isBlocked(requesterId, addresseeId)) {
-      throw new ForbiddenException('Cannot interact with a blocked user.');
-    }
-
-    // Check for existing friendship to handle the REJECTED state machine
-    const existingFriendship = await this.friendshipRepository.findOne({
-      where: [
-        { requesterId, addresseeId },
-        { requesterId: addresseeId, addresseeId: requesterId },
-      ],
-    });
-
-    if (existingFriendship) {
-      if (existingFriendship.status === FriendshipStatus.PENDING) {
-        throw new ConflictException('A friend request already exists between these users.');
-      }
-      if (existingFriendship.status === FriendshipStatus.ACCEPTED) {
-        throw new ConflictException('These users are already friends.');
+    // Execute block check and friendship creation atomically using SERIALIZABLE isolation
+    // to prevent race conditions where a block is applied concurrently after the check.
+    return await this.friendshipRepository.manager.transaction('SERIALIZABLE', async (manager) => {
+      if (await this.blockService.isBlocked(requesterId, addresseeId, manager)) {
+        throw new ForbiddenException('Cannot interact with a blocked user.');
       }
 
-      // If it was rejected, we allow sending a new request by reviving the old one
-      existingFriendship.requesterId = requesterId;
-      existingFriendship.addresseeId = addresseeId;
-      existingFriendship.status = FriendshipStatus.PENDING;
-      return this.friendshipRepository.save(existingFriendship);
-    }
-
-    try {
-      const newFriendship = this.friendshipRepository.create({
-        requesterId,
-        addresseeId,
-        status: FriendshipStatus.PENDING,
+      // Check for existing friendship to handle the REJECTED state machine
+      const existingFriendship = await manager.findOne(Friendship, {
+        where: [
+          { requesterId, addresseeId },
+          { requesterId: addresseeId, addresseeId: requesterId },
+        ],
       });
-      return await this.friendshipRepository.save(newFriendship);
-    } catch (error) {
-      // Postgres Unique Violation error code (handles race conditions)
-      if ((error as any).code === '23505') {
-        throw new ConflictException('A friend request already exists between these users.');
+
+      if (existingFriendship) {
+        if (existingFriendship.status === FriendshipStatus.PENDING) {
+          throw new ConflictException('A friend request already exists between these users.');
+        }
+        if (existingFriendship.status === FriendshipStatus.ACCEPTED) {
+          throw new ConflictException('These users are already friends.');
+        }
+
+        // If it was rejected, we allow sending a new request by reviving the old one
+        existingFriendship.requesterId = requesterId;
+        existingFriendship.addresseeId = addresseeId;
+        existingFriendship.status = FriendshipStatus.PENDING;
+        return manager.save(existingFriendship);
       }
-      throw error;
-    }
+
+      try {
+        const newFriendship = manager.create(Friendship, {
+          requesterId,
+          addresseeId,
+          status: FriendshipStatus.PENDING,
+        });
+        return await manager.save(newFriendship);
+      } catch (error) {
+        // Postgres Unique Violation error code (handles race conditions)
+        if ((error as any).code === '23505') {
+          throw new ConflictException('A friend request already exists between these users.');
+        }
+        throw error;
+      }
+    });
   }
 
   async updateRequestStatus(userId: string, friendshipId: string, status: FriendshipStatus): Promise<Friendship> {
