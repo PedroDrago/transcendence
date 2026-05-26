@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Friendship, FriendshipStatus } from './entities/friendship.entity';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
+import { BlockService } from './block.service';
 
 @Injectable()
 export class FriendsService {
@@ -13,6 +14,7 @@ export class FriendsService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly usersService: UsersService,
+    private readonly blockService: BlockService,
   ) {}
 
   async sendRequest(requesterId: string, addresseeId: string): Promise<Friendship> {
@@ -30,6 +32,10 @@ export class FriendsService {
     }
     if (!addressee) {
       throw new NotFoundException('Addressee not found.');
+    }
+
+    if (await this.blockService.isBlocked(requesterId, addresseeId)) {
+      throw new ForbiddenException('Cannot interact with a blocked user.');
     }
 
     // Check for existing friendship to handle the REJECTED state machine
@@ -80,6 +86,10 @@ export class FriendsService {
 
     if (friendship.addresseeId !== userId) {
       throw new ForbiddenException('You can only respond to requests sent to you.');
+    }
+
+    if (await this.blockService.isBlocked(friendship.requesterId, friendship.addresseeId)) {
+      throw new ForbiddenException('Cannot interact with a blocked user.');
     }
 
     if (friendship.status !== FriendshipStatus.PENDING) {
