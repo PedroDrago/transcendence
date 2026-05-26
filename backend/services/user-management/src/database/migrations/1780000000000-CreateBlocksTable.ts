@@ -25,12 +25,12 @@ export class CreateBlocksTable1780000000000 implements MigrationInterface {
             ADD CONSTRAINT "FK_blocks_blocked" FOREIGN KEY ("blockedId") REFERENCES "user_management"."profiles"("id") ON DELETE CASCADE ON UPDATE NO ACTION
         `);
 
-        -- Directional unique index: (blockerId, blockedId) — A blocks B is independent of B blocks A
+        // Directional unique index: (blockerId, blockedId) — A blocks B is independent of B blocks A
         await queryRunner.query(`
             CREATE UNIQUE INDEX "IDX_blocks_blocker_blocked" ON "user_management"."blocks" ("blockerId", "blockedId")
         `);
 
-        -- CHECK constraint to prevent self-blocking at the DB level
+        // CHECK constraint to prevent self-blocking at the DB level
         await queryRunner.query(`
             ALTER TABLE "user_management"."blocks"
             ADD CONSTRAINT "CHK_blocks_no_self" CHECK ("blockerId" <> "blockedId")
