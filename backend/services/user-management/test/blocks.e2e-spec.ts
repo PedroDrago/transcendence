@@ -175,7 +175,7 @@ describe('BlockController (e2e)', () => {
   });
 
   // ──────────────────────────────────────────────
-  // Transactional Cleanup (Friendship Deletion)
+  // Transactional Cleanup & Race Conditions
   // ──────────────────────────────────────────────
 
   it('should remove existing friendship when blocking', async () => {
@@ -204,6 +204,78 @@ describe('BlockController (e2e)', () => {
       });
   });
 
+  it('should remove an ACCEPTED friendship when blocking', async () => {
+    // A unblocks B (from previous tests) to set up
+    await request(app.getHttpServer()).delete(`/users/blocks/${userB.id}`).set('x-user-id', userA.id);
+
+    // 1. B sends request to A
+    const res = await request(app.getHttpServer())
+      .post('/users/friends/requests')
+      .set('x-user-id', userB.id)
+      .send({ addresseeId: userA.id })
+      .expect(201);
+    
+    const friendshipId = res.body.id;
+
+    // 2. A accepts the request
+    await request(app.getHttpServer())
+      .patch(`/users/friends/requests/${friendshipId}`)
+      .set('x-user-id', userA.id)
+      .send({ status: 'ACCEPTED' })
+      .expect(200);
+
+    // 3. Verify they are friends
+    await request(app.getHttpServer())
+      .get('/users/friends')
+      .set('x-user-id', userA.id)
+      .expect(200)
+      .expect((res) => expect(res.body.length).toBe(1));
+
+    // 4. B blocks A
+    await request(app.getHttpServer())
+      .post('/users/blocks')
+      .set('x-user-id', userB.id)
+      .send({ blockedId: userA.id })
+      .expect(201);
+
+    // 5. Verify friendship is destroyed for A
+    await request(app.getHttpServer())
+      .get('/users/friends')
+      .set('x-user-id', userA.id)
+      .expect(200)
+      .expect((res) => expect(res.body.length).toBe(0));
+  });
+
+  it('PATCH /users/friends/requests/:id should return 403 if blocked after request was sent', async () => {
+    // 1. B unblocks A (from previous test setup)
+    await request(app.getHttpServer()).delete(`/users/blocks/${userA.id}`).set('x-user-id', userB.id);
+
+    // 2. A sends request to B
+    const reqRes = await request(app.getHttpServer())
+      .post('/users/friends/requests')
+      .set('x-user-id', userA.id)
+      .send({ addresseeId: userB.id })
+      .expect(201);
+    
+    const friendshipId = reqRes.body.id;
+
+    // 3. A blocks B
+    await request(app.getHttpServer())
+      .post('/users/blocks')
+      .set('x-user-id', userA.id)
+      .send({ blockedId: userB.id })
+      .expect(201);
+
+    // 4. B tries to accept the stale request
+    // Because A blocked B, the friendship record was transactionally deleted.
+    // Thus, it returns 404 Not Found instead of 403 Forbidden.
+    await request(app.getHttpServer())
+      .patch(`/users/friends/requests/${friendshipId}`)
+      .set('x-user-id', userB.id)
+      .send({ status: 'ACCEPTED' })
+      .expect(404);
+  });
+
   // ──────────────────────────────────────────────
   // Unblock User
   // ──────────────────────────────────────────────
@@ -223,5 +295,44 @@ describe('BlockController (e2e)', () => {
       .expect((res) => {
         expect(res.body).toEqual({ blockedByMe: false, blockedMe: false, isBlocked: false });
       });
+  });
+
+  it('should explicitly verify double directional checks (A blocks C, C blocks A)', async () => {
+    // A already blocked C in a previous test.
+    // Let's verify C cannot send a request to A (direction 1)
+    await request(app.getHttpServer())
+      .post('/users/friends/requests')
+      .set('x-user-id', userC.id)
+      .send({ addresseeId: userA.id })
+      .expect(403);
+    
+    // Now C blocks A as well (mutual block)
+    await request(app.getHttpServer())
+      .post('/users/blocks')
+      .set('x-user-id', userC.id)
+      .send({ blockedId: userA.id })
+      .expect(201);
+    
+    // Status for A should show blockedByMe and blockedMe
+    await request(app.getHttpServer())
+      .get(`/users/blocks/${userC.id}/status`)
+      .set('x-user-id', userA.id)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toEqual({ blockedByMe: true, blockedMe: true, isBlocked: true });
+      });
+    
+    // A unblocks C. The block C->A still exists!
+    await request(app.getHttpServer())
+      .delete(`/users/blocks/${userC.id}`)
+      .set('x-user-id', userA.id)
+      .expect(200);
+
+    // A still cannot send a request to C because C blocked A
+    await request(app.getHttpServer())
+      .post('/users/friends/requests')
+      .set('x-user-id', userA.id)
+      .send({ addresseeId: userC.id })
+      .expect(403);
   });
 });
