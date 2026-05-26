@@ -35,7 +35,7 @@ export class BlockService {
 
     // Perform block creation and friendship deletion in a transaction
     try {
-      return await this.dataSource.transaction(async (manager) => {
+      return await this.dataSource.transaction('SERIALIZABLE', async (manager) => {
         const newBlock = manager.create(Block, { blockerId, blockedId });
         const savedBlock = await manager.save(Block, newBlock);
 
@@ -50,6 +50,9 @@ export class BlockService {
     } catch (error) {
       if ((error as any).code === '23505') { // Postgres unique violation
         throw new ConflictException('You have already blocked this user.');
+      }
+      if ((error as any).code === '40001') { // Postgres serialization failure
+        throw new ConflictException('Concurrent operation detected. Please try again.');
       }
       throw error;
     }
