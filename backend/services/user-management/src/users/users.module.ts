@@ -7,10 +7,12 @@ import { Friendship } from './entities/friendship.entity';
 import { Block } from './entities/block.entity';
 import { FriendsService } from './friends.service';
 import { FriendsController } from './friends.controller';
+import { BlockService } from './block.service';
+import { BlockController } from './block.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Friendship, Block])],
-  controllers: [FriendsController, UsersController],
-  providers: [UsersService, FriendsService],
+  controllers: [BlockController, FriendsController, UsersController],
+  providers: [UsersService, FriendsService, BlockService],
 })
 export class UsersModule {}
