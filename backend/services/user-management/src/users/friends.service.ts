@@ -89,26 +89,35 @@ export class FriendsService {
   }
 
   async updateRequestStatus(userId: string, friendshipId: string, status: FriendshipStatus): Promise<Friendship> {
-    const friendship = await this.friendshipRepository.findOne({ where: { id: friendshipId } });
+    try {
+      return await this.friendshipRepository.manager.transaction('SERIALIZABLE', async (manager) => {
+        const friendship = await manager.findOne(Friendship, { where: { id: friendshipId } });
 
-    if (!friendship) {
-      throw new NotFoundException('Friendship request not found.');
+        if (!friendship) {
+          throw new NotFoundException('Friendship request not found.');
+        }
+
+        if (friendship.addresseeId !== userId) {
+          throw new ForbiddenException('You can only respond to requests sent to you.');
+        }
+
+        if (await this.blockService.isBlocked(friendship.requesterId, friendship.addresseeId, manager)) {
+          throw new ForbiddenException('Cannot interact with a blocked user.');
+        }
+
+        if (friendship.status !== FriendshipStatus.PENDING) {
+          throw new BadRequestException('You can only respond to PENDING requests.');
+        }
+
+        friendship.status = status;
+        return manager.save(friendship);
+      });
+    } catch (error) {
+      if ((error as any).code === '40001') {
+        throw new ConflictException('Concurrent operation detected. Please try again.');
+      }
+      throw error;
     }
-
-    if (friendship.addresseeId !== userId) {
-      throw new ForbiddenException('You can only respond to requests sent to you.');
-    }
-
-    if (await this.blockService.isBlocked(friendship.requesterId, friendship.addresseeId)) {
-      throw new ForbiddenException('Cannot interact with a blocked user.');
-    }
-
-    if (friendship.status !== FriendshipStatus.PENDING) {
-      throw new BadRequestException('You can only respond to PENDING requests.');
-    }
-
-    friendship.status = status;
-    return this.friendshipRepository.save(friendship);
   }
 
   async getFriends(userId: string) {
