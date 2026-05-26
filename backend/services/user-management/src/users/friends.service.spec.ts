@@ -107,19 +107,19 @@ describe('FriendsService', () => {
 
   describe('updateRequestStatus', () => {
     it('should throw ForbiddenException if user is not the addressee', async () => {
-      mockFriendshipRepo.findOne.mockResolvedValue({ addresseeId: userId2 });
+      mockManager.findOne.mockResolvedValue({ addresseeId: userId2 });
       await expect(service.updateRequestStatus(userId1, friendshipId, FriendshipStatus.ACCEPTED)).rejects.toThrow(ForbiddenException);
     });
 
     it('should throw BadRequestException if status is not PENDING', async () => {
-      mockFriendshipRepo.findOne.mockResolvedValue({ addresseeId: userId1, status: FriendshipStatus.ACCEPTED });
+      mockManager.findOne.mockResolvedValue({ addresseeId: userId1, status: FriendshipStatus.ACCEPTED });
       await expect(service.updateRequestStatus(userId1, friendshipId, FriendshipStatus.REJECTED)).rejects.toThrow(BadRequestException);
     });
 
     it('should correctly update status', async () => {
       const friendship = { addresseeId: userId1, status: FriendshipStatus.PENDING };
-      mockFriendshipRepo.findOne.mockResolvedValue(friendship);
-      mockFriendshipRepo.save.mockResolvedValue({ ...friendship, status: FriendshipStatus.ACCEPTED });
+      mockManager.findOne.mockResolvedValue(friendship);
+      mockManager.save.mockResolvedValue({ ...friendship, status: FriendshipStatus.ACCEPTED });
 
       const result = await service.updateRequestStatus(userId1, friendshipId, FriendshipStatus.ACCEPTED);
       expect(result.status).toBe(FriendshipStatus.ACCEPTED);
