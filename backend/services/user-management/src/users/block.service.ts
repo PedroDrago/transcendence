@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, EntityManager } from 'typeorm';
 import { Block } from './entities/block.entity';
 import { User } from './entities/user.entity';
 import { Friendship } from './entities/friendship.entity';
@@ -13,6 +13,8 @@ export class BlockService {
     private readonly blockRepository: Repository<Block>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Friendship)
+    private readonly friendshipRepository: Repository<Friendship>,
     private readonly usersService: UsersService,
     private readonly dataSource: DataSource,
   ) {}
@@ -38,7 +40,7 @@ export class BlockService {
         const savedBlock = await manager.save(Block, newBlock);
 
         // Delete any existing friendships or pending requests between the two users
-        await manager.delete(Friendship, [
+        await manager.withRepository(this.friendshipRepository).delete([
           { requesterId: blockerId, addresseeId: blockedId },
           { requesterId: blockedId, addresseeId: blockerId },
         ]);
@@ -90,8 +92,10 @@ export class BlockService {
     };
   }
 
-  async isBlocked(userAId: string, userBId: string): Promise<boolean> {
-    const blockCount = await this.blockRepository.count({
+  async isBlocked(userAId: string, userBId: string, manager?: EntityManager): Promise<boolean> {
+    const repo = manager ? manager.getRepository(Block) : this.blockRepository;
+
+    const blockCount = await repo.count({
       where: [
         { blockerId: userAId, blockedId: userBId },
         { blockerId: userBId, blockedId: userAId },
