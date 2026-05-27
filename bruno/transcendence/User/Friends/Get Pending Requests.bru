@@ -1,0 +1,16 @@
+meta {
+  name: Get Pending Requests
+  type: http
+  seq: 2
+  tags: [
+    user, friends
+  ]
+}
+
+get {
+  url: {{user_base}}/users/friends/requests
+}
+
+headers {
+  x-user-id: {{user_id}}
+}

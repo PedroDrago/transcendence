@@ -1,0 +1,16 @@
+meta {
+  name: Get Block Status
+  type: http
+  seq: 4
+  tags: [
+    user, blocks
+  ]
+}
+
+get {
+  url: {{user_base}}/users/blocks/TARGET_UUID_HERE/status
+}
+
+headers {
+  x-user-id: {{user_id}}
+}

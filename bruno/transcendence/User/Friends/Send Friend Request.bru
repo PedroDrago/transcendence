@@ -1,0 +1,22 @@
+meta {
+  name: Send Friend Request
+  type: http
+  seq: 3
+  tags: [
+    user, friends
+  ]
+}
+
+post {
+  url: {{user_base}}/users/friends/requests
+}
+
+headers {
+  x-user-id: {{user_id}}
+}
+
+body:json {
+  {
+    "addresseeId": "TARGET_UUID_HERE"
+  }
+}

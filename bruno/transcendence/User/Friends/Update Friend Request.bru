@@ -1,0 +1,22 @@
+meta {
+  name: Update Friend Request
+  type: http
+  seq: 4
+  tags: [
+    user, friends
+  ]
+}
+
+patch {
+  url: {{user_base}}/users/friends/requests/REQUEST_UUID_HERE
+}
+
+headers {
+  x-user-id: {{user_id}}
+}
+
+body:json {
+  {
+    "status": "ACCEPTED"
+  }
+}
