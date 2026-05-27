@@ -20,3 +20,9 @@ body:json {
     "addresseeId": "TARGET_UUID_HERE"
   }
 }
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("last_request_id", res.body.id);
+  }
+}
