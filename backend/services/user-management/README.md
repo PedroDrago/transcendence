@@ -4,7 +4,14 @@ This is the `user-management` microservice for the Transcendence project. It han
 
 ## Overview
 
-The service is built with **NestJS**, **TypeORM**, and **PostgreSQL**. It exposes a REST API for the frontend and internal modules (like Chat) to interact with user data and social graphs.
+The service is built with **NestJS**, **TypeORM**, and **PostgreSQL**, utilizing `class-validator` and `joi` for strict payload validation. It exposes a REST API for the frontend and internal modules (like Chat) to interact with user data and social graphs.
+
+## Infrastructure & Configuration (Fail-Fast)
+This service uses a *Fail-Fast* approach during boot. The container will abort initialization if any critical environment variables are missing from the `.env` file.
+
+**Required Variables:**
+- `PORT` (Default: 3002)
+- `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`
 
 ### Architecture Notes
 - All authenticated routes require the `x-user-id` header to identify the current user. This is typically injected by the API Gateway after JWT validation.
@@ -16,7 +23,9 @@ The service is built with **NestJS**, **TypeORM**, and **PostgreSQL**. It expose
 
 ### 1. Users
 
-Manage user profiles and avatars.
+Manage user profiles and avatars (including cascade deletion on the database).
+- **Avatar Fallback:** If a user does not have an uploaded image, the system automatically defaults to serving `/users/avatars/default-avatar.png`.
+- **Security Note (Data Leakage):** Listing endpoints omit sensitive data (e.g., `dateOfBirth`) during serialization to ensure privacy.
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
@@ -30,7 +39,9 @@ Manage user profiles and avatars.
 
 ### 2. Friends
 
-Manage social connections.
+Complete state machine for managing social ties.
+- Native prevention against self-requests and duplicate requests (both direct and reverse directions).
+- **Data Recycling:** Rejected requests (`REJECTED`) are kept in the database for auditing but are recycled back to `PENDING` if the user attempts to reconnect.
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
@@ -41,7 +52,10 @@ Manage social connections.
 
 ### 3. Blocks
 
-Manage privacy controls. Blocking a user immediately and transactionally destroys any existing friendship or pending requests between the two users.
+Guarantees social isolation and feeds the business rules for communication modules.
+- Blocks are strictly unidirectional (`A blocks B`).
+- **ACID Atomic Transactions:** When blocking a user, any active or pending friendship ties are **physically deleted** atomically in the database. This prevents circular dependencies with the friends module.
+- Strict locks against *Race Conditions* (e.g., preventing the acceptance of stale invites from recently blocked users).
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
@@ -73,7 +87,9 @@ x-user-id: <requester-uuid>
 ```
 *Note: If `isBlocked` is `true`, the chat operation must be aborted.*
 
-## Development Setup
+## QA & Automated Testing
+
+To guarantee the resilience of the social engine, the service relies on an exhaustive end-to-end (E2E) test suite that verifies database constraints, UUID failures, atomic concurrency (race conditions), and data leakage protection.
 
 ```bash
 # Install dependencies
