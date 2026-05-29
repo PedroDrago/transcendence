@@ -24,14 +24,15 @@ This service uses a *Fail-Fast* approach during boot. The container will abort i
 ### 1. Users
 
 Manage user profiles and avatars (including cascade deletion on the database).
-- **Avatar Fallback:** If a user does not have an uploaded image, the system automatically defaults to serving `/users/avatars/default-avatar.png`.
+- **Avatar Fallback:** If a user does not have an uploaded image, the system automatically defaults to serving `/users/avatars/default.webp` (or legacy defaults).
+- **Avatar Caching:** Default avatars use strict `immutable` caching (24h) to save bandwidth, while custom user-uploaded avatars use `must-revalidate` to ensure immediate UI updates upon change.
 - **Security Note (Data Leakage):** Listing endpoints omit sensitive data (e.g., `dateOfBirth`) during serialization to ensure privacy.
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `POST` | `/users` | Create a new user profile. |
 | `GET` | `/users/me` | Retrieve the authenticated user's profile. Requires `x-user-id`. |
-| `PATCH` | `/users/me` | Update the authenticated user's profile (displayName, bio, etc). Requires `x-user-id`. |
+| `PATCH` | `/users/me` | Update the authenticated user's profile (displayName, bio, dateOfBirth). Set fields to `null` to clear them. Requires `x-user-id`. |
 | `PATCH` | `/users/me/avatar` | Upload a new avatar image (multipart/form-data). Requires `x-user-id`. |
 | `GET` | `/users/avatars/:filename` | Serve a user's avatar image. |
 | `GET` | `/users/:id` | Retrieve a specific user's public profile. Requires strict UUID v4 path parameter. |
