@@ -645,6 +645,17 @@ conversations.forEach((conv) => {
   ch.on("group_updated", (data) => { /* atualizar nome do grupo */ });
 });
 
+// Helper: Checar bloqueio antes de interagir (Integração User-Management)
+// Nao permita a criacao de conversas ou envio de mensagens se houver bloqueio.
+const checkBlockRes = await fetch(`http://localhost:3002/users/blocks/uuid-maria/status`, {
+  headers: authHeaders
+});
+const { isBlocked } = await checkBlockRes.json();
+if (isBlocked) {
+  console.log("Interação bloqueada! Voce nao pode conversar com este usuario.");
+  return;
+}
+
 // 7a. Criar conversa direta
 const newConvRes = await fetch("http://localhost:4002/api/conversation", {
   method: "POST",
@@ -762,6 +773,7 @@ Todas as rotas exigem `Authorization: Bearer <jwt>`.
 - [ ] Entrar no `user:{user_id}` — ouvir `new_conversation_message`
 - [ ] `GET /api/conversations` (com `Authorization: Bearer`) — listar conversas
 - [ ] Entrar no `chat:{id}` de cada conversa existente
+- [ ] **Integração User-Management:** `GET /users/blocks/:targetId/status` (porta 3002) — verificar se `isBlocked` é true antes de iniciar conversa
 - [ ] `POST /api/conversation` — criar/obter conversa com outro usuario
 - [ ] `GET /api/messages` — carregar historico de mensagens
 - [ ] Enviar `message` no chat channel
@@ -773,6 +785,7 @@ Todas as rotas exigem `Authorization: Bearer <jwt>`.
 - [ ] Tratar duplicata: ignorar `new_conversation_message` se ja esta no chat channel
 
 ### Chat — Grupos
+- [ ] **Integração User-Management:** `GET /users/blocks/:targetId/status` (porta 3002) para cada `member_id` antes de adicioná-los
 - [ ] `POST /api/group` — criar grupo com nome e lista de membros
 - [ ] Distinguir tipo `"direct"` e `"group"` na lista de conversas
 - [ ] Mostrar nome do grupo e lista de membros

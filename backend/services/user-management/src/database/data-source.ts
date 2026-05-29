@@ -1,7 +1,10 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { config } from 'dotenv';
+import { join } from 'path';
 import { User } from '../users/entities/user.entity';
+import { Friendship } from '../users/entities/friendship.entity';
+import { Block } from '../users/entities/block.entity';
 
 config();
 
@@ -13,6 +16,6 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD ?? 'postgres',
   database: process.env.DB_NAME ?? 'transcendence',
   schema: 'user_management',
-  entities: [User],
-  migrations: ['src/database/migrations/*.ts'],
+  entities: [User, Friendship, Block],
+  migrations: [join(__dirname, 'migrations', '*{.ts,.js}')],
 });

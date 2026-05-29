@@ -1,0 +1,16 @@
+meta {
+  name: Unblock User
+  type: http
+  seq: 3
+  tags: [
+    user, blocks
+  ]
+}
+
+delete {
+  url: {{user_base}}/users/blocks/TARGET_UUID_HERE
+}
+
+headers {
+  x-user-id: {{user_id}}
+}

@@ -15,10 +15,14 @@ import {
 	UseInterceptors,
 	HttpCode,
 	HttpStatus,
+	ForbiddenException,
+	ParseUUIDPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
+import { isUUID } from 'class-validator';
 import { UsersService } from './users.service';
+import { BlockService } from './block.service';
 import type { AvatarUploadFile } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -34,7 +38,16 @@ import { getAvatarUploadPath, isSafeAvatarFilename } from './avatar.utils';
 
 @Controller('users')
 export class UsersController {
-	constructor(private readonly usersService: UsersService) { }
+	constructor(
+		private readonly usersService: UsersService,
+		private readonly blockService: BlockService,
+	) { }
+
+	private validateUserId(userId: string) {
+		if (!userId || !isUUID(userId, '4')) {
+			throw new BadRequestException('Invalid or missing x-user-id header');
+		}
+	}
 
 	@Post()
 	@HttpCode(HttpStatus.CREATED)
@@ -44,9 +57,7 @@ export class UsersController {
 
 	@Get('me')
 	findMe(@Headers('x-user-id') userId: string) {
-		if (!userId) {
-			throw new BadRequestException('Missing x-user-id header');
-		}
+		this.validateUserId(userId);
 		return this.usersService.findOne(userId);
 	}
 
@@ -55,9 +66,7 @@ export class UsersController {
 		@Headers('x-user-id') userId: string,
 		@Body() updateProfileDto: UpdateProfileDto,
 	) {
-		if (!userId) {
-			throw new BadRequestException('Missing x-user-id header');
-		}
+		this.validateUserId(userId);
 		return this.usersService.update(userId, updateProfileDto);
 	}
 
@@ -74,9 +83,7 @@ export class UsersController {
 		@Headers('x-user-id') userId: string,
 		@UploadedFile() file?: AvatarUploadFile,
 	) {
-		if (!userId) {
-			throw new BadRequestException('Missing x-user-id header');
-		}
+		this.validateUserId(userId);
 		return this.usersService.updateAvatar(userId, file);
 	}
 
@@ -105,18 +112,40 @@ export class UsersController {
 			isDefaultAvatar ? DEFAULT_AVATAR_MIME_TYPE : AVATAR_OUTPUT_MIME_TYPE,
 		);
 		response.setHeader('X-Content-Type-Options', 'nosniff');
+		if (isDefaultAvatar) {
+			response.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+		} else {
+			response.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+		}
 
-		return response.sendFile(filePath);
+		return new Promise<void>((resolve, reject) => {
+			response.sendFile(filePath, (err) => err ? reject(err) : resolve());
+		});
 	}
 
 	@Get(':id')
-	findOne(@Param('id') id: string) {
+	async findOne(
+		@Headers('x-user-id') requesterId: string,
+		@Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+	) {
+		this.validateUserId(requesterId);
+		const blockStatus = await this.blockService.getBlockStatus(requesterId, id);
+		if (blockStatus.isBlocked) {
+			throw new NotFoundException('User not found');
+		}
 		return this.usersService.findOne(id);
 	}
 
 	@Delete(':id')
 	@HttpCode(HttpStatus.NO_CONTENT)
-	async remove(@Param('id') id: string): Promise<void> {
+	async remove(
+		@Headers('x-user-id') requesterId: string,
+		@Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+	): Promise<void> {
+		this.validateUserId(requesterId);
+		if (requesterId !== id) {
+			throw new ForbiddenException('You can only delete your own profile');
+		}
 		await this.usersService.remove(id);
 		return;
 	}
