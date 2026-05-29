@@ -33,8 +33,8 @@ describe('FriendsController (e2e)', () => {
     await app.init();
 
     // Pre-delete stale data from prior failed runs to prevent 409
-    try { await request(app.getHttpServer()).delete(`/users/${userA.id}`); } catch (e) {}
-    try { await request(app.getHttpServer()).delete(`/users/${userB.id}`); } catch (e) {}
+    try { await request(app.getHttpServer()).delete(`/users/${userA.id}`).set('x-user-id', userA.id); } catch (e) {}
+    try { await request(app.getHttpServer()).delete(`/users/${userB.id}`).set('x-user-id', userB.id); } catch (e) {}
 
     // Seed two users for the tests
     await request(app.getHttpServer())
@@ -53,10 +53,10 @@ describe('FriendsController (e2e)', () => {
 
     // Cleanup: delete test users (cascades delete friendships)
     try {
-      await request(app.getHttpServer()).delete(`/users/${userA.id}`);
+      await request(app.getHttpServer()).delete(`/users/${userA.id}`).set('x-user-id', userA.id);
     } catch (e) {}
     try {
-      await request(app.getHttpServer()).delete(`/users/${userB.id}`);
+      await request(app.getHttpServer()).delete(`/users/${userB.id}`).set('x-user-id', userB.id);
     } catch (e) {}
 
     await app.close();

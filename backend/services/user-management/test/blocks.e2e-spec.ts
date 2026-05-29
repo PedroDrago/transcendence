@@ -35,9 +35,9 @@ describe('BlockController (e2e)', () => {
     await app.init();
 
     // Pre-delete stale data to prevent 409
-    try { await request(app.getHttpServer()).delete(`/users/${userA.id}`); } catch (e) {}
-    try { await request(app.getHttpServer()).delete(`/users/${userB.id}`); } catch (e) {}
-    try { await request(app.getHttpServer()).delete(`/users/${userC.id}`); } catch (e) {}
+    try { await request(app.getHttpServer()).delete(`/users/${userA.id}`).set('x-user-id', userA.id); } catch (e) {}
+    try { await request(app.getHttpServer()).delete(`/users/${userB.id}`).set('x-user-id', userB.id); } catch (e) {}
+    try { await request(app.getHttpServer()).delete(`/users/${userC.id}`).set('x-user-id', userC.id); } catch (e) {}
 
     // Seed users
     await request(app.getHttpServer()).post('/users').send(userA).expect(201);
@@ -49,9 +49,9 @@ describe('BlockController (e2e)', () => {
     if (!app) return;
 
     // Cleanup: delete test users (cascades delete friendships and blocks)
-    try { await request(app.getHttpServer()).delete(`/users/${userA.id}`); } catch (e) {}
-    try { await request(app.getHttpServer()).delete(`/users/${userB.id}`); } catch (e) {}
-    try { await request(app.getHttpServer()).delete(`/users/${userC.id}`); } catch (e) {}
+    try { await request(app.getHttpServer()).delete(`/users/${userA.id}`).set('x-user-id', userA.id); } catch (e) {}
+    try { await request(app.getHttpServer()).delete(`/users/${userB.id}`).set('x-user-id', userB.id); } catch (e) {}
+    try { await request(app.getHttpServer()).delete(`/users/${userC.id}`).set('x-user-id', userC.id); } catch (e) {}
 
     await app.close();
   });
@@ -210,8 +210,8 @@ describe('BlockController (e2e)', () => {
     const u2 = { id: 'c2222222-2222-4222-a222-222222222222', username: 'acc_u2' };
     
     // Setup users
-    try { await request(app.getHttpServer()).delete(`/users/${u1.id}`); } catch(e){}
-    try { await request(app.getHttpServer()).delete(`/users/${u2.id}`); } catch(e){}
+    try { await request(app.getHttpServer()).delete(`/users/${u1.id}`).set('x-user-id', u1.id); } catch(e){}
+    try { await request(app.getHttpServer()).delete(`/users/${u2.id}`).set('x-user-id', u2.id); } catch(e){}
     await request(app.getHttpServer()).post('/users').send(u1).expect(201);
     await request(app.getHttpServer()).post('/users').send(u2).expect(201);
 
@@ -253,8 +253,8 @@ describe('BlockController (e2e)', () => {
       .expect((res) => expect(res.body.length).toBe(0));
       
     // Cleanup
-    await request(app.getHttpServer()).delete(`/users/${u1.id}`);
-    await request(app.getHttpServer()).delete(`/users/${u2.id}`);
+    await request(app.getHttpServer()).delete(`/users/${u1.id}`).set('x-user-id', u1.id);
+    await request(app.getHttpServer()).delete(`/users/${u2.id}`).set('x-user-id', u2.id);
   });
 
   it('PATCH /users/friends/requests/:id should return 404 if blocked after request was sent', async () => {
@@ -263,8 +263,8 @@ describe('BlockController (e2e)', () => {
     const u2 = { id: 'd2222222-2222-4222-a222-222222222222', username: 'patch_u2' };
     
     // Setup users
-    try { await request(app.getHttpServer()).delete(`/users/${u1.id}`); } catch(e){}
-    try { await request(app.getHttpServer()).delete(`/users/${u2.id}`); } catch(e){}
+    try { await request(app.getHttpServer()).delete(`/users/${u1.id}`).set('x-user-id', u1.id); } catch(e){}
+    try { await request(app.getHttpServer()).delete(`/users/${u2.id}`).set('x-user-id', u2.id); } catch(e){}
     await request(app.getHttpServer()).post('/users').send(u1).expect(201);
     await request(app.getHttpServer()).post('/users').send(u2).expect(201);
 
@@ -294,8 +294,8 @@ describe('BlockController (e2e)', () => {
       .expect(404);
       
     // Cleanup
-    await request(app.getHttpServer()).delete(`/users/${u1.id}`);
-    await request(app.getHttpServer()).delete(`/users/${u2.id}`);
+    await request(app.getHttpServer()).delete(`/users/${u1.id}`).set('x-user-id', u1.id);
+    await request(app.getHttpServer()).delete(`/users/${u2.id}`).set('x-user-id', u2.id);
   });
 
   // ──────────────────────────────────────────────
@@ -325,8 +325,8 @@ describe('BlockController (e2e)', () => {
     const uB = { id: 'e2222222-2222-4222-a222-222222222222', username: 'dir_uB' };
     
     // Setup users
-    try { await request(app.getHttpServer()).delete(`/users/${uA.id}`); } catch(e){}
-    try { await request(app.getHttpServer()).delete(`/users/${uB.id}`); } catch(e){}
+    try { await request(app.getHttpServer()).delete(`/users/${uA.id}`).set('x-user-id', uA.id); } catch(e){}
+    try { await request(app.getHttpServer()).delete(`/users/${uB.id}`).set('x-user-id', uB.id); } catch(e){}
     await request(app.getHttpServer()).post('/users').send(uA).expect(201);
     await request(app.getHttpServer()).post('/users').send(uB).expect(201);
 
@@ -374,7 +374,7 @@ describe('BlockController (e2e)', () => {
       .expect(403);
       
     // Cleanup
-    await request(app.getHttpServer()).delete(`/users/${uA.id}`);
-    await request(app.getHttpServer()).delete(`/users/${uB.id}`);
+    await request(app.getHttpServer()).delete(`/users/${uA.id}`).set('x-user-id', uA.id);
+    await request(app.getHttpServer()).delete(`/users/${uB.id}`).set('x-user-id', uB.id);
   });
 });
