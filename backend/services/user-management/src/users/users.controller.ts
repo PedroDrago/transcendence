@@ -16,6 +16,7 @@ import {
 	HttpCode,
 	HttpStatus,
 	ForbiddenException,
+	ParseUUIDPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
@@ -119,7 +120,7 @@ export class UsersController {
 	@Get(':id')
 	async findOne(
 		@Headers('x-user-id') requesterId: string,
-		@Param('id') id: string,
+		@Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
 	) {
 		this.validateUserId(requesterId);
 		const blockStatus = await this.blockService.getBlockStatus(requesterId, id);
@@ -133,7 +134,7 @@ export class UsersController {
 	@HttpCode(HttpStatus.NO_CONTENT)
 	async remove(
 		@Headers('x-user-id') requesterId: string,
-		@Param('id') id: string,
+		@Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
 	): Promise<void> {
 		this.validateUserId(requesterId);
 		if (requesterId !== id) {
