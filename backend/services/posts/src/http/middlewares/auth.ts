@@ -1,41 +1,13 @@
 import { bearer } from '@elysiajs/bearer'
-import { jwt } from '@elysiajs/jwt'
 import { Elysia } from 'elysia'
-import { z } from 'zod'
-import { env } from '@/env'
+import { decodeJwt } from 'jose'
 
-export const auth = new Elysia()
-  .use(bearer())
-  .use(
-    jwt({
-      secret: env.JWT_SECRET,
-      schema: z.object({
-        sub: z.string(),
-      }),
-    })
-  )
-  .macro({
-    auth: {
-      async resolve({ bearer, jwt, status }) {
-        if (!bearer) {
-          return status(401, {
-            error: 'Unauthorized',
-            message: 'Authentication required.',
-          })
-        }
+export const auth = new Elysia().use(bearer()).macro({
+  auth: {
+    resolve({ bearer }) {
+      const { sub } = decodeJwt(bearer as string)
 
-        const payload = await jwt.verify(bearer)
-
-        if (!payload) {
-          return status(401, {
-            error: 'Unauthorized',
-            message: 'Invalid or expired token.',
-          })
-        }
-
-        return {
-          userId: payload.sub,
-        }
-      },
+      return { userId: sub as string }
     },
-  })
+  },
+})
