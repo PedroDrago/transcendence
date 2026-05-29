@@ -79,11 +79,11 @@ describe('BlockController', () => {
     it('should return block status', async () => {
       const requesterId = '550e8400-e29b-41d4-a716-446655440001';
       const targetId = '550e8400-e29b-41d4-a716-446655440002';
-      mockBlockService.getBlockStatus.mockResolvedValue({ isBlocked: true, iBlockedThem: true, theyBlockedMe: false });
+      mockBlockService.getBlockStatus.mockResolvedValue({ isBlocked: true, blockedByMe: true, blockedMe: false });
 
       const result = await controller.getBlockStatus(requesterId, targetId);
       expect(service.getBlockStatus).toHaveBeenCalledWith(requesterId, targetId);
-      expect(result).toEqual({ isBlocked: true, iBlockedThem: true, theyBlockedMe: false });
+      expect(result).toEqual({ isBlocked: true, blockedByMe: true, blockedMe: false });
     });
   });
 });
