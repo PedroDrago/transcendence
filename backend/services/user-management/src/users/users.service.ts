@@ -51,7 +51,8 @@ export class UsersService {
                 username: createUserDto.username,
             });
             await this.usersRepository.insert(user);
-            return this.serializeProfile(user);
+            const savedUser = await this.usersRepository.findOne({ where: { id: user.id } });
+            return this.serializeProfile(savedUser!);
         } catch (error) {
             if ((error as any).code === '23505') {
                 throw new ConflictException('User or username already exists');
