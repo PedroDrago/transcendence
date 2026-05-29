@@ -50,7 +50,7 @@ export class UsersService {
                 id: createUserDto.id,
                 username: createUserDto.username,
             });
-            await this.usersRepository.save(user);
+            await this.usersRepository.insert(user);
             return this.serializeProfile(user);
         } catch (error) {
             if ((error as any).code === '23505') {

@@ -21,7 +21,7 @@ import { AvatarUploadFile, UsersService } from './users.service';
 const USER_ID = '550e8400-e29b-41d4-a716-446655440002';
 const USER_AVATAR_PATH = getAvatarPublicPath(`${USER_ID}.webp`);
 
-type UsersRepositoryMock = jest.Mocked<Pick<Repository<User>, 'findOne' | 'save' | 'create' | 'delete'>>;
+type UsersRepositoryMock = jest.Mocked<Pick<Repository<User>, 'findOne' | 'save' | 'create' | 'delete' | 'insert'>>;
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -33,6 +33,7 @@ describe('UsersService', () => {
       save: jest.fn(async (user: User) => user),
       create: jest.fn(),
       delete: jest.fn(),
+      insert: jest.fn(),
     };
 
     service = new UsersService(usersRepository as unknown as Repository<User>);
@@ -69,7 +70,7 @@ describe('UsersService', () => {
     const createUserDto = { id: USER_ID, username: 'alice' };
     const user = createUser();
     usersRepository.create.mockReturnValue(user);
-    usersRepository.save.mockResolvedValue(user);
+    usersRepository.insert.mockResolvedValue({ identifiers: [{ id: USER_ID }], generatedMaps: [], raw: [] });
 
     await expect(service.create(createUserDto as any)).resolves.toMatchObject({
       id: USER_ID,
@@ -77,14 +78,14 @@ describe('UsersService', () => {
     });
 
     expect(usersRepository.create).toHaveBeenCalledWith(createUserDto);
-    expect(usersRepository.save).toHaveBeenCalledWith(user);
+    expect(usersRepository.insert).toHaveBeenCalledWith(user);
   });
 
   it('throws ConflictException when creating a user with an existing id or username', async () => {
     const createUserDto = { id: USER_ID, username: 'alice' };
     const user = createUser();
     usersRepository.create.mockReturnValue(user);
-    usersRepository.save.mockRejectedValue({ code: '23505' });
+    usersRepository.insert.mockRejectedValue({ code: '23505' });
 
     await expect(service.create(createUserDto as any)).rejects.toThrow(
       ConflictException,
