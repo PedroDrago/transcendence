@@ -112,9 +112,15 @@ export class UsersController {
 			isDefaultAvatar ? DEFAULT_AVATAR_MIME_TYPE : AVATAR_OUTPUT_MIME_TYPE,
 		);
 		response.setHeader('X-Content-Type-Options', 'nosniff');
-		response.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+		if (isDefaultAvatar) {
+			response.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+		} else {
+			response.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+		}
 
-		return response.sendFile(filePath);
+		return new Promise<void>((resolve, reject) => {
+			response.sendFile(filePath, (err) => err ? reject(err) : resolve());
+		});
 	}
 
 	@Get(':id')
