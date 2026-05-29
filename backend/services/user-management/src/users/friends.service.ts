@@ -148,4 +148,19 @@ export class FriendsService {
       requester: this.usersService.serializeProfile(req.requester),
     }));
   }
+
+  async removeFriend(userId: string, friendId: string): Promise<void> {
+    const friendship = await this.friendshipRepository.findOne({
+      where: [
+        { requesterId: userId, addresseeId: friendId, status: FriendshipStatus.ACCEPTED },
+        { requesterId: friendId, addresseeId: userId, status: FriendshipStatus.ACCEPTED },
+      ],
+    });
+
+    if (!friendship) {
+      throw new NotFoundException('Friendship not found.');
+    }
+
+    await this.friendshipRepository.remove(friendship);
+  }
 }
