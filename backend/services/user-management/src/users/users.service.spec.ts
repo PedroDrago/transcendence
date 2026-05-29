@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   NotFoundException,
   PayloadTooLargeException,
   UnsupportedMediaTypeException,
@@ -20,7 +21,7 @@ import { AvatarUploadFile, UsersService } from './users.service';
 const USER_ID = '550e8400-e29b-41d4-a716-446655440002';
 const USER_AVATAR_PATH = getAvatarPublicPath(`${USER_ID}.webp`);
 
-type UsersRepositoryMock = jest.Mocked<Pick<Repository<User>, 'findOne' | 'save'>>;
+type UsersRepositoryMock = jest.Mocked<Pick<Repository<User>, 'findOne' | 'save' | 'create' | 'delete'>>;
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -30,6 +31,8 @@ describe('UsersService', () => {
     usersRepository = {
       findOne: jest.fn(),
       save: jest.fn(async (user: User) => user),
+      create: jest.fn(),
+      delete: jest.fn(),
     };
 
     service = new UsersService(usersRepository as unknown as Repository<User>);
@@ -62,6 +65,58 @@ describe('UsersService', () => {
     );
   });
 
+  it('creates a user and returns a serialized profile', async () => {
+    const createUserDto = { id: USER_ID, username: 'alice' };
+    const user = createUser();
+    usersRepository.create.mockReturnValue(user);
+    usersRepository.save.mockResolvedValue(user);
+
+    await expect(service.create(createUserDto as any)).resolves.toMatchObject({
+      id: USER_ID,
+      username: 'alice',
+    });
+
+    expect(usersRepository.create).toHaveBeenCalledWith(createUserDto);
+    expect(usersRepository.save).toHaveBeenCalledWith(user);
+  });
+
+  it('throws ConflictException when creating a user with an existing id', async () => {
+    const createUserDto = { id: USER_ID, username: 'alice' };
+    usersRepository.findOne.mockResolvedValue(createUser({ id: USER_ID }));
+
+    await expect(service.create(createUserDto as any)).rejects.toThrow(
+      ConflictException,
+    );
+  });
+
+  it('throws ConflictException when creating a user with an existing username', async () => {
+    const createUserDto = { id: USER_ID, username: 'alice' };
+    usersRepository.findOne.mockResolvedValue(
+      createUser({ id: 'different-id', username: 'alice' }),
+    );
+
+    await expect(service.create(createUserDto as any)).rejects.toThrow(
+      ConflictException,
+    );
+  });
+
+  it('removes a user successfully', async () => {
+    const user = createUser();
+    usersRepository.findOne.mockResolvedValue(user);
+    usersRepository.delete.mockResolvedValue({ affected: 1 } as any);
+
+    await expect(service.remove(USER_ID)).resolves.toBeUndefined();
+
+    expect(usersRepository.findOne).toHaveBeenCalledWith({where: { id: USER_ID },});
+    expect(usersRepository.delete).toHaveBeenCalledWith(USER_ID);
+  });
+
+  it('throws NotFoundException when removing a non-existent user', async () => {
+    usersRepository.findOne.mockResolvedValue(null);
+
+    await expect(service.remove(USER_ID)).rejects.toBeInstanceOf(NotFoundException,);
+  });
+
   it('processes valid avatars as 256px WebP files and persists the relative URL', async () => {
     const user = createUser();
     const file = await createPngUploadFile();
@@ -80,7 +135,7 @@ describe('UsersService', () => {
       expect.objectContaining({ avatarUrl: USER_AVATAR_PATH }),
     );
 
-    const metadata = await sharp(getAvatarUploadPath(`${USER_ID}.webp`)).metadata();
+    const metadata = await sharp(getAvatarUploadPath(`${USER_ID}.webp`),).metadata();
     expect(metadata.format).toBe('webp');
     expect(metadata.width).toBe(256);
     expect(metadata.height).toBe(256);
@@ -90,9 +145,7 @@ describe('UsersService', () => {
   it('rejects missing avatar files', async () => {
     usersRepository.findOne.mockResolvedValue(createUser());
 
-    await expect(service.updateAvatar(USER_ID, undefined)).rejects.toBeInstanceOf(
-      BadRequestException,
-    );
+    await expect(service.updateAvatar(USER_ID, undefined),).rejects.toBeInstanceOf(BadRequestException);
   });
 
   it('rejects oversized avatar files', async () => {
