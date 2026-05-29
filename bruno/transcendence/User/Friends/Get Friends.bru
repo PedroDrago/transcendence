@@ -1,0 +1,16 @@
+meta {
+  name: Get Friends
+  type: http
+  seq: 1
+  tags: [
+    user, friends
+  ]
+}
+
+get {
+  url: {{user_base}}/users/friends
+}
+
+headers {
+  x-user-id: {{user_id}}
+}

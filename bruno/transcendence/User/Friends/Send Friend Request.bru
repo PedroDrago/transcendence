@@ -1,0 +1,28 @@
+meta {
+  name: Send Friend Request
+  type: http
+  seq: 3
+  tags: [
+    user, friends
+  ]
+}
+
+post {
+  url: {{user_base}}/users/friends/requests
+}
+
+headers {
+  x-user-id: {{user_id}}
+}
+
+body:json {
+  {
+    "addresseeId": "TARGET_UUID_HERE"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("last_request_id", res.body.id);
+  }
+}

@@ -12,6 +12,7 @@ describe('FriendsController', () => {
     updateRequestStatus: jest.fn(),
     getFriends: jest.fn(),
     getPendingRequests: jest.fn(),
+    removeFriend: jest.fn(),
   };
 
   const userId1 = '11111111-1111-4111-a111-111111111111';
@@ -63,5 +64,12 @@ describe('FriendsController', () => {
     const result = await controller.getPendingRequests(userId1);
     expect(result).toEqual([{ id: friendshipId }]);
     expect(mockFriendsService.getPendingRequests).toHaveBeenCalledWith(userId1);
+  });
+
+  it('should remove a friend', async () => {
+    mockFriendsService.removeFriend.mockResolvedValue(undefined);
+    const result = await controller.removeFriend(userId1, userId2);
+    expect(result).toBeUndefined();
+    expect(mockFriendsService.removeFriend).toHaveBeenCalledWith(userId1, userId2);
   });
 });

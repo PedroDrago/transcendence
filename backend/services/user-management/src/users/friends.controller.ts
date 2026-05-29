@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Headers, Patch, Param, Get, HttpCode, HttpStatus, ParseUUIDPipe, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, Headers, Patch, Param, Get, Delete, HttpCode, HttpStatus, ParseUUIDPipe, BadRequestException } from '@nestjs/common';
 import { isUUID } from 'class-validator';
 import { FriendsService } from './friends.service';
 import { CreateFriendRequestDto } from './dto/create-friend-request.dto';
@@ -44,5 +44,15 @@ export class FriendsController {
   getPendingRequests(@Headers('x-user-id') userId: string) {
     this.validateUserId(userId);
     return this.friendsService.getPendingRequests(userId);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  removeFriend(
+    @Headers('x-user-id') userId: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) friendId: string,
+  ) {
+    this.validateUserId(userId);
+    return this.friendsService.removeFriend(userId, friendId);
   }
 }

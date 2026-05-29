@@ -4,7 +4,7 @@ set -e
 
 # Use PORT from environment or fallback to 3000
 DB_HOST_NAME=${DB_HOST:-database}
-DB_PORT_NUM=5432
+DB_PORT_NUM=${DB_PORT:-5432}
 
 echo "Waiting for database at $DB_HOST_NAME:$DB_PORT_NUM..."
 

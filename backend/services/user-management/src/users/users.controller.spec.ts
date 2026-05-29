@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import type { Response } from 'express';
 import {
@@ -12,6 +12,7 @@ import { getAvatarUploadPath } from './avatar.utils';
 import { UsersController } from './users.controller';
 import type { AvatarUploadFile } from './users.service';
 import { UsersService } from './users.service';
+import { BlockService } from './block.service';
 
 const USER_ID = '550e8400-e29b-41d4-a716-446655440001';
 
@@ -20,6 +21,7 @@ describe('UsersController', () => {
   let usersService: jest.Mocked<
     Pick<UsersService, 'findOne' | 'update' | 'updateAvatar' | 'create' | 'remove'>
   >;
+  let blockService: jest.Mocked<Pick<BlockService, 'getBlockStatus'>>;
 
   beforeEach(() => {
     usersService = {
@@ -30,7 +32,14 @@ describe('UsersController', () => {
       remove: jest.fn(),
     };
 
-    controller = new UsersController(usersService as unknown as UsersService);
+    blockService = {
+      getBlockStatus: jest.fn(),
+    };
+
+    controller = new UsersController(
+      usersService as unknown as UsersService,
+      blockService as unknown as BlockService
+    );
   });
 
   afterEach(async () => {
@@ -50,9 +59,53 @@ describe('UsersController', () => {
   it('delegates profile removal to the service', async () => {
     usersService.remove.mockResolvedValue(undefined);
 
-    await expect(controller.remove(USER_ID)).resolves.toBeUndefined();
+    await expect(controller.remove(USER_ID, USER_ID)).resolves.toBeUndefined();
 
     expect(usersService.remove).toHaveBeenCalledWith(USER_ID);
+  });
+
+  it('rejects profile removal if requesterId does not match id', async () => {
+    const otherId = '550e8400-e29b-41d4-a716-446655440002';
+    await expect(controller.remove(USER_ID, otherId)).rejects.toThrow(ForbiddenException);
+  });
+
+  describe('findMe', () => {
+    it('returns the user profile', async () => {
+      const profile = { id: USER_ID, username: 'alice' };
+      usersService.findOne.mockResolvedValue(profile as any);
+      await expect(controller.findMe(USER_ID)).resolves.toBe(profile);
+      expect(usersService.findOne).toHaveBeenCalledWith(USER_ID);
+    });
+
+    it('rejects if x-user-id is missing or invalid', () => {
+      expect(() => controller.findMe('')).toThrow(BadRequestException);
+    });
+  });
+
+  describe('updateMe', () => {
+    it('updates the user profile', async () => {
+      const dto = { displayName: 'Alice' };
+      const profile = { id: USER_ID, username: 'alice', displayName: 'Alice' };
+      usersService.update.mockResolvedValue(profile as any);
+      await expect(controller.updateMe(USER_ID, dto)).resolves.toBe(profile);
+      expect(usersService.update).toHaveBeenCalledWith(USER_ID, dto);
+    });
+  });
+
+  describe('findOne', () => {
+    it('returns the user profile if not blocked', async () => {
+      const otherId = '550e8400-e29b-41d4-a716-446655440002';
+      blockService.getBlockStatus.mockResolvedValue({ isBlocked: false } as any);
+      const profile = { id: otherId, username: 'bob' };
+      usersService.findOne.mockResolvedValue(profile as any);
+      await expect(controller.findOne(USER_ID, otherId)).resolves.toBe(profile);
+    });
+
+    it('throws NotFoundException if user is blocked', async () => {
+      const otherId = '550e8400-e29b-41d4-a716-446655440002';
+      blockService.getBlockStatus.mockResolvedValue({ isBlocked: true } as any);
+      await expect(controller.findOne(USER_ID, otherId)).rejects.toThrow(NotFoundException);
+    });
   });
 
   it('delegates avatar uploads to the service', async () => {
@@ -88,7 +141,7 @@ describe('UsersController', () => {
       'X-Content-Type-Options',
       'nosniff',
     );
-    expect(response.sendFile).toHaveBeenCalledWith(DEFAULT_AVATAR_ASSET_PATH);
+    expect(response.sendFile).toHaveBeenCalledWith(DEFAULT_AVATAR_ASSET_PATH, expect.any(Function));
   });
 
   it('serves uploaded avatars from the upload directory', async () => {
@@ -108,7 +161,7 @@ describe('UsersController', () => {
       'X-Content-Type-Options',
       'nosniff',
     );
-    expect(response.sendFile).toHaveBeenCalledWith(getAvatarUploadPath(filename));
+    expect(response.sendFile).toHaveBeenCalledWith(getAvatarUploadPath(filename), expect.any(Function));
   });
 
   it('rejects unsafe avatar filenames', async () => {
@@ -121,6 +174,8 @@ describe('UsersController', () => {
 function createResponseMock(): Response {
   return {
     setHeader: jest.fn(),
-    sendFile: jest.fn(),
+    sendFile: jest.fn((path, cb) => {
+      if (cb) cb();
+    }),
   } as unknown as Response;
 }

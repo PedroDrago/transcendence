@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
 import { Friendship } from './users/entities/friendship.entity';
+import { Block } from './users/entities/block.entity';
 
 @Module({
   imports: [
@@ -34,7 +35,7 @@ import { Friendship } from './users/entities/friendship.entity';
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_NAME'),
         schema: 'user_management',
-        entities: [User, Friendship],
+        entities: [User, Friendship, Block],
         synchronize: false,
         migrationsRun: false,
       }),

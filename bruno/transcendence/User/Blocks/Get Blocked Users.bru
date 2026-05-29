@@ -1,0 +1,16 @@
+meta {
+  name: Get Blocked Users
+  type: http
+  seq: 1
+  tags: [
+    user, blocks
+  ]
+}
+
+get {
+  url: {{user_base}}/users/blocks
+}
+
+headers {
+  x-user-id: {{user_id}}
+}
