@@ -13,7 +13,8 @@ export class UpdateProfileDto {
 	@MaxLength(500)
 	bio?: string | null;
 
+	@ValidateIf((object, value) => value !== null)
 	@IsDateString({ strict: true }, { message: 'dateOfBirth must be a valid ISO8601 date string' })
 	@IsOptional()
-	dateOfBirth?: string;
+	dateOfBirth?: string | null;
 }

@@ -81,11 +81,13 @@ export class UsersService {
         if ('bio' in updateProfileDto) {
             user.bio = (updateProfileDto.bio ?? null) as any;
         }
-        if (updateProfileDto.dateOfBirth) {
-            if (new Date(updateProfileDto.dateOfBirth) > new Date()) {
-                throw new BadRequestException('Date of birth cannot be in the future');
+        if ('dateOfBirth' in updateProfileDto) {
+            if (updateProfileDto.dateOfBirth) {
+                if (new Date(updateProfileDto.dateOfBirth) > new Date()) {
+                    throw new BadRequestException('Date of birth cannot be in the future');
+                }
             }
-            user.dateOfBirth = updateProfileDto.dateOfBirth;
+            user.dateOfBirth = (updateProfileDto.dateOfBirth ?? null) as any;
         }
 
         await this.usersRepository.save(user);
