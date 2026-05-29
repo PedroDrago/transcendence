@@ -34,8 +34,8 @@ Manage user profiles and avatars (including cascade deletion on the database).
 | `PATCH` | `/users/me` | Update the authenticated user's profile (displayName, bio, etc). Requires `x-user-id`. |
 | `PATCH` | `/users/me/avatar` | Upload a new avatar image (multipart/form-data). Requires `x-user-id`. |
 | `GET` | `/users/avatars/:filename` | Serve a user's avatar image. |
-| `GET` | `/users/:id` | Retrieve a specific user's public profile by UUID. |
-| `DELETE` | `/users/:id` | Delete a user profile (cascades blocks and friendships). |
+| `GET` | `/users/:id` | Retrieve a specific user's public profile. Requires strict UUID v4 path parameter. |
+| `DELETE` | `/users/:id` | Delete a user profile (cascades blocks and friendships). Requires strict UUID v4 path parameter. |
 
 ### 2. Friends
 
@@ -49,6 +49,7 @@ Complete state machine for managing social ties.
 | `GET` | `/users/friends/requests` | List all pending incoming friend requests for the authenticated user. Requires `x-user-id`. |
 | `POST` | `/users/friends/requests` | Send a friend request to another user. Body: `{ "addresseeId": "uuid" }`. Requires `x-user-id`. |
 | `PATCH` | `/users/friends/requests/:id` | Respond to a friend request. Body: `{ "status": "ACCEPTED" \| "REJECTED" }`. Requires `x-user-id`. |
+| `DELETE` | `/users/friends/:id` | Unfriend a user by deleting an accepted friendship. Requires strict UUID v4 path parameter. Requires `x-user-id`. |
 
 ### 3. Blocks
 
