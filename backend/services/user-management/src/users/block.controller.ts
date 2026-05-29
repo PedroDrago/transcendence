@@ -24,7 +24,7 @@ export class BlockController {
   }
 
   @Delete(':blockedId')
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.NO_CONTENT)
   unblockUser(
     @Headers('x-user-id') userId: string,
     @Param('blockedId', new ParseUUIDPipe({ version: '4' })) blockedId: string,
