@@ -1,0 +1,80 @@
+services:
+  transcendence_postgres:
+    image: postgres:17-alpine
+    container_name: transcendence_postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - transcendence_postgres_data:/var/lib/postgresql/data
+    networks:
+      - transcendence
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  transcendence_redis:
+    image: redis:8.6.2-alpine
+    container_name: transcendence_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - transcendence_redis_data:/data
+    networks:
+      - transcendence
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  transcendence_minio:
+    image: minio/minio:latest
+    container_name: transcendence_minio
+    ports:
+      - 9000:9000
+      - 9001:9001
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /data/${R2_BUCKET} && \
+        minio server /data --console-address ':9001'
+    volumes:
+      - transcendence_minio_data:/data
+    networks:
+      - transcendence
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  transcendence_jaeger:
+    image: jaegertracing/all-in-one:1.57
+    container_name: transcendence_jaeger
+    networks:
+      - transcendence
+    ports:
+      - "16686:16686" # UI
+      - "6831:6831/udp" # Traces UDP
+      - "14268:14268" # Traces HTTP
+      - "4317:4317" # OTLP/gRPC
+      - "4318:4318" # OTLP/HTTP
+
+networks:
+  transcendence:
+    driver: bridge
+
+volumes:
+  transcendence_postgres_data:
+  transcendence_redis_data:
+  transcendence_minio_data:
