@@ -80,20 +80,11 @@ describe('UsersService', () => {
     expect(usersRepository.save).toHaveBeenCalledWith(user);
   });
 
-  it('throws ConflictException when creating a user with an existing id', async () => {
+  it('throws ConflictException when creating a user with an existing id or username', async () => {
     const createUserDto = { id: USER_ID, username: 'alice' };
-    usersRepository.findOne.mockResolvedValue(createUser({ id: USER_ID }));
-
-    await expect(service.create(createUserDto as any)).rejects.toThrow(
-      ConflictException,
-    );
-  });
-
-  it('throws ConflictException when creating a user with an existing username', async () => {
-    const createUserDto = { id: USER_ID, username: 'alice' };
-    usersRepository.findOne.mockResolvedValue(
-      createUser({ id: 'different-id', username: 'alice' }),
-    );
+    const user = createUser();
+    usersRepository.create.mockReturnValue(user);
+    usersRepository.save.mockRejectedValue({ code: '23505' });
 
     await expect(service.create(createUserDto as any)).rejects.toThrow(
       ConflictException,
