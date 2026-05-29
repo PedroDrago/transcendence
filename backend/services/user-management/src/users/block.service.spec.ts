@@ -97,6 +97,14 @@ describe('BlockService', () => {
       await expect(service.blockUser('user1', 'user1')).rejects.toThrow(BadRequestException);
     });
 
+    it('should throw NotFoundException if target user does not exist', async () => {
+      mockUserRepo.findOne
+        .mockResolvedValueOnce({}) // blocker exists
+        .mockResolvedValueOnce(null); // blocked does not exist
+
+      await expect(service.blockUser('user1', 'user2')).rejects.toThrow(NotFoundException);
+    });
+
     it('should block a user and delete friendships in a transaction', async () => {
       const blockerId = 'user1';
       const blockedId = 'user2';
