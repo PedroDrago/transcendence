@@ -306,7 +306,7 @@ describe('BlockController (e2e)', () => {
     return request(app.getHttpServer())
       .delete(`/users/blocks/${userB.id}`)
       .set('x-user-id', userA.id)
-      .expect(200);
+      .expect(204);
   });
 
   it('GET /users/blocks/:targetId/status should return false after unblocking', () => {
@@ -364,7 +364,7 @@ describe('BlockController (e2e)', () => {
     await request(app.getHttpServer())
       .delete(`/users/blocks/${uB.id}`)
       .set('x-user-id', uA.id)
-      .expect(200);
+      .expect(204);
 
     // A still cannot send a request to B because B blocked A
     await request(app.getHttpServer())
