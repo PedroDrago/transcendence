@@ -150,17 +150,14 @@ export class FriendsService {
   }
 
   async removeFriend(userId: string, friendId: string): Promise<void> {
-    const friendship = await this.friendshipRepository.findOne({
-      where: [
-        { requesterId: userId, addresseeId: friendId, status: FriendshipStatus.ACCEPTED },
-        { requesterId: friendId, addresseeId: userId, status: FriendshipStatus.ACCEPTED },
-      ],
-    });
+    const result = await this.friendshipRepository.createQueryBuilder()
+      .delete()
+      .where('status = :status', { status: FriendshipStatus.ACCEPTED })
+      .andWhere('( (requesterId = :userId AND addresseeId = :friendId) OR (requesterId = :friendId AND addresseeId = :userId) )', { userId, friendId })
+      .execute();
 
-    if (!friendship) {
+    if (result.affected === 0) {
       throw new NotFoundException('Friendship not found.');
     }
-
-    await this.friendshipRepository.remove(friendship);
   }
 }
