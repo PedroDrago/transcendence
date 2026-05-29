@@ -74,8 +74,12 @@ export class UsersService {
             throw new NotFoundException('User not found');
         }
 
-        user.displayName = updateProfileDto.displayName ?? user.displayName;
-        user.bio = updateProfileDto.bio ?? user.bio;
+        if ('displayName' in updateProfileDto) {
+            user.displayName = (updateProfileDto.displayName ?? null) as any;
+        }
+        if ('bio' in updateProfileDto) {
+            user.bio = (updateProfileDto.bio ?? null) as any;
+        }
         if (updateProfileDto.dateOfBirth) {
             if (new Date(updateProfileDto.dateOfBirth) > new Date()) {
                 throw new BadRequestException('Date of birth cannot be in the future');
@@ -156,13 +160,16 @@ export class UsersService {
     }
 
     public serializeProfile(user: User) {
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
         let age: number | null = null;
         if (user.dateOfBirth) {
             const today = new Date();
             const dob = new Date(user.dateOfBirth);
-            age = today.getFullYear() - dob.getFullYear();
-            const monthDiff = today.getMonth() - dob.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+            age = today.getUTCFullYear() - dob.getUTCFullYear();
+            const monthDiff = today.getUTCMonth() - dob.getUTCMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getUTCDate() < dob.getUTCDate())) {
                 age--;
             }
         }
