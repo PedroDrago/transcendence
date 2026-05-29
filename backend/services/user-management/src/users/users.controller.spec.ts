@@ -12,6 +12,7 @@ import { getAvatarUploadPath } from './avatar.utils';
 import { UsersController } from './users.controller';
 import type { AvatarUploadFile } from './users.service';
 import { UsersService } from './users.service';
+import { BlockService } from './block.service';
 
 const USER_ID = '550e8400-e29b-41d4-a716-446655440001';
 
@@ -20,6 +21,7 @@ describe('UsersController', () => {
   let usersService: jest.Mocked<
     Pick<UsersService, 'findOne' | 'update' | 'updateAvatar' | 'create' | 'remove'>
   >;
+  let blockService: jest.Mocked<Pick<BlockService, 'getBlockStatus'>>;
 
   beforeEach(() => {
     usersService = {
@@ -30,7 +32,14 @@ describe('UsersController', () => {
       remove: jest.fn(),
     };
 
-    controller = new UsersController(usersService as unknown as UsersService);
+    blockService = {
+      getBlockStatus: jest.fn(),
+    };
+
+    controller = new UsersController(
+      usersService as unknown as UsersService,
+      blockService as unknown as BlockService
+    );
   });
 
   afterEach(async () => {
@@ -50,7 +59,7 @@ describe('UsersController', () => {
   it('delegates profile removal to the service', async () => {
     usersService.remove.mockResolvedValue(undefined);
 
-    await expect(controller.remove(USER_ID)).resolves.toBeUndefined();
+    await expect(controller.remove(USER_ID, USER_ID)).resolves.toBeUndefined();
 
     expect(usersService.remove).toHaveBeenCalledWith(USER_ID);
   });

@@ -3,8 +3,10 @@ import { BlockService } from './block.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Block } from './entities/block.entity';
 import { Friendship } from './entities/friendship.entity';
+import { User } from './entities/user.entity';
+import { UsersService } from './users.service';
 import { DataSource, Repository } from 'typeorm';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('BlockService', () => {
   let service: BlockService;
@@ -15,9 +17,16 @@ describe('BlockService', () => {
   const mockBlockRepo = {
     find: jest.fn(),
     findOne: jest.fn(),
+    remove: jest.fn(),
   };
 
   const mockFriendRepo = {};
+  const mockUserRepo = {
+    findOne: jest.fn(),
+  };
+  const mockUsersService = {
+    serializeProfile: jest.fn().mockImplementation((user) => user),
+  };
 
   const mockQueryBuilder = {
     delete: jest.fn().mockReturnThis(),
@@ -55,6 +64,14 @@ describe('BlockService', () => {
           useValue: mockFriendRepo,
         },
         {
+          provide: getRepositoryToken(User),
+          useValue: mockUserRepo,
+        },
+        {
+          provide: UsersService,
+          useValue: mockUsersService,
+        },
+        {
           provide: DataSource,
           useValue: mockDataSource,
         },
@@ -85,6 +102,7 @@ describe('BlockService', () => {
       const blockedId = 'user2';
       const block = { id: '1', blockerId, blockedId };
       
+      mockUserRepo.findOne.mockResolvedValue({});
       mockEntityManager.create.mockReturnValue(block);
       mockEntityManager.save.mockResolvedValue(block);
 
@@ -100,14 +118,21 @@ describe('BlockService', () => {
   });
 
   describe('unblockUser', () => {
-    it('should delete the block record in a transaction', async () => {
+    it('should remove the block record', async () => {
       const blockerId = 'user1';
       const blockedId = 'user2';
+      const block = { id: '1', blockerId, blockedId };
+      mockBlockRepo.findOne.mockResolvedValue(block as any);
 
       await service.unblockUser(blockerId, blockedId);
 
-      expect(dataSource.transaction).toHaveBeenCalledWith('SERIALIZABLE', expect.any(Function));
-      expect(mockEntityManager.delete).toHaveBeenCalledWith(Block, { blockerId, blockedId });
+      expect(blockRepo.findOne).toHaveBeenCalledWith({ where: { blockerId, blockedId } });
+      expect(blockRepo.remove).toHaveBeenCalledWith(block);
+    });
+
+    it('should throw NotFoundException if block record is not found', async () => {
+      mockBlockRepo.findOne.mockResolvedValue(null);
+      await expect(service.unblockUser('user1', 'user2')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -115,7 +140,7 @@ describe('BlockService', () => {
     it('should return a list of blocked users', async () => {
       const userId = 'user1';
       const blocks = [
-        { blockedUser: { id: 'user2', username: 'john' } }
+        { blocked: { id: 'user2', username: 'john' } }
       ];
       mockBlockRepo.find.mockResolvedValue(blocks as any);
 
@@ -123,7 +148,7 @@ describe('BlockService', () => {
 
       expect(blockRepo.find).toHaveBeenCalledWith({
         where: { blockerId: userId },
-        relations: ['blockedUser'],
+        relations: ['blocked'],
       });
       expect(result).toEqual([{ id: 'user2', username: 'john' }]);
     });
@@ -131,16 +156,16 @@ describe('BlockService', () => {
 
   describe('getBlockStatus', () => {
     it('should return correct status', async () => {
-      mockBlockRepo.findOne
-        .mockResolvedValueOnce({ id: '1' } as any) // iBlockedThem
-        .mockResolvedValueOnce(null); // theyBlockedMe
+      mockBlockRepo.find.mockResolvedValue([
+        { blockerId: 'user1', blockedId: 'user2' }
+      ] as any);
 
       const result = await service.getBlockStatus('user1', 'user2');
 
       expect(result).toEqual({
         isBlocked: true,
-        iBlockedThem: true,
-        theyBlockedMe: false,
+        blockedByMe: true,
+        blockedMe: false,
       });
     });
   });
