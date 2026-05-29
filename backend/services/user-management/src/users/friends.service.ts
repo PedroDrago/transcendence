@@ -153,7 +153,7 @@ export class FriendsService {
     const result = await this.friendshipRepository.createQueryBuilder()
       .delete()
       .where('status = :status', { status: FriendshipStatus.ACCEPTED })
-      .andWhere('( (requesterId = :userId AND addresseeId = :friendId) OR (requesterId = :friendId AND addresseeId = :userId) )', { userId, friendId })
+      .andWhere('( ("requesterId" = :userId AND "addresseeId" = :friendId) OR ("requesterId" = :friendId AND "addresseeId" = :userId) )', { userId, friendId })
       .execute();
 
     if (result.affected === 0) {
