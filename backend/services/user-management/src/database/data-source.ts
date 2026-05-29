@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { config } from 'dotenv';
+import { join } from 'path';
 import { User } from '../users/entities/user.entity';
 import { Friendship } from '../users/entities/friendship.entity';
 import { Block } from '../users/entities/block.entity';
@@ -16,5 +17,5 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME ?? 'transcendence',
   schema: 'user_management',
   entities: [User, Friendship, Block],
-  migrations: ['src/database/migrations/*.ts'],
+  migrations: [join(__dirname, 'migrations', '*{.ts,.js}')],
 });
