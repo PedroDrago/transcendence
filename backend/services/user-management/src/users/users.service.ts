@@ -45,23 +45,19 @@ export class UsersService {
     ) { }
 
     async create(createUserDto: CreateUserDto) {
-        const existing = await this.usersRepository.findOne({
-            where: [{ id: createUserDto.id }, { username: createUserDto.username }],
-        });
-
-        if (existing) {
-            if (existing.id === createUserDto.id) {
-                throw new ConflictException('User already exists');
+        try {
+            const user = this.usersRepository.create({
+                id: createUserDto.id,
+                username: createUserDto.username,
+            });
+            await this.usersRepository.save(user);
+            return this.serializeProfile(user);
+        } catch (error) {
+            if ((error as any).code === '23505') {
+                throw new ConflictException('User or username already exists');
             }
-            throw new ConflictException('Username is already taken');
+            throw error;
         }
-
-        const user = this.usersRepository.create({
-            id: createUserDto.id,
-            username: createUserDto.username,
-        });
-        await this.usersRepository.save(user);
-        return this.serializeProfile(user);
     }
 
     async findOne(id: string) {
@@ -80,7 +76,13 @@ export class UsersService {
 
         user.displayName = updateProfileDto.displayName ?? user.displayName;
         user.bio = updateProfileDto.bio ?? user.bio;
-        user.dateOfBirth = updateProfileDto.dateOfBirth ?? user.dateOfBirth;
+        if (updateProfileDto.dateOfBirth) {
+            if (new Date(updateProfileDto.dateOfBirth) > new Date()) {
+                throw new BadRequestException('Date of birth cannot be in the future');
+            }
+            user.dateOfBirth = updateProfileDto.dateOfBirth;
+        }
+
         await this.usersRepository.save(user);
         return this.serializeProfile(user);
     }
