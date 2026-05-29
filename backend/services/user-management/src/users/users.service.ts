@@ -78,7 +78,9 @@ export class UsersService {
             throw new NotFoundException('User not found');
         }
 
-        Object.assign(user, updateProfileDto);
+        user.displayName = updateProfileDto.displayName ?? user.displayName;
+        user.bio = updateProfileDto.bio ?? user.bio;
+        user.dateOfBirth = updateProfileDto.dateOfBirth ?? user.dateOfBirth;
         await this.usersRepository.save(user);
         return this.serializeProfile(user);
     }
@@ -135,12 +137,18 @@ export class UsersService {
         }
 
         await mkdir(AVATAR_UPLOAD_DIRECTORY, { recursive: true });
-        await writeFile(temporaryAvatarPath, processedAvatar);
-        await rename(temporaryAvatarPath, avatarPath);
-        await this.removeLegacyAvatarFiles(user.id);
 
-        user.avatarUrl = getAvatarPublicPath(avatarFilename);
-        await this.usersRepository.save(user);
+        try {
+            await writeFile(temporaryAvatarPath, processedAvatar);
+            await rename(temporaryAvatarPath, avatarPath);
+            await this.removeLegacyAvatarFiles(user.id);
+
+            user.avatarUrl = getAvatarPublicPath(avatarFilename);
+            await this.usersRepository.save(user);
+        } catch (error) {
+            await unlink(temporaryAvatarPath).catch(() => {});
+            throw error;
+        }
 
         return this.serializeProfile(user);
     }
@@ -148,10 +156,13 @@ export class UsersService {
     public serializeProfile(user: User) {
         let age: number | null = null;
         if (user.dateOfBirth) {
+            const today = new Date();
             const dob = new Date(user.dateOfBirth);
-            const ageDifMs = Date.now() - dob.getTime();
-            const ageDate = new Date(ageDifMs);
-            age = Math.abs(ageDate.getUTCFullYear() - 1970);
+            age = today.getFullYear() - dob.getFullYear();
+            const monthDiff = today.getMonth() - dob.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
         }
 
         const { dateOfBirth, ...userWithoutDob } = user;
