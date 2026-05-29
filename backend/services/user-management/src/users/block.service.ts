@@ -40,10 +40,14 @@ export class BlockService {
         const savedBlock = await manager.save(Block, newBlock);
 
         // Delete any existing friendships or pending requests between the two users
-        await manager.withRepository(this.friendshipRepository).delete([
-          { requesterId: blockerId, addresseeId: blockedId },
-          { requesterId: blockedId, addresseeId: blockerId },
-        ]);
+        await manager.createQueryBuilder()
+          .delete()
+          .from(Friendship)
+          .where(
+            '("requesterId" = :blockerId AND "addresseeId" = :blockedId) OR ("requesterId" = :blockedId AND "addresseeId" = :blockerId)',
+            { blockerId, blockedId }
+          )
+          .execute();
 
         return savedBlock;
       });
