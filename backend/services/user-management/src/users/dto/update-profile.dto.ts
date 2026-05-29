@@ -1,4 +1,4 @@
-import { IsString, IsOptional, Matches, MaxLength } from 'class-validator';
+import { IsString, IsOptional, MaxLength, IsDateString } from 'class-validator';
 
 export class UpdateProfileDto {
 	@IsString()
@@ -11,7 +11,7 @@ export class UpdateProfileDto {
 	@MaxLength(500)
 	bio?: string;
 
-	@Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'dateOfBirth must be in YYYY-MM-DD format' })
+	@IsDateString({ strict: true }, { message: 'dateOfBirth must be a valid ISO8601 date string' })
 	@IsOptional()
 	dateOfBirth?: string;
 }
