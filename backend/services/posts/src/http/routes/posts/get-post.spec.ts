@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createPost } from '@test/helpers/create-post'
 import { teardown } from '@test/teardown'
 import { uuidv7 } from 'uuidv7'
@@ -8,12 +7,10 @@ import { api } from '@/http/app'
 const REGEX = /^http/
 
 describe('Get posts tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -28,7 +25,7 @@ describe('Get posts tests', () => {
 
     const { status, data, error } = await api.posts({ id }).get({
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -46,7 +43,7 @@ describe('Get posts tests', () => {
 
     const { data } = await api.posts({ id }).get({
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -56,7 +53,7 @@ describe('Get posts tests', () => {
   it('should be able to return the same data when called twice (cache hit)', async () => {
     const { id } = await createPost({ userId, caption: 'cached post' })
 
-    const headers = { authorization: `Bearer ${token}` }
+    const headers = { 'x-user-id': userId }
 
     const { data: first } = await api.posts({ id }).get({ headers })
     const { data: second } = await api.posts({ id }).get({ headers })
@@ -68,7 +65,7 @@ describe('Get posts tests', () => {
   it('should be able to return 404 if post does not exist', async () => {
     const { status } = await api.posts({ id: uuidv7() }).get({
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 

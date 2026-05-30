@@ -11,14 +11,17 @@ defmodule TranscendenceChat.ChatFixtures do
   """
   def user_fixture(attrs \\ %{}) do
     username = Map.get(attrs, :username, "user_#{System.unique_integer([:positive])}")
+    email = Map.get(attrs, :email, "#{username}@example.test")
 
     {:ok, result} =
       Repo.query(
-        "INSERT INTO auth.users (id, username, \"passwordHash\", \"createdAt\") VALUES (gen_random_uuid(), $1, 'test_hash', NOW()) RETURNING id, username",
-        [username]
+        "INSERT INTO auth.users (id, username, email, \"passwordHash\", \"createdAt\") VALUES (gen_random_uuid(), $1, $2, 'test_hash', NOW()) RETURNING id, username",
+        [username, email]
       )
 
     [id, name] = hd(result.rows)
+    {:ok, id} = Ecto.UUID.load(id)
+
     %TranscendenceChat.Chat.User{id: id, username: name}
   end
 

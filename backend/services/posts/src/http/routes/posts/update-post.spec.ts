@@ -1,17 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createPost } from '@test/helpers/create-post'
 import { teardown } from '@test/teardown'
 import { uuidv7 } from 'uuidv7'
 import { api } from '@/http/app'
 
 describe('Update posts tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -30,7 +27,7 @@ describe('Update posts tests', () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )
@@ -47,7 +44,7 @@ describe('Update posts tests', () => {
   it('should invalidate cache after update', async () => {
     const { id } = await createPost({ userId, caption: 'original' })
 
-    const headers = { authorization: `Bearer ${token}` }
+    const headers = { 'x-user-id': userId }
 
     await api.posts({ id }).get({ headers })
 
@@ -69,7 +66,7 @@ describe('Update posts tests', () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )
@@ -84,7 +81,7 @@ describe('Update posts tests', () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )

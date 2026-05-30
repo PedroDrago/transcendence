@@ -5,7 +5,7 @@ defmodule TranscendenceChatWeb.GroupController do
 
   # Todas as actions deste controller rodam após o plug `Authenticate`,
   # então `conn.assigns.current_user.id` é a única fonte confiável de
-  # identidade. O cliente não envia mais `user_id`/`requester_id`.
+  # identidade encaminhada pelo gateway.
 
   # POST /api/group
   # Body: {"name": "Group Name", "member_ids": ["uuid1", "uuid2"]}

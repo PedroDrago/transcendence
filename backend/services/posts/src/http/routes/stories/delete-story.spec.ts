@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createStory } from '@test/helpers/create-story'
 import { teardown } from '@test/teardown'
 import { uuidv7 } from 'uuidv7'
@@ -7,12 +6,10 @@ import { api } from '@/http/app'
 import { r2 } from '@/storage'
 
 describe('Delete story tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -24,7 +21,7 @@ describe('Delete story tests', () => {
 
     const { status, error } = await api.stories({ id }).delete(undefined, {
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -37,7 +34,7 @@ describe('Delete story tests', () => {
 
     await api.stories({ id }).delete(undefined, {
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -53,7 +50,7 @@ describe('Delete story tests', () => {
 
     const { status } = await api.stories({ id }).delete(undefined, {
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -63,7 +60,7 @@ describe('Delete story tests', () => {
   it('should be able to return 404 if story does not exist', async () => {
     const { status } = await api.stories({ id: uuidv7() }).delete(undefined, {
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 

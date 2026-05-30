@@ -64,7 +64,7 @@ defmodule TranscendenceChat.ChatTest do
     end
 
     test "add_group_member/2 adds a new member" do
-      %{conversation: conv, creator: creator} = group_conversation_fixture()
+      %{conversation: conv} = group_conversation_fixture()
       new_member = user_fixture()
 
       assert {:ok, _} = Chat.add_group_member(conv.id, new_member.id)

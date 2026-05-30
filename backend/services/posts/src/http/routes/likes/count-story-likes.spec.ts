@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createLike } from '@test/helpers/create-like'
 import { createStory } from '@test/helpers/create-story'
 import { teardown } from '@test/teardown'
@@ -7,12 +6,10 @@ import { uuidv7 } from 'uuidv7'
 import { api } from '@/http/app'
 
 describe('Count story likes tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -26,7 +23,7 @@ describe('Count story likes tests', () => {
       .stories({ storyId })
       .likes.count.get({
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 
@@ -42,7 +39,7 @@ describe('Count story likes tests', () => {
 
     const { status, data } = await api.stories({ storyId }).likes.count.get({
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -58,7 +55,7 @@ describe('Count story likes tests', () => {
 
     const { data } = await api.stories({ storyId }).likes.count.get({
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -70,7 +67,7 @@ describe('Count story likes tests', () => {
       .stories({ storyId: uuidv7() })
       .likes.count.get({
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 
@@ -83,7 +80,7 @@ describe('Count story likes tests', () => {
       .stories({ storyId: 'not-a-uuid' })
       .likes.count.get({
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 

@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createComment } from '@test/helpers/create-comment'
 import { createLike } from '@test/helpers/create-like'
 import { createStory } from '@test/helpers/create-story'
@@ -12,12 +11,10 @@ import { api } from '@/http/app'
 const REGEX = /^http/
 
 describe('List stories tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -33,7 +30,7 @@ describe('List stories tests', () => {
         limit: 20,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -52,7 +49,7 @@ describe('List stories tests', () => {
         limit: 20,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -68,7 +65,7 @@ describe('List stories tests', () => {
         limit: 20,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -82,7 +79,7 @@ describe('List stories tests', () => {
         limit: 20,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -101,7 +98,7 @@ describe('List stories tests', () => {
         limit: 2,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -121,7 +118,7 @@ describe('List stories tests', () => {
         limit: 2,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -141,7 +138,7 @@ describe('List stories tests', () => {
         limit: 20,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -163,7 +160,7 @@ describe('List stories tests', () => {
         limit: 20,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -183,7 +180,7 @@ describe('List stories tests', () => {
         limit: 20,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -199,7 +196,7 @@ describe('List stories tests', () => {
         limit: 20,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 

@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createComment } from '@test/helpers/create-comment'
 import { createPost } from '@test/helpers/create-post'
 import { teardown } from '@test/teardown'
@@ -7,12 +6,10 @@ import { uuidv7 } from 'uuidv7'
 import { api } from '@/http/app'
 
 describe('Get comment tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -29,7 +26,7 @@ describe('Get comment tests', () => {
 
     const { status, data, error } = await api.comments({ commentId }).get({
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -49,7 +46,7 @@ describe('Get comment tests', () => {
       content: 'Cached comment',
     })
 
-    const headers = { authorization: `Bearer ${token}` }
+    const headers = { 'x-user-id': userId }
 
     const { data: first } = await api.comments({ commentId }).get({ headers })
     const { data: second } = await api.comments({ commentId }).get({ headers })
@@ -60,7 +57,7 @@ describe('Get comment tests', () => {
 
   it('should return 404 if comment does not exist', async () => {
     const { status } = await api.comments({ commentId: uuidv7() }).get({
-      headers: { authorization: `Bearer ${token}` },
+      headers: { 'x-user-id': userId },
     })
 
     expect(status).toBe(404)

@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createComment } from '@test/helpers/create-comment'
 import { createLike } from '@test/helpers/create-like'
 import { createPost } from '@test/helpers/create-post'
@@ -8,12 +7,10 @@ import { uuidv7 } from 'uuidv7'
 import { api } from '@/http/app'
 
 describe('List post comments tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -30,7 +27,7 @@ describe('List post comments tests', () => {
         limit: 20,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -51,7 +48,7 @@ describe('List post comments tests', () => {
         limit: 20,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -67,7 +64,7 @@ describe('List post comments tests', () => {
         limit: 20,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -87,7 +84,7 @@ describe('List post comments tests', () => {
         limit: 2,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -107,7 +104,7 @@ describe('List post comments tests', () => {
         limit: 2,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -129,7 +126,7 @@ describe('List post comments tests', () => {
         limit: 20,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -149,7 +146,7 @@ describe('List post comments tests', () => {
         limit: 20,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -166,7 +163,7 @@ describe('List post comments tests', () => {
         limit: 20,
       },
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 

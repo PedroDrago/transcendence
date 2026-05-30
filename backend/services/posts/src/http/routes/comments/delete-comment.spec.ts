@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createComment } from '@test/helpers/create-comment'
 import { createPost } from '@test/helpers/create-post'
 import { teardown } from '@test/teardown'
@@ -7,12 +6,10 @@ import { uuidv7 } from 'uuidv7'
 import { api } from '@/http/app'
 
 describe('Delete comment tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -27,7 +24,7 @@ describe('Delete comment tests', () => {
       .comments({ commentId })
       .delete(undefined, {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 
@@ -45,7 +42,7 @@ describe('Delete comment tests', () => {
 
     const { status } = await api.comments({ commentId }).delete(undefined, {
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -57,7 +54,7 @@ describe('Delete comment tests', () => {
       .comments({ commentId: uuidv7() })
       .delete(undefined, {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 
@@ -75,13 +72,13 @@ describe('Delete comment tests', () => {
 
     await api.comments({ commentId: parent.id }).delete(undefined, {
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
     const { status } = await api.comments({ commentId: reply.id }).get({
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 

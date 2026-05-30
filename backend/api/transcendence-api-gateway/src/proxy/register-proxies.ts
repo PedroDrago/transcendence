@@ -28,6 +28,7 @@ type ProxyTargets = {
   authServiceUrl: string;
   userServiceUrl: string;
   chatServiceUrl: string;
+  postsServiceUrl: string;
 };
 
 type JwtClaims = {
@@ -40,6 +41,14 @@ function createUnauthorizedResponse(response: Response, message: string) {
     message,
     error: 'Unauthorized',
     statusCode: 401,
+  });
+}
+
+function createForbiddenResponse(response: Response, message: string) {
+  return response.status(403).json({
+    message,
+    error: 'Forbidden',
+    statusCode: 403,
   });
 }
 
@@ -59,7 +68,13 @@ function readBearerToken(request: Request): string | null {
 
 function validateAccessToken(jwtService: JwtService, token: string) {
   const payload = jwtService.verify<JwtClaims>(token);
-  return getAuthenticatedUserFromToken(payload as Parameters<typeof getAuthenticatedUserFromToken>[0]);
+  return getAuthenticatedUserFromToken(
+    payload as Parameters<typeof getAuthenticatedUserFromToken>[0],
+  );
+}
+
+function forwardAuthenticatedUser(request: Request, userId: string) {
+  request.headers['x-user-id'] = userId;
 }
 
 function requireJwt(
@@ -83,6 +98,23 @@ function requireJwt(
   };
 }
 
+function requireJwtWhen(
+  pathMatcher: (pathname: string) => boolean,
+  jwtService: JwtService,
+  mutator?: (request: Request, userId: string) => void,
+): RequestHandler {
+  const middleware = requireJwt(jwtService, mutator);
+
+  return (request: Request, response: Response, next: NextFunction) => {
+    if (!pathMatcher(request.path)) {
+      next();
+      return;
+    }
+
+    middleware(request, response, next);
+  };
+}
+
 function baseProxyOptions(target: string) {
   return {
     target,
@@ -96,7 +128,7 @@ function baseProxyOptions(target: string) {
 
 function createHttpProxy(
   target: string,
-  pathFilter: string | string[],
+  pathFilter: string | string[] | ((pathname: string) => boolean),
   pathRewrite?: Record<string, string>,
 ) {
   return createProxyMiddleware({
@@ -125,6 +157,40 @@ function readSocketToken(request: IncomingMessage): string | null {
   return url.searchParams.get('token');
 }
 
+function isPostsPath(pathname: string): boolean {
+  return (
+    pathname === '/presign-url' ||
+    pathname.startsWith('/posts') ||
+    pathname.startsWith('/stories') ||
+    pathname.startsWith('/comments') ||
+    pathname.startsWith('/likes') ||
+    /^\/users\/[^/]+\/posts(?:\/|$)/.test(pathname) ||
+    /^\/users\/[^/]+\/stories(?:\/|$)/.test(pathname)
+  );
+}
+
+function isUserPath(pathname: string): boolean {
+  return pathname.startsWith('/users') && !pathname.startsWith('/users/avatars');
+}
+
+function blockUserManagementWriteEndpoints(): RequestHandler {
+  return (request: Request, response: Response, next: NextFunction) => {
+    if (
+      (request.method === 'POST' && request.path === '/users') ||
+      (request.method === 'PATCH' && /^\/users\/[^/]+\/username$/.test(request.path)) ||
+      (request.method === 'DELETE' && /^\/users\/[^/]+$/.test(request.path))
+    ) {
+      createForbiddenResponse(
+        response,
+        'User management write endpoint is not exposed through the gateway',
+      );
+      return;
+    }
+
+    next();
+  };
+}
+
 export function registerGatewayProxies(
   app: Express,
   server: GatewayServer,
@@ -133,24 +199,26 @@ export function registerGatewayProxies(
 ) {
   const authProxy = createHttpProxy(targets.authServiceUrl, '/auth/**');
   const userProxy = createHttpProxy(targets.userServiceUrl, '/users/**');
+  const postsProxy = createHttpProxy(targets.postsServiceUrl, isPostsPath);
   const chatProxy = createHttpProxy(targets.chatServiceUrl, '/chat/**', {
     '^/chat': '/api',
   });
   const socketProxy = createSocketProxy(targets.chatServiceUrl);
 
-  app.use(['/auth/password', '/auth/username'], requireJwt(jwtService));
+  app.use(
+    ['/auth/password', '/auth/username'],
+    requireJwt(jwtService, forwardAuthenticatedUser),
+  );
   app.use(authProxy);
 
-  app.use(
-    '/users/me',
-    requireJwt(jwtService, (request, userId) => {
-      request.headers['x-user-id'] = userId;
-      delete request.headers.authorization;
-    }),
-  );
+  app.use(requireJwtWhen(isPostsPath, jwtService, forwardAuthenticatedUser));
+  app.use(postsProxy);
+
+  app.use(requireJwtWhen(isUserPath, jwtService, forwardAuthenticatedUser));
+  app.use(blockUserManagementWriteEndpoints());
   app.use(userProxy);
 
-  app.use('/chat', requireJwt(jwtService));
+  app.use('/chat', requireJwt(jwtService, forwardAuthenticatedUser));
   app.use(chatProxy);
 
   server.on('upgrade', (request, socket, head) => {
@@ -165,7 +233,8 @@ export function registerGatewayProxies(
     }
 
     try {
-      validateAccessToken(jwtService, token);
+      const user = validateAccessToken(jwtService, token);
+      request.headers['x-user-id'] = user.id;
     } catch {
       upgradeUnauthorized(socket);
       return;

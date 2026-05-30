@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createComment } from '@test/helpers/create-comment'
 import { createPost } from '@test/helpers/create-post'
 import { teardown } from '@test/teardown'
@@ -7,12 +6,10 @@ import { uuidv7 } from 'uuidv7'
 import { api } from '@/http/app'
 
 describe('Count post comments tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -26,7 +23,7 @@ describe('Count post comments tests', () => {
       .posts({ postId })
       .comments.count.get({
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 
@@ -42,7 +39,7 @@ describe('Count post comments tests', () => {
 
     const { status, data } = await api.posts({ postId }).comments.count.get({
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -58,7 +55,7 @@ describe('Count post comments tests', () => {
 
     const { data } = await api.posts({ postId }).comments.count.get({
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -74,7 +71,7 @@ describe('Count post comments tests', () => {
 
     const { data } = await api.posts({ postId }).comments.count.get({
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -86,7 +83,7 @@ describe('Count post comments tests', () => {
       .posts({ postId: uuidv7() })
       .comments.count.get({
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 
@@ -99,7 +96,7 @@ describe('Count post comments tests', () => {
       .posts({ postId: 'not-a-uuid' })
       .comments.count.get({
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 

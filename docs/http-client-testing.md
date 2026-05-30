@@ -11,13 +11,13 @@ The stack exposes these HTTP services:
 - Auth service: `http://localhost:4001`
 - Chat service: `http://localhost:4002`
 - User service: `http://localhost:3002`
+- Posts service: `http://localhost:3333`
 
 Important:
 
-- The gateway currently does not proxy downstream service routes yet.
-- For now, test `auth-service`, `chat-service`, and `user-service` directly.
-- `chat-service` expects `Authorization: Bearer <token>`.
-- `user-service` currently expects `x-user-id: <uuid>`.
+- The gateway proxies auth, chat, user, and posts routes.
+- Prefer the API gateway for protected route testing.
+- Downstream protected services receive gateway-validated identity through internal headers.
 
 ## Before You Start
 
@@ -37,6 +37,7 @@ gateway_base=http://localhost:4000
 auth_base=http://localhost:4001
 chat_base=http://localhost:4002
 user_base=http://localhost:3002
+posts_base=http://localhost:3333
 
 access_token=
 user_id=
@@ -52,8 +53,8 @@ avatar_filename=
 2. Register user A.
 3. Login as user A and save `access_token`.
 4. Register user B and save `second_user_id`.
-5. Test user profile endpoints using `x-user-id` from user A.
-6. Test chat endpoints using the bearer token from user A.
+5. Test user profile endpoints through the gateway using the bearer token from user A.
+6. Test chat and posts endpoints through the gateway using the bearer token from user A.
 
 ## 1. Gateway
 
@@ -143,6 +144,8 @@ Expected response shape:
 Save:
 
 - `user_id = response.user.id`
+
+Auth also creates the matching profile in the user service with the same `id` and `username`. If the profile creation fails, auth rolls back the registration instead of leaving a login-only account.
 
 ### Register User B
 
@@ -276,6 +279,7 @@ Expected response shape:
 Important:
 
 - Replace `access_token` with the new token from this response.
+- Auth also synchronizes this username to the user service profile. If that sync fails, auth rolls back to the previous username.
 
 ### Exchange OAuth Handoff Token
 
@@ -320,9 +324,9 @@ Test those in a browser only after real Google credentials are configured in the
 
 Important:
 
-- This service currently identifies the caller with `x-user-id`.
-- Use the UUID you got from auth registration.
-- It does not currently use the bearer token directly.
+- Direct user-service requests identify the caller with `x-user-id`.
+- Gateway user-service requests use `Authorization: Bearer {{access_token}}`; the gateway validates the token and forwards `x-user-id`.
+- Use the UUID you got from auth registration only when testing the user service directly.
 
 ### Health
 
@@ -480,8 +484,8 @@ Expected response:
 
 Important:
 
-- Use the auth JWT here.
-- The service expects:
+- Send the auth JWT to the gateway. The gateway validates it and forwards only the authenticated user id to chat.
+- The gateway request expects:
 
 ```text
 Authorization: Bearer {{access_token}}
@@ -503,7 +507,7 @@ Expected behavior:
 ### Create or Get a Direct Conversation
 
 - Method: `POST`
-- URL: `{{chat_base}}/api/conversation`
+- URL: `{{gateway_base}}/chat/conversation`
 - Headers:
 
 ```text
@@ -536,7 +540,7 @@ Save:
 ### List My Conversations
 
 - Method: `GET`
-- URL: `{{chat_base}}/api/conversations`
+- URL: `{{gateway_base}}/chat/conversations`
 - Headers:
 
 ```text
@@ -579,7 +583,7 @@ Expected response shape:
 ### List Messages for a Conversation
 
 - Method: `GET`
-- URL: `{{chat_base}}/api/messages?conversation_id={{conversation_id}}`
+- URL: `{{gateway_base}}/chat/messages?conversation_id={{conversation_id}}`
 - Headers:
 
 ```text
@@ -607,7 +611,7 @@ If messages exist, each item looks like:
 ### Create a Group Conversation
 
 - Method: `POST`
-- URL: `{{chat_base}}/api/group`
+- URL: `{{gateway_base}}/chat/group`
 - Headers:
 
 ```text
@@ -642,7 +646,7 @@ Save:
 ### Add a Member to a Group
 
 - Method: `POST`
-- URL: `{{chat_base}}/api/group/{{group_conversation_id}}/members`
+- URL: `{{gateway_base}}/chat/group/{{group_conversation_id}}/members`
 - Headers:
 
 ```text
@@ -669,7 +673,7 @@ Expected success response:
 ### Remove a Member from a Group
 
 - Method: `DELETE`
-- URL: `{{chat_base}}/api/group/{{group_conversation_id}}/members/{{second_user_id}}`
+- URL: `{{gateway_base}}/chat/group/{{group_conversation_id}}/members/{{second_user_id}}`
 - Headers:
 
 ```text
@@ -687,7 +691,7 @@ Expected response:
 ### Rename a Group
 
 - Method: `PATCH`
-- URL: `{{chat_base}}/api/group/{{group_conversation_id}}`
+- URL: `{{gateway_base}}/chat/group/{{group_conversation_id}}`
 - Headers:
 
 ```text
@@ -715,7 +719,7 @@ Expected response:
 ### List Online Users
 
 - Method: `GET`
-- URL: `{{chat_base}}/api/users/online`
+- URL: `{{gateway_base}}/chat/users/online`
 - Headers:
 
 ```text
@@ -733,7 +737,7 @@ Expected response:
 ### Get Last Seen for a User
 
 - Method: `GET`
-- URL: `{{chat_base}}/api/users/{{second_user_id}}/last_seen`
+- URL: `{{gateway_base}}/chat/users/{{second_user_id}}/last_seen`
 - Headers:
 
 ```text
@@ -790,8 +794,8 @@ If you only want a quick smoke test, run these requests:
 5. `GET {{user_base}}/health`
 6. `GET {{user_base}}/users/me` with `x-user-id`
 7. `GET {{chat_base}}/`
-8. `POST {{chat_base}}/api/conversation` with bearer token
-9. `GET {{chat_base}}/api/conversations` with bearer token
+8. `POST {{gateway_base}}/chat/conversation` with bearer token
+9. `GET {{gateway_base}}/chat/conversations` with bearer token
 
 ## Notes for Automation
 

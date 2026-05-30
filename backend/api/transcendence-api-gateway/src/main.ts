@@ -29,6 +29,8 @@ async function bootstrap() {
         process.env.USER_SERVICE_URL ?? 'http://localhost:3002',
       chatServiceUrl:
         process.env.CHAT_SERVICE_URL ?? 'http://localhost:4002',
+      postsServiceUrl:
+        process.env.POSTS_SERVICE_URL ?? 'http://localhost:3333',
     },
   );
   await app.listen(process.env.PORT ?? 4000);

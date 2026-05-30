@@ -16,7 +16,7 @@ defmodule TranscendenceChatWeb.Endpoint do
     longpoll: [connect_info: [session: @session_options]]
 
   socket "/socket", TranscendenceChatWeb.UserSocket,
-    websocket: true,
+    websocket: [connect_info: [:x_headers]],
     longpoll: false
 
   # Serve at "/" the static files from "priv/static" directory.

@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createComment } from '@test/helpers/create-comment'
 import { createPost } from '@test/helpers/create-post'
 import { teardown } from '@test/teardown'
@@ -7,12 +6,10 @@ import { uuidv7 } from 'uuidv7'
 import { api } from '@/http/app'
 
 describe('Update comment tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -33,7 +30,7 @@ describe('Update comment tests', () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )
@@ -53,7 +50,7 @@ describe('Update comment tests', () => {
       content: 'Original',
     })
 
-    const headers = { authorization: `Bearer ${token}` }
+    const headers = { 'x-user-id': userId }
 
     await api.comments({ commentId }).get({ headers })
 
@@ -78,7 +75,7 @@ describe('Update comment tests', () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )
@@ -93,7 +90,7 @@ describe('Update comment tests', () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )

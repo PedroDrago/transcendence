@@ -42,7 +42,12 @@ make clean
 - Auth service: `http://localhost:4001`
 - Chat service: `http://localhost:4002`
 - User service: `http://localhost:3002`
+- Posts service: `http://localhost:3333`
 - PostgreSQL: `localhost:5432`
+- Redis: `localhost:6379`
+- MinIO API: `http://localhost:9000`
+- MinIO console: `http://localhost:9001`
+- Jaeger UI: `http://localhost:16686`
 
 ## Database Layout
 
@@ -50,6 +55,7 @@ All services share one PostgreSQL instance. Isolation happens by schema:
 
 - `auth`
 - `chat`
+- `posts`
 - `user_management`
 
 The bootstrap SQL at `ops/init.sql` creates the required extensions and schemas before the application services start.

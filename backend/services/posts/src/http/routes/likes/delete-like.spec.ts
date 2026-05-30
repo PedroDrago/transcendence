@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createLike } from '@test/helpers/create-like'
 import { createPost } from '@test/helpers/create-post'
 import { teardown } from '@test/teardown'
@@ -7,12 +6,10 @@ import { uuidv7 } from 'uuidv7'
 import { api } from '@/http/app'
 
 describe('Delete like tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -25,7 +22,7 @@ describe('Delete like tests', () => {
 
     const { status, error } = await api.likes({ likeId }).delete(undefined, {
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -40,7 +37,7 @@ describe('Delete like tests', () => {
 
     const { status } = await api.likes({ likeId }).delete(undefined, {
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -50,7 +47,7 @@ describe('Delete like tests', () => {
   it('should return 404 if like does not exist', async () => {
     const { status } = await api.likes({ likeId: uuidv7() }).delete(undefined, {
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -63,13 +60,13 @@ describe('Delete like tests', () => {
 
     await api.posts({ postId }).delete(undefined, {
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
     const { status } = await api.likes({ likeId }).delete(undefined, {
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 

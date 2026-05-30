@@ -3,8 +3,8 @@ defmodule TranscendenceChatWeb.LoginController do
 
   alias TranscendenceChat.Chat
 
-  # A action `/login` foi removida: a identidade do usuário agora vem
-  # exclusivamente do JWT validado pelo plug `Authenticate`. Este módulo
+  # A action `/login` foi removida: a identidade do usuário agora vem do
+  # API gateway via header interno processado pelo plug `Authenticate`. Este módulo
   # cuida apenas de conversas e mensagens.
 
   def create_conversation(conn, %{"recipient_name" => recipient_name}) do

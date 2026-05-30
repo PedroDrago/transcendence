@@ -1,17 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createPost } from '@test/helpers/create-post'
 import { teardown } from '@test/teardown'
 import { uuidv7 } from 'uuidv7'
 import { api } from '@/http/app'
 
 describe('Create post like tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -25,7 +22,7 @@ describe('Create post like tests', () => {
       .posts({ postId })
       .likes.post(undefined, {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 
@@ -41,7 +38,7 @@ describe('Create post like tests', () => {
       .posts({ postId: uuidv7() })
       .likes.post(undefined, {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 
@@ -54,7 +51,7 @@ describe('Create post like tests', () => {
 
     await api.posts({ postId }).likes.post(undefined, {
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -62,7 +59,7 @@ describe('Create post like tests', () => {
       .posts({ postId })
       .likes.post(undefined, {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 
@@ -75,7 +72,7 @@ describe('Create post like tests', () => {
       .posts({ postId: 'not-a-uuid' })
       .likes.post(undefined, {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 

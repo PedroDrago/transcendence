@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createComment } from '@test/helpers/create-comment'
 import { createLike } from '@test/helpers/create-like'
 import { createPost } from '@test/helpers/create-post'
@@ -8,12 +7,10 @@ import { uuidv7 } from 'uuidv7'
 import { api } from '@/http/app'
 
 describe('Count comment likes tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -28,7 +25,7 @@ describe('Count comment likes tests', () => {
       .comments({ commentId })
       .likes.count.get({
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 
@@ -45,7 +42,7 @@ describe('Count comment likes tests', () => {
 
     const { status, data } = await api.comments({ commentId }).likes.count.get({
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -62,7 +59,7 @@ describe('Count comment likes tests', () => {
 
     const { data } = await api.comments({ commentId }).likes.count.get({
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -74,7 +71,7 @@ describe('Count comment likes tests', () => {
       .comments({ commentId: uuidv7() })
       .likes.count.get({
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 
@@ -87,7 +84,7 @@ describe('Count comment likes tests', () => {
       .comments({ commentId: 'not-a-uuid' })
       .likes.count.get({
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 
