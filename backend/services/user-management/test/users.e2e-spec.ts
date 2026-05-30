@@ -27,7 +27,9 @@ describe('UsersController (e2e)', () => {
   afterAll(async () => {
     // Limpeza de segurança (fail-safe) caso algum teste quebre na metade
     try {
-      await request(app.getHttpServer()).delete(`/users/${testUserId}`);
+      await request(app.getHttpServer())
+        .delete(`/users/${testUserId}`)
+        .set('x-user-id', testUserId);
     } catch (e) {}
 
     await app.close();
@@ -63,12 +65,14 @@ describe('UsersController (e2e)', () => {
   it('/users/:id (DELETE) should remove the user', () => {
     return request(app.getHttpServer())
       .delete(`/users/${testUserId}`)
+      .set('x-user-id', testUserId)
       .expect(204); // Atualizado de 200 para 204
   });
 
   it('/users/:id (DELETE) should return 404 Not Found if user does not exist', () => {
     return request(app.getHttpServer())
       .delete(`/users/${testUserId}`)
+      .set('x-user-id', testUserId)
       .expect(404);
   });
 });

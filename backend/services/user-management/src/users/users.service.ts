@@ -45,23 +45,20 @@ export class UsersService {
     ) { }
 
     async create(createUserDto: CreateUserDto) {
-        const existing = await this.usersRepository.findOne({
-            where: [{ id: createUserDto.id }, { username: createUserDto.username }],
-        });
-
-        if (existing) {
-            if (existing.id === createUserDto.id) {
-                throw new ConflictException('User already exists');
+        try {
+            const user = this.usersRepository.create({
+                id: createUserDto.id,
+                username: createUserDto.username,
+            });
+            await this.usersRepository.insert(user);
+            const savedUser = await this.usersRepository.findOne({ where: { id: user.id } });
+            return this.serializeProfile(savedUser!);
+        } catch (error) {
+            if ((error as any).code === '23505') {
+                throw new ConflictException('User or username already exists');
             }
-            throw new ConflictException('Username is already taken');
+            throw error;
         }
-
-        const user = this.usersRepository.create({
-            id: createUserDto.id,
-            username: createUserDto.username,
-        });
-        await this.usersRepository.save(user);
-        return this.serializeProfile(user);
     }
 
     async findOne(id: string) {
@@ -78,9 +75,41 @@ export class UsersService {
             throw new NotFoundException('User not found');
         }
 
-        Object.assign(user, updateProfileDto);
+        if ('displayName' in updateProfileDto) {
+            user.displayName = (updateProfileDto.displayName ?? null) as any;
+        }
+        if ('bio' in updateProfileDto) {
+            user.bio = (updateProfileDto.bio ?? null) as any;
+        }
+        if ('dateOfBirth' in updateProfileDto) {
+            if (updateProfileDto.dateOfBirth) {
+                if (new Date(updateProfileDto.dateOfBirth) > new Date()) {
+                    throw new BadRequestException('Date of birth cannot be in the future');
+                }
+            }
+            user.dateOfBirth = (updateProfileDto.dateOfBirth ?? null) as any;
+        }
+
         await this.usersRepository.save(user);
         return this.serializeProfile(user);
+    }
+
+    async updateUsername(id: string, username: string) {
+        const user = await this.usersRepository.findOne({ where: { id } });
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        try {
+            user.username = username;
+            await this.usersRepository.save(user);
+            return this.serializeProfile(user);
+        } catch (error) {
+            if ((error as any).code === '23505') {
+                throw new ConflictException('Username is already taken');
+            }
+            throw error;
+        }
     }
 
     async remove(id: string) {
@@ -135,23 +164,35 @@ export class UsersService {
         }
 
         await mkdir(AVATAR_UPLOAD_DIRECTORY, { recursive: true });
-        await writeFile(temporaryAvatarPath, processedAvatar);
-        await rename(temporaryAvatarPath, avatarPath);
-        await this.removeLegacyAvatarFiles(user.id);
 
-        user.avatarUrl = getAvatarPublicPath(avatarFilename);
-        await this.usersRepository.save(user);
+        try {
+            await writeFile(temporaryAvatarPath, processedAvatar);
+            await rename(temporaryAvatarPath, avatarPath);
+            await this.removeLegacyAvatarFiles(user.id);
+
+            user.avatarUrl = getAvatarPublicPath(avatarFilename);
+            await this.usersRepository.save(user);
+        } catch (error) {
+            await unlink(temporaryAvatarPath).catch(() => {});
+            throw error;
+        }
 
         return this.serializeProfile(user);
     }
 
-    private serializeProfile(user: User) {
+    public serializeProfile(user: User) {
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
         let age: number | null = null;
         if (user.dateOfBirth) {
+            const today = new Date();
             const dob = new Date(user.dateOfBirth);
-            const ageDifMs = Date.now() - dob.getTime();
-            const ageDate = new Date(ageDifMs);
-            age = Math.abs(ageDate.getUTCFullYear() - 1970);
+            age = today.getUTCFullYear() - dob.getUTCFullYear();
+            const monthDiff = today.getUTCMonth() - dob.getUTCMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getUTCDate() < dob.getUTCDate())) {
+                age--;
+            }
         }
 
         const { dateOfBirth, ...userWithoutDob } = user;

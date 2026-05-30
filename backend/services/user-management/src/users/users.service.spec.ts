@@ -21,7 +21,7 @@ import { AvatarUploadFile, UsersService } from './users.service';
 const USER_ID = '550e8400-e29b-41d4-a716-446655440002';
 const USER_AVATAR_PATH = getAvatarPublicPath(`${USER_ID}.webp`);
 
-type UsersRepositoryMock = jest.Mocked<Pick<Repository<User>, 'findOne' | 'save' | 'create' | 'delete'>>;
+type UsersRepositoryMock = jest.Mocked<Pick<Repository<User>, 'findOne' | 'save' | 'create' | 'delete' | 'insert'>>;
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -33,6 +33,7 @@ describe('UsersService', () => {
       save: jest.fn(async (user: User) => user),
       create: jest.fn(),
       delete: jest.fn(),
+      insert: jest.fn(),
     };
 
     service = new UsersService(usersRepository as unknown as Repository<User>);
@@ -69,7 +70,8 @@ describe('UsersService', () => {
     const createUserDto = { id: USER_ID, username: 'alice' };
     const user = createUser();
     usersRepository.create.mockReturnValue(user);
-    usersRepository.save.mockResolvedValue(user);
+    usersRepository.findOne.mockResolvedValue(user);
+    usersRepository.insert.mockResolvedValue({ identifiers: [{ id: USER_ID }], generatedMaps: [], raw: [] });
 
     await expect(service.create(createUserDto as any)).resolves.toMatchObject({
       id: USER_ID,
@@ -77,25 +79,39 @@ describe('UsersService', () => {
     });
 
     expect(usersRepository.create).toHaveBeenCalledWith(createUserDto);
-    expect(usersRepository.save).toHaveBeenCalledWith(user);
+    expect(usersRepository.insert).toHaveBeenCalledWith(user);
   });
 
-  it('throws ConflictException when creating a user with an existing id', async () => {
+  it('throws ConflictException when creating a user with an existing id or username', async () => {
     const createUserDto = { id: USER_ID, username: 'alice' };
-    usersRepository.findOne.mockResolvedValue(createUser({ id: USER_ID }));
+    const user = createUser();
+    usersRepository.create.mockReturnValue(user);
+    usersRepository.insert.mockRejectedValue({ code: '23505' });
 
     await expect(service.create(createUserDto as any)).rejects.toThrow(
       ConflictException,
     );
   });
 
-  it('throws ConflictException when creating a user with an existing username', async () => {
-    const createUserDto = { id: USER_ID, username: 'alice' };
-    usersRepository.findOne.mockResolvedValue(
-      createUser({ id: 'different-id', username: 'alice' }),
-    );
+  it('updates a profile username', async () => {
+    const user = createUser({ username: 'alice' });
+    usersRepository.findOne.mockResolvedValue(user);
 
-    await expect(service.create(createUserDto as any)).rejects.toThrow(
+    await expect(service.updateUsername(USER_ID, 'alice_updated')).resolves.toMatchObject({
+      id: USER_ID,
+      username: 'alice_updated',
+    });
+
+    expect(usersRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({ username: 'alice_updated' }),
+    );
+  });
+
+  it('throws ConflictException when profile username is already taken', async () => {
+    usersRepository.findOne.mockResolvedValue(createUser());
+    usersRepository.save.mockRejectedValue({ code: '23505' });
+
+    await expect(service.updateUsername(USER_ID, 'alice_updated')).rejects.toThrow(
       ConflictException,
     );
   });

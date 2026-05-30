@@ -1,98 +1,115 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# User Management Service
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This is the `user-management` microservice for the Transcendence project. It handles user profiles, avatars, social connections (friendships), and privacy controls (blocking).
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Overview
 
-## Description
+The service is built with **NestJS**, **TypeORM**, and **PostgreSQL**, utilizing `class-validator` and `joi` for strict payload validation. It exposes a REST API for the frontend and internal modules (like Chat) to interact with user data and social graphs.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Infrastructure & Configuration (Fail-Fast)
+This service uses a *Fail-Fast* approach during boot. The container will abort initialization if any critical environment variables are missing from the `.env` file.
 
-## Project setup
+**Required Variables:**
+- `PORT` (Default: 3002)
+- `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`
 
-```bash
-$ npm install
+### Architecture Notes
+- All authenticated routes require the `x-user-id` header to identify the current user. This is typically injected by the API Gateway after JWT validation.
+- The service uses strict isolation levels (`SERIALIZABLE`) for social graph mutations (friends and blocks) to prevent concurrency race conditions.
+
+---
+
+## API Endpoints
+
+### 1. Users
+
+Manage user profiles and avatars (including cascade deletion on the database).
+- **Avatar Fallback:** If a user does not have an uploaded image, the system automatically defaults to serving `/users/avatars/default.webp` (or legacy defaults).
+- **Avatar Caching:** Default avatars use strict `immutable` caching (24h) to save bandwidth, while custom user-uploaded avatars use `must-revalidate` to ensure immediate UI updates upon change.
+- **Security Note (Data Leakage):** Listing endpoints omit sensitive data (e.g., `dateOfBirth`) during serialization to ensure privacy.
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/users` | Create a new user profile. |
+| `GET` | `/users/me` | Retrieve the authenticated user's profile. Requires `x-user-id`. |
+| `PATCH` | `/users/me` | Update the authenticated user's profile (displayName, bio, dateOfBirth). Set fields to `null` to clear them. Requires `x-user-id`. |
+| `PATCH` | `/users/:id/username` | Internal auth-service sync endpoint for username changes. Requires matching `x-user-id`. |
+| `PATCH` | `/users/me/avatar` | Upload a new avatar image (multipart/form-data). Requires `x-user-id`. |
+| `GET` | `/users/avatars/:filename` | Serve a user's avatar image. |
+| `GET` | `/users/:id` | Retrieve a specific user's public profile. Requires strict UUID v4 path parameter. |
+| `DELETE` | `/users/:id` | Delete a user profile (cascades blocks and friendships). Requires strict UUID v4 path parameter. |
+
+### 2. Friends
+
+Complete state machine for managing social ties.
+- Native prevention against self-requests and duplicate requests (both direct and reverse directions).
+- **Data Recycling:** Rejected requests (`REJECTED`) are kept in the database for auditing but are recycled back to `PENDING` if the user attempts to reconnect.
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/users/friends` | List all accepted friends for the authenticated user. Requires `x-user-id`. |
+| `GET` | `/users/friends/requests` | List all pending incoming friend requests for the authenticated user. Requires `x-user-id`. |
+| `POST` | `/users/friends/requests` | Send a friend request to another user. Body: `{ "addresseeId": "uuid" }`. Requires `x-user-id`. |
+| `PATCH` | `/users/friends/requests/:id` | Respond to a friend request. Body: `{ "status": "ACCEPTED" \| "REJECTED" }`. Requires `x-user-id`. |
+| `DELETE` | `/users/friends/:id` | Unfriend a user by deleting an accepted friendship. Requires strict UUID v4 path parameter. Requires `x-user-id`. |
+
+### 3. Blocks
+
+Guarantees social isolation and feeds the business rules for communication modules.
+- Blocks are strictly unidirectional (`A blocks B`).
+- **ACID Atomic Transactions:** When blocking a user, any active or pending friendship ties are **physically deleted** atomically in the database. This prevents circular dependencies with the friends module.
+- Strict locks against *Race Conditions* (e.g., preventing the acceptance of stale invites from recently blocked users).
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/users/blocks` | List all users blocked by the authenticated user. Requires `x-user-id`. |
+| `POST` | `/users/blocks` | Block a user. Body: `{ "blockedId": "uuid" }`. Requires `x-user-id`. |
+| `DELETE` | `/users/blocks/:blockedId` | Unblock a user. Requires `x-user-id`. |
+| `GET` | `/users/blocks/:targetId/status` | Internal endpoint for the Chat module to check if an interaction is allowed. Returns `isBlocked: true` if a block exists in *either* direction. Requires `x-user-id`. |
+
+---
+
+## Inter-Service Communication
+
+### Auth Service Integration
+The Auth service owns credentials and username changes. User Management stores the profile row separately, so Auth must keep profile data in sync:
+
+- After local registration, Auth calls `POST /users` with `{ "id": "<auth-user-id>", "username": "<username>" }`.
+- After `PATCH /auth/username`, Auth calls `PATCH /users/:id/username` with the same user id in `x-user-id`.
+- If profile creation or username sync fails, Auth rolls back its own change before returning an error.
+
+### Chat Module Integration
+Before the Chat module allows users to exchange direct messages or join private channels, it must query the User Management service to verify they haven't blocked each other.
+
+**Request:**
+```http
+GET /users/blocks/:targetId/status
+x-user-id: <requester-uuid>
 ```
 
-## Compile and run the project
+**Response:**
+```json
+{
+  "blockedByMe": true,
+  "blockedMe": false,
+  "isBlocked": true
+}
+```
+*Note: If `isBlocked` is `true`, the chat operation must be aborted.*
+
+## QA & Automated Testing
+
+To guarantee the resilience of the social engine, the service relies on an exhaustive end-to-end (E2E) test suite that verifies database constraints, UUID failures, atomic concurrency (race conditions), and data leakage protection.
 
 ```bash
-# development
-$ npm run start
+# Install dependencies
+npm install
 
-# watch mode
-$ npm run start:dev
+# Run tests
+npm run test           # Unit tests
+npm run test:e2e       # End-to-end tests
+npm run test:cov       # Coverage report
 
-# production mode
-$ npm run start:prod
+# Run database migrations
+npm run migration:run
 ```
-
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
