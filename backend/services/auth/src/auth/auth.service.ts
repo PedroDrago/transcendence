@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ProfileSyncService } from './profile-sync.service';
 
 type JwtUserPayload = {
   id: string;
@@ -19,6 +20,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly profileSyncService: ProfileSyncService,
   ) {}
 
   async validateUser(identifier: string, password: string) {
@@ -35,6 +37,20 @@ export class AuthService {
   async register(dto: RegisterDto) {
     const passwordHash = await bcrypt.hash(dto.password, 10);
     const user = await this.usersService.create(dto.username, dto.email, passwordHash);
+
+    try {
+      await this.profileSyncService.createProfile({
+        id: user.id,
+        username: user.username,
+      });
+    } catch (error) {
+      await this.usersService.deleteById(user.id).catch(() => undefined);
+      throw this.profileSyncService.toHttpException(
+        error,
+        'User profile could not be created',
+      );
+    }
+
     return { message: 'registered', user };
   }
 
@@ -52,7 +68,29 @@ export class AuthService {
   }
 
   async updateUsername(userId: string, username: string) {
+    const previousUser = await this.usersService.findById(userId);
+    if (!previousUser) {
+      throw new NotFoundException('User not found');
+    }
+
     const user = await this.usersService.updateUsername(userId, username);
+
+    try {
+      await this.profileSyncService.updateUsername(user.id, user.username);
+    } catch (error) {
+      await this.usersService
+        .restoreUsernameState(
+          previousUser.id,
+          previousUser.username,
+          previousUser.usernamePending,
+        )
+        .catch(() => undefined);
+      throw this.profileSyncService.toHttpException(
+        error,
+        'User profile username could not be updated',
+      );
+    }
+
     return {
       message: 'username updated',
       access_token: this.jwtService.sign({

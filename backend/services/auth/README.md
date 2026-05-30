@@ -44,6 +44,7 @@ DB_NAME=transcendence_dev
 PORT=4001
 JWT_SECRET=changeme
 JWT_EXPIRES_IN=1h
+USER_SERVICE_URL=http://localhost:3002
 ```
 
 ---

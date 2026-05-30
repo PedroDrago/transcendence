@@ -80,6 +80,25 @@ export class UsersService {
     return updated;
   }
 
+  async restoreUsernameState(
+    id: string,
+    username: string,
+    usernamePending: boolean,
+  ): Promise<void> {
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.username = username;
+    user.usernamePending = usernamePending;
+    await this.usersRepository.save(user);
+  }
+
+  async deleteById(id: string): Promise<void> {
+    await this.usersRepository.delete(id);
+  }
+
   async create(
     username: string,
     email: string,
