@@ -2,8 +2,6 @@ services:
   database:
     image: postgres:16-alpine
     restart: unless-stopped
-    ports:
-      - "${DB_HOST_PORT}:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -18,7 +16,7 @@ services:
       timeout: 5s
       retries: 20
     networks:
-      - transcendence
+      - transcendence-internal
 
   db-bootstrap:
     image: postgres:16-alpine
@@ -42,13 +40,11 @@ services:
           --dbname="$${POSTGRES_DB}" \
           --file=/bootstrap/init.sql
     networks:
-      - transcendence
+      - transcendence-internal
 
   redis:
     image: redis:8.6.2-alpine
     restart: unless-stopped
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis-data:/data
     healthcheck:
@@ -60,14 +56,11 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - transcendence
+      - transcendence-internal
 
   minio:
     image: minio/minio:latest
     restart: unless-stopped
-    ports:
-      - "${MINIO_API_PORT:-9000}:9000"
-      - "${MINIO_CONSOLE_PORT:-9001}:9001"
     entrypoint:
       - sh
       - -euc
@@ -90,25 +83,19 @@ services:
       timeout: 3s
       retries: 5
     networks:
-      - transcendence
+      - transcendence-internal
 
   jaeger:
     image: jaegertracing/all-in-one:1.57
     restart: unless-stopped
-    ports:
-      - "${JAEGER_UI_PORT:-16686}:16686"
-      - "${OTEL_GRPC_PORT:-4317}:4317"
-      - "${OTEL_HTTP_PORT:-4318}:4318"
     networks:
-      - transcendence
+      - transcendence-internal
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     restart: unless-stopped
-    ports:
-      - "${FRONTEND_PORT}:3000"
     command: npm start -- --hostname 0.0.0.0 --port 3000
     environment:
       NODE_ENV: production
@@ -123,7 +110,7 @@ services:
       retries: 5
       start_period: 30s
     networks:
-      - transcendence
+      - transcendence-internal
 
   gateway:
     build:
@@ -160,7 +147,8 @@ services:
       retries: 5
       start_period: 30s
     networks:
-      - transcendence
+      - transcendence-public
+      - transcendence-internal
 
   auth-service:
     build:
@@ -172,8 +160,6 @@ services:
         condition: service_completed_successfully
       user-service:
         condition: service_healthy
-    ports:
-      - "${AUTH_PORT}:4001"
     environment:
       NODE_ENV: production
       PORT: 4001
@@ -201,7 +187,7 @@ services:
       retries: 5
       start_period: 30s
     networks:
-      - transcendence
+      - transcendence-internal
 
   chat-service:
     build:
@@ -211,8 +197,6 @@ services:
     depends_on:
       db-bootstrap:
         condition: service_completed_successfully
-    ports:
-      - "${CHAT_PORT}:4002"
     environment:
       MIX_ENV: dev
       PORT: 4002
@@ -234,7 +218,7 @@ services:
       retries: 5
       start_period: 30s
     networks:
-      - transcendence
+      - transcendence-internal
 
   posts-service:
     build:
@@ -248,8 +232,6 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-    ports:
-      - "${POSTS_PORT:-3333}:3333"
     environment:
       NODE_ENV: production
       HOST: 0.0.0.0
@@ -275,7 +257,7 @@ services:
       retries: 5
       start_period: 30s
     networks:
-      - transcendence
+      - transcendence-internal
 
   user-service:
     build:
@@ -285,8 +267,6 @@ services:
     depends_on:
       db-bootstrap:
         condition: service_completed_successfully
-    ports:
-      - "${USER_PORT}:3002"
     environment:
       NODE_ENV: production
       PORT: 3002
@@ -307,11 +287,14 @@ services:
       retries: 5
       start_period: 30s
     networks:
-      - transcendence
+      - transcendence-internal
 
 networks:
-  transcendence:
+  transcendence-public:
     driver: bridge
+  transcendence-internal:
+    driver: bridge
+    internal: true
 
 volumes:
   postgres-data:

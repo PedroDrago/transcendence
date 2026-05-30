@@ -1,4 +1,4 @@
-CREATE SCHEMA "posts";
+CREATE SCHEMA IF NOT EXISTS "posts";
 --> statement-breakpoint
 CREATE TYPE "posts"."media_type" AS ENUM('image', 'video');--> statement-breakpoint
 CREATE TABLE "posts"."highlight_stories" (

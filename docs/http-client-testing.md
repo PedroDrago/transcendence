@@ -6,12 +6,9 @@ This guide is for testing the current services with an HTTP client such as Bruno
 
 The stack exposes these HTTP services:
 
-- Frontend: `http://localhost:3000`
 - API gateway: `http://localhost:4000`
-- Auth service: `http://localhost:4001`
-- Chat service: `http://localhost:4002`
-- User service: `http://localhost:3002`
-- Posts service: `http://localhost:3333`
+
+Only the API gateway is exposed on the host. The frontend, auth, chat, user, posts, database, Redis, MinIO, and Jaeger containers are reachable only from inside the Docker network.
 
 Important:
 
@@ -32,12 +29,7 @@ make up
 Create these variables in Bruno/Postman:
 
 ```text
-frontend_base=http://localhost:3000
 gateway_base=http://localhost:4000
-auth_base=http://localhost:4001
-chat_base=http://localhost:4002
-user_base=http://localhost:3002
-posts_base=http://localhost:3333
 
 access_token=
 user_id=
@@ -87,13 +79,13 @@ Hello World!
 Swagger is available in the browser at:
 
 ```text
-http://localhost:4001/docs
+http://localhost:4000/docs
 ```
 
 ### Health
 
 - Method: `GET`
-- URL: `{{auth_base}}/health`
+- URL: `{{gateway_base}}/health`
 
 Expected response:
 
@@ -106,7 +98,7 @@ Expected response:
 ### Register User A
 
 - Method: `POST`
-- URL: `{{auth_base}}/auth/register`
+- URL: `{{gateway_base}}/auth/register`
 - Headers:
 
 ```text
@@ -152,7 +144,7 @@ Auth also creates the matching profile in the user service with the same `id` an
 Use another account so you can test chat/group flows.
 
 - Method: `POST`
-- URL: `{{auth_base}}/auth/register`
+- URL: `{{gateway_base}}/auth/register`
 - Headers:
 
 ```text
@@ -176,7 +168,7 @@ Save:
 ### Login
 
 - Method: `POST`
-- URL: `{{auth_base}}/auth/login`
+- URL: `{{gateway_base}}/auth/login`
 - Headers:
 
 ```text
@@ -216,7 +208,7 @@ Save:
 ### Change Password
 
 - Method: `PATCH`
-- URL: `{{auth_base}}/auth/password`
+- URL: `{{gateway_base}}/auth/password`
 - Headers:
 
 ```text
@@ -243,7 +235,7 @@ After changing the password, log in again with the new password if you want to k
 ### Update Username
 
 - Method: `PATCH`
-- URL: `{{auth_base}}/auth/username`
+- URL: `{{gateway_base}}/auth/username`
 - Headers:
 
 ```text
@@ -286,7 +278,7 @@ Important:
 Use this only if you already have a handoff token from the OAuth flow.
 
 - Method: `POST`
-- URL: `{{auth_base}}/auth/oauth/exchange`
+- URL: `{{gateway_base}}/auth/oauth/exchange`
 - Headers:
 
 ```text
@@ -313,10 +305,10 @@ Expected response:
 
 These are redirect-based browser flows, not normal JSON API calls:
 
-- `GET {{auth_base}}/auth/google`
-- `GET {{auth_base}}/auth/google/test`
-- `GET {{auth_base}}/auth/google/callback`
-- `GET {{auth_base}}/auth/google/callback/test`
+- `GET {{gateway_base}}/auth/google`
+- `GET {{gateway_base}}/auth/google/test`
+- `GET {{gateway_base}}/auth/google/callback`
+- `GET {{gateway_base}}/auth/google/callback/test`
 
 Test those in a browser only after real Google credentials are configured in the root `.env`.
 
@@ -324,14 +316,13 @@ Test those in a browser only after real Google credentials are configured in the
 
 Important:
 
-- Direct user-service requests identify the caller with `x-user-id`.
-- Gateway user-service requests use `Authorization: Bearer {{access_token}}`; the gateway validates the token and forwards `x-user-id`.
-- Use the UUID you got from auth registration only when testing the user service directly.
+- User-service requests should go through the gateway.
+- Send `Authorization: Bearer {{access_token}}`; the gateway validates the token and forwards `x-user-id` internally.
 
 ### Health
 
 - Method: `GET`
-- URL: `{{user_base}}/health`
+- URL: `{{gateway_base}}/health`
 
 Expected response:
 
@@ -344,11 +335,11 @@ Expected response:
 ### Get My Profile
 
 - Method: `GET`
-- URL: `{{user_base}}/users/me`
+- URL: `{{gateway_base}}/users/me`
 - Headers:
 
 ```text
-x-user-id: {{user_id}}
+Authorization: Bearer {{access_token}}
 ```
 
 Expected response shape:
@@ -369,12 +360,12 @@ Expected response shape:
 ### Update My Profile
 
 - Method: `PATCH`
-- URL: `{{user_base}}/users/me`
+- URL: `{{gateway_base}}/users/me`
 - Headers:
 
 ```text
 Content-Type: application/json
-x-user-id: {{user_id}}
+Authorization: Bearer {{access_token}}
 ```
 
 - Body:
@@ -405,11 +396,11 @@ Expected response shape:
 ### Upload My Avatar
 
 - Method: `PATCH`
-- URL: `{{user_base}}/users/me/avatar`
+- URL: `{{gateway_base}}/users/me/avatar`
 - Headers:
 
 ```text
-x-user-id: {{user_id}}
+Authorization: Bearer {{access_token}}
 ```
 
 - Body type: `multipart/form-data`
@@ -449,12 +440,12 @@ Save:
 Default avatar:
 
 - Method: `GET`
-- URL: `{{user_base}}/users/avatars/default-avatar.png`
+- URL: `{{gateway_base}}/users/avatars/default-avatar.png`
 
 Uploaded avatar:
 
 - Method: `GET`
-- URL: `{{user_base}}/users/avatars/{{avatar_filename}}`
+- URL: `{{gateway_base}}/users/avatars/{{avatar_filename}}`
 
 Expected behavior:
 
@@ -463,7 +454,12 @@ Expected behavior:
 ### Get Any User By ID
 
 - Method: `GET`
-- URL: `{{user_base}}/users/{{user_id}}`
+- URL: `{{gateway_base}}/users/{{user_id}}`
+- Headers:
+
+```text
+Authorization: Bearer {{access_token}}
+```
 
 Expected response:
 
@@ -492,17 +488,7 @@ Authorization: Bearer {{access_token}}
 ```
 
 - There is no `/health` route in chat right now.
-- `GET /` returns the HTML chat page.
 - Message sending is not exposed as an HTTP route at the moment. The HTTP API covers conversation/group/status reads and creation.
-
-### Root Page
-
-- Method: `GET`
-- URL: `{{chat_base}}/`
-
-Expected behavior:
-
-- Returns HTML, not JSON
 
 ### Create or Get a Direct Conversation
 
@@ -788,14 +774,11 @@ If the service has recorded activity for that user:
 If you only want a quick smoke test, run these requests:
 
 1. `GET {{gateway_base}}/health`
-2. `GET {{auth_base}}/health`
-3. `POST {{auth_base}}/auth/register`
-4. `POST {{auth_base}}/auth/login`
-5. `GET {{user_base}}/health`
-6. `GET {{user_base}}/users/me` with `x-user-id`
-7. `GET {{chat_base}}/`
-8. `POST {{gateway_base}}/chat/conversation` with bearer token
-9. `GET {{gateway_base}}/chat/conversations` with bearer token
+2. `POST {{gateway_base}}/auth/register`
+3. `POST {{gateway_base}}/auth/login`
+4. `GET {{gateway_base}}/users/me` with bearer token
+5. `POST {{gateway_base}}/chat/conversation` with bearer token
+6. `GET {{gateway_base}}/chat/conversations` with bearer token
 
 ## Notes for Automation
 
