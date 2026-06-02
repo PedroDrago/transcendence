@@ -136,6 +136,19 @@ export class FriendsService {
     });
   }
 
+  async getFriendIds(userId: string): Promise<string[]> {
+    const friendships = await this.friendshipRepository.find({
+      where: [
+        { requesterId: userId, status: FriendshipStatus.ACCEPTED },
+        { addresseeId: userId, status: FriendshipStatus.ACCEPTED },
+      ],
+    });
+
+    return friendships.map((f) =>
+      f.requesterId === userId ? f.addresseeId : f.requesterId,
+    );
+  }
+
   async getPendingRequests(userId: string) {
     const requests = await this.friendshipRepository.find({
       where: { addresseeId: userId, status: FriendshipStatus.PENDING },

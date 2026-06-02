@@ -46,6 +46,13 @@ export class FriendsController {
     return this.friendsService.getPendingRequests(userId);
   }
 
+  @Get(':id/ids')
+  getFriendIds(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+  ) {
+    return this.friendsService.getFriendIds(id);
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   removeFriend(
