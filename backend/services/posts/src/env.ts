@@ -13,6 +13,7 @@ const envSchema = z.object({
   R2_SECRET_ACCESS_KEY: z.string(),
   R2_ENDPOINT: z.url(),
   R2_BUCKET: z.string(),
+  USER_SERVICE_URL: z.url(),
   JWT_SECRET: z.string(),
   SERVICE_NAME: z.string(),
   OTEL_EXPORTER_URL: z.url(),
