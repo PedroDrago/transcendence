@@ -70,6 +70,7 @@ describe('UsersService', () => {
     const createUserDto = { id: USER_ID, username: 'alice' };
     const user = createUser();
     usersRepository.create.mockReturnValue(user);
+    usersRepository.findOne.mockResolvedValue(user);
     usersRepository.insert.mockResolvedValue({ identifiers: [{ id: USER_ID }], generatedMaps: [], raw: [] });
 
     await expect(service.create(createUserDto as any)).resolves.toMatchObject({
@@ -88,6 +89,29 @@ describe('UsersService', () => {
     usersRepository.insert.mockRejectedValue({ code: '23505' });
 
     await expect(service.create(createUserDto as any)).rejects.toThrow(
+      ConflictException,
+    );
+  });
+
+  it('updates a profile username', async () => {
+    const user = createUser({ username: 'alice' });
+    usersRepository.findOne.mockResolvedValue(user);
+
+    await expect(service.updateUsername(USER_ID, 'alice_updated')).resolves.toMatchObject({
+      id: USER_ID,
+      username: 'alice_updated',
+    });
+
+    expect(usersRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({ username: 'alice_updated' }),
+    );
+  });
+
+  it('throws ConflictException when profile username is already taken', async () => {
+    usersRepository.findOne.mockResolvedValue(createUser());
+    usersRepository.save.mockRejectedValue({ code: '23505' });
+
+    await expect(service.updateUsername(USER_ID, 'alice_updated')).rejects.toThrow(
       ConflictException,
     );
   });

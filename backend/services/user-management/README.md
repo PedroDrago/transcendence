@@ -33,6 +33,7 @@ Manage user profiles and avatars (including cascade deletion on the database).
 | `POST` | `/users` | Create a new user profile. |
 | `GET` | `/users/me` | Retrieve the authenticated user's profile. Requires `x-user-id`. |
 | `PATCH` | `/users/me` | Update the authenticated user's profile (displayName, bio, dateOfBirth). Set fields to `null` to clear them. Requires `x-user-id`. |
+| `PATCH` | `/users/:id/username` | Internal auth-service sync endpoint for username changes. Requires matching `x-user-id`. |
 | `PATCH` | `/users/me/avatar` | Upload a new avatar image (multipart/form-data). Requires `x-user-id`. |
 | `GET` | `/users/avatars/:filename` | Serve a user's avatar image. |
 | `GET` | `/users/:id` | Retrieve a specific user's public profile. Requires strict UUID v4 path parameter. |
@@ -69,6 +70,13 @@ Guarantees social isolation and feeds the business rules for communication modul
 ---
 
 ## Inter-Service Communication
+
+### Auth Service Integration
+The Auth service owns credentials and username changes. User Management stores the profile row separately, so Auth must keep profile data in sync:
+
+- After local registration, Auth calls `POST /users` with `{ "id": "<auth-user-id>", "username": "<username>" }`.
+- After `PATCH /auth/username`, Auth calls `PATCH /users/:id/username` with the same user id in `x-user-id`.
+- If profile creation or username sync fails, Auth rolls back its own change before returning an error.
 
 ### Chat Module Integration
 Before the Chat module allows users to exchange direct messages or join private channels, it must query the User Management service to verify they haven't blocked each other.

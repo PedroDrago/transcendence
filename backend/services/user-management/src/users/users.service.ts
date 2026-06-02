@@ -94,6 +94,24 @@ export class UsersService {
         return this.serializeProfile(user);
     }
 
+    async updateUsername(id: string, username: string) {
+        const user = await this.usersRepository.findOne({ where: { id } });
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        try {
+            user.username = username;
+            await this.usersRepository.save(user);
+            return this.serializeProfile(user);
+        } catch (error) {
+            if ((error as any).code === '23505') {
+                throw new ConflictException('Username is already taken');
+            }
+            throw error;
+        }
+    }
+
     async remove(id: string) {
         const user = await this.usersRepository.findOne({ where: { id } });
         if (!user) {

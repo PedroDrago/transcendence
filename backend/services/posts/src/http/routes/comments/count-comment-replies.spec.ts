@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createComment } from '@test/helpers/create-comment'
 import { createPost } from '@test/helpers/create-post'
 import { teardown } from '@test/teardown'
@@ -7,12 +6,10 @@ import { uuidv7 } from 'uuidv7'
 import { api } from '@/http/app'
 
 describe('Count comment replies tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -27,7 +24,7 @@ describe('Count comment replies tests', () => {
       .comments({ commentId })
       .replies.count.get({
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 
@@ -46,7 +43,7 @@ describe('Count comment replies tests', () => {
       .comments({ commentId })
       .replies.count.get({
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 
@@ -68,7 +65,7 @@ describe('Count comment replies tests', () => {
       .comments({ commentId: root.id })
       .replies.count.get({
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 
@@ -93,7 +90,7 @@ describe('Count comment replies tests', () => {
 
     const { data } = await api.comments({ commentId }).replies.count.get({
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -105,7 +102,7 @@ describe('Count comment replies tests', () => {
       .comments({ commentId: uuidv7() })
       .replies.count.get({
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 
@@ -118,7 +115,7 @@ describe('Count comment replies tests', () => {
       .comments({ commentId: 'not-a-uuid' })
       .replies.count.get({
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       })
 

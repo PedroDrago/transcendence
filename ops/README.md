@@ -4,7 +4,7 @@
 
 The repository now uses a single root-level `compose.yml` plus a single root-level `.env`. This directory only keeps shared operational assets, currently:
 
-- `init.sql`: idempotent PostgreSQL bootstrap for shared extensions and schemas
+- `init.sql`: idempotent PostgreSQL bootstrap for shared extensions and service schemas
 
 Start the stack from the repository root:
 

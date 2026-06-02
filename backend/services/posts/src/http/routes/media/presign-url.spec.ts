@@ -1,17 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createTestFile } from '@test/helpers/create-test-file'
 import { teardown } from '@test/teardown'
 import { uuidv7 } from 'uuidv7'
 import { api } from '@/http/app'
 
 describe('Presign URL tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -28,7 +25,7 @@ describe('Presign URL tests', () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )
@@ -54,7 +51,7 @@ describe('Presign URL tests', () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )
@@ -79,7 +76,7 @@ describe('Presign URL tests', () => {
         contentType: 'image/jpeg',
       } as any,
       {
-        headers: { authorization: `Bearer ${token}` },
+        headers: { 'x-user-id': userId },
       }
     )
 
@@ -94,7 +91,7 @@ describe('Presign URL tests', () => {
         contentType: 'application/pdf',
       } as any,
       {
-        headers: { authorization: `Bearer ${token}` },
+        headers: { 'x-user-id': userId },
       }
     )
 

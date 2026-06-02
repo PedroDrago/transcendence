@@ -12,9 +12,9 @@ FROM deps AS builder
 
 COPY . .
 
-RUN bun install --production --frozen-lockfile
+RUN bun install --frozen-lockfile
 
-FROM oven/bun:1.3.11-distroless AS release
+FROM base AS release
 
 ENV NODE_ENV=production
 
@@ -28,6 +28,8 @@ COPY --from=builder /usr/src/app/node_modules ./node_modules
 
 COPY --from=builder /usr/src/app/src ./src
 
+COPY --from=builder /usr/src/app/drizzle.config.ts .
+
 COPY --from=builder /usr/src/app/package.json .
 
 COPY --from=builder /usr/src/app/tsconfig.json .
@@ -36,4 +38,4 @@ USER bun
 
 EXPOSE 3333
 
-ENTRYPOINT ["bun", "run", "src/http/server.ts"]
+ENTRYPOINT ["sh", "-c", "bun run db:migrate && bun run src/http/server.ts"]

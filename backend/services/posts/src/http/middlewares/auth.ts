@@ -1,13 +1,18 @@
-import { bearer } from '@elysiajs/bearer'
 import { Elysia } from 'elysia'
-import { decodeJwt } from 'jose'
 
-export const auth = new Elysia().use(bearer()).macro({
+export const auth = new Elysia().macro({
   auth: {
-    resolve({ bearer }) {
-      const { sub } = decodeJwt(bearer as string)
-
-      return { userId: sub as string }
+    beforeHandle({ headers, status }) {
+      const userId = headers['x-user-id']
+      if (!userId) {
+        return status(401, {
+          error: 'Unauthorized',
+          message: 'Missing authenticated user',
+        })
+      }
+    },
+    resolve({ headers }) {
+      return { userId: headers['x-user-id'] as string }
     },
   },
 })

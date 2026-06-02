@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createStory } from '@test/helpers/create-story'
 import { teardown } from '@test/teardown'
 import { uuidv7 } from 'uuidv7'
@@ -10,12 +9,10 @@ import { api } from '@/http/app'
 const REGEX = /^http/
 
 describe('Get story tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -27,7 +24,7 @@ describe('Get story tests', () => {
 
     const { status, data, error } = await api.stories({ id }).get({
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -44,7 +41,7 @@ describe('Get story tests', () => {
 
     const { data } = await api.stories({ id }).get({
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -54,7 +51,7 @@ describe('Get story tests', () => {
   it('should be able to return the same data when called twice (cache hit)', async () => {
     const { id } = await createStory({ userId })
 
-    const headers = { authorization: `Bearer ${token}` }
+    const headers = { 'x-user-id': userId }
 
     const { data: first } = await api.stories({ id }).get({ headers })
     const { data: second } = await api.stories({ id }).get({ headers })
@@ -66,7 +63,7 @@ describe('Get story tests', () => {
   it('should be able to return 404 if story does not exist', async () => {
     const { status } = await api.stories({ id: uuidv7() }).get({
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -86,7 +83,7 @@ describe('Get story tests', () => {
 
     const { status } = await api.stories({ id: story?.id }).get({
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 

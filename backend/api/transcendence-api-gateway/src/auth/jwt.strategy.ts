@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { getAuthenticatedUserFromToken } from './access-token';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -22,24 +23,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     updatedAt: string;
     usernamePending: boolean;
   }) {
-    if (
-      payload.typ !== 'access' ||
-      !payload.sub ||
-      !payload.username ||
-      !payload.email ||
-      !payload.createdAt ||
-      !payload.updatedAt
-    ) {
-      throw new UnauthorizedException('Invalid access token');
-    }
-
-    return {
-      id: payload.sub,
-      username: payload.username,
-      email: payload.email,
-      createdAt: payload.createdAt,
-      updatedAt: payload.updatedAt,
-      usernamePending: payload.usernamePending,
-    };
+    return getAuthenticatedUserFromToken(payload);
   }
 }

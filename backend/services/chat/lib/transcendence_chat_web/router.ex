@@ -24,8 +24,8 @@ defmodule TranscendenceChatWeb.Router do
     get "/", PageController, :home
   end
 
-  # Todas as rotas de conversa/mensagem/grupo/status exigem JWT válido.
-  # O user_id nunca vem do cliente — é extraído de `conn.assigns.current_user`.
+  # Todas as rotas de conversa/mensagem/grupo/status exigem identidade
+  # validada pelo API gateway no header `x-user-id`.
   scope "/api", TranscendenceChatWeb do
     pipe_through [:api, :authenticated_api]
 

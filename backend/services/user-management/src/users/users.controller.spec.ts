@@ -19,7 +19,7 @@ const USER_ID = '550e8400-e29b-41d4-a716-446655440001';
 describe('UsersController', () => {
   let controller: UsersController;
   let usersService: jest.Mocked<
-    Pick<UsersService, 'findOne' | 'update' | 'updateAvatar' | 'create' | 'remove'>
+    Pick<UsersService, 'findOne' | 'update' | 'updateAvatar' | 'create' | 'remove' | 'updateUsername'>
   >;
   let blockService: jest.Mocked<Pick<BlockService, 'getBlockStatus'>>;
 
@@ -30,6 +30,7 @@ describe('UsersController', () => {
       updateAvatar: jest.fn(),
       create: jest.fn(),
       remove: jest.fn(),
+      updateUsername: jest.fn(),
     };
 
     blockService = {
@@ -89,6 +90,27 @@ describe('UsersController', () => {
       usersService.update.mockResolvedValue(profile as any);
       await expect(controller.updateMe(USER_ID, dto)).resolves.toBe(profile);
       expect(usersService.update).toHaveBeenCalledWith(USER_ID, dto);
+    });
+  });
+
+  describe('updateUsername', () => {
+    it('updates the username when requester matches the target user', async () => {
+      const profile = { id: USER_ID, username: 'alice_updated' };
+      usersService.updateUsername.mockResolvedValue(profile as any);
+
+      await expect(
+        controller.updateUsername(USER_ID, USER_ID, { username: 'alice_updated' }),
+      ).resolves.toBe(profile);
+
+      expect(usersService.updateUsername).toHaveBeenCalledWith(USER_ID, 'alice_updated');
+    });
+
+    it('rejects username updates for another user', async () => {
+      const otherId = '550e8400-e29b-41d4-a716-446655440002';
+
+      expect(() =>
+        controller.updateUsername(USER_ID, otherId, { username: 'alice_updated' }),
+      ).toThrow(ForbiddenException);
     });
   });
 

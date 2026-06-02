@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { upload } from '@test/helpers/upload'
 import { teardown } from '@test/teardown'
 import { uuidv7 } from 'uuidv7'
@@ -7,12 +6,10 @@ import { api } from '@/http/app'
 import { r2 } from '@/storage'
 
 describe('Create story tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -20,7 +17,7 @@ describe('Create story tests', () => {
   })
 
   it('should be able to create a story', async () => {
-    const { key } = await upload(token, { context: 'story' })
+    const { key } = await upload(userId, { context: 'story' })
 
     const { status, data, error } = await api.stories.post(
       {
@@ -28,7 +25,7 @@ describe('Create story tests', () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )
@@ -42,7 +39,7 @@ describe('Create story tests', () => {
   })
 
   it('should be able to set mediaType as video for mp4 files', async () => {
-    const { key } = await upload(token, {
+    const { key } = await upload(userId, {
       context: 'story',
       contentType: 'video/mp4',
     })
@@ -53,7 +50,7 @@ describe('Create story tests', () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )
@@ -63,14 +60,14 @@ describe('Create story tests', () => {
   })
 
   it('should be able to move media from tmp/ to permanent path after stories creation', async () => {
-    const { key } = await upload(token)
+    const { key } = await upload(userId)
 
     await api.stories.post(
       {
         key,
       },
       {
-        headers: { authorization: `Bearer ${token}` },
+        headers: { 'x-user-id': userId },
       }
     )
 
@@ -88,7 +85,7 @@ describe('Create story tests', () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )
@@ -103,7 +100,7 @@ describe('Create story tests', () => {
       } as any,
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )

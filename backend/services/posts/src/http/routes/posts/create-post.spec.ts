@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { upload } from '@test/helpers/upload'
 import { teardown } from '@test/teardown'
 import { uuidv7 } from 'uuidv7'
@@ -7,12 +6,10 @@ import { api } from '@/http/app'
 import { r2 } from '@/storage'
 
 describe('Create posts tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -20,7 +17,7 @@ describe('Create posts tests', () => {
   })
 
   it('should be able to create a post', async () => {
-    const { key } = await upload(token)
+    const { key } = await upload(userId)
 
     const { status, data, error } = await api.posts.post(
       {
@@ -29,7 +26,7 @@ describe('Create posts tests', () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )
@@ -44,7 +41,7 @@ describe('Create posts tests', () => {
   })
 
   it('should be able to create post without caption', async () => {
-    const { key } = await upload(token)
+    const { key } = await upload(userId)
 
     const { status, data, error } = await api.posts.post(
       {
@@ -52,7 +49,7 @@ describe('Create posts tests', () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )
@@ -64,7 +61,7 @@ describe('Create posts tests', () => {
   })
 
   it('should be able to set mediaType as video for mp4 files', async () => {
-    const { key } = await upload(token, { contentType: 'video/mp4' })
+    const { key } = await upload(userId, { contentType: 'video/mp4' })
 
     const { status, data } = await api.posts.post(
       {
@@ -72,7 +69,7 @@ describe('Create posts tests', () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )
@@ -82,7 +79,7 @@ describe('Create posts tests', () => {
   })
 
   it('should be able to move media from tmp/ to permanent path after post creation', async () => {
-    const { key } = await upload(token)
+    const { key } = await upload(userId)
 
     await api.posts.post(
       {
@@ -90,7 +87,7 @@ describe('Create posts tests', () => {
         caption: 'My test post!',
       },
       {
-        headers: { authorization: `Bearer ${token}` },
+        headers: { 'x-user-id': userId },
       }
     )
 
@@ -108,7 +105,7 @@ describe('Create posts tests', () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )
@@ -126,7 +123,7 @@ describe('Create posts tests', () => {
       } as any,
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )

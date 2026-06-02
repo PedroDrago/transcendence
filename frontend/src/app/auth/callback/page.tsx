@@ -27,7 +27,7 @@ function CallbackContent() {
     const authBase = getStoredAuthBase() ?? DEFAULT_AUTH_BASE;
     setStoredHandoffToken(handoffToken);
     setStatus('Exchanging OAuth handoff token...');
-    setDetails('Calling POST /auth/oauth/exchange with the token received from the auth service.');
+    setDetails('Calling POST /auth/oauth/exchange through the API gateway with the token received from the OAuth callback.');
 
     void fetch(`${authBase}/auth/oauth/exchange`, {
       method: 'POST',

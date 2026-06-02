@@ -7,7 +7,7 @@ interface UploadOptions {
 }
 
 export async function upload(
-  token: string,
+  userId: string,
   { context = 'post', contentType = 'image/jpeg' }: UploadOptions = {}
 ) {
   const file = createTestFile()
@@ -19,7 +19,7 @@ export async function upload(
     },
     {
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     }
   )

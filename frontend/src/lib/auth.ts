@@ -1,4 +1,4 @@
-export const DEFAULT_AUTH_BASE = 'http://localhost:4001';
+export const DEFAULT_AUTH_BASE = 'http://localhost:4000';
 export const AUTH_BASE_STORAGE_KEY = 'transcendence.auth.base';
 export const APP_TOKEN_STORAGE_KEY = 'transcendence.auth.token';
 export const HANDOFF_TOKEN_STORAGE_KEY = 'transcendence.auth.handoff-token';

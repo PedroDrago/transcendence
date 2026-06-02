@@ -109,8 +109,8 @@ export default function AccountPage() {
           <p className="auth-kicker">Account</p>
           <h1>Authenticated actions</h1>
           <p className="auth-copy">
-            This page is where you can exercise the protected auth endpoints and inspect
-            the current JWT side by side with its decoded claims.
+            This page is where you can exercise the protected auth endpoints through the
+            gateway and inspect the current JWT side by side with its decoded claims.
           </p>
         </div>
         <div className="auth-hero-actions">
@@ -125,10 +125,10 @@ export default function AccountPage() {
         <section className="auth-card">
           <div className="auth-section-head">
             <h2>Connection</h2>
-            <p>Change the auth base URL if you need to hit another instance.</p>
+            <p>Change the gateway URL if you need to hit another instance.</p>
           </div>
           <label className="auth-field">
-            <span>Auth service URL</span>
+            <span>API gateway URL</span>
             <input
               value={authBase}
               onChange={(event) => {

@@ -26,6 +26,7 @@ import { BlockService } from './block.service';
 import type { AvatarUploadFile } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateUsernameDto } from './dto/update-username.dto';
 import {
 	AVATAR_FIELD_NAME,
 	AVATAR_MAX_SIZE_BYTES,
@@ -68,6 +69,19 @@ export class UsersController {
 	) {
 		this.validateUserId(userId);
 		return this.usersService.update(userId, updateProfileDto);
+	}
+
+	@Patch(':id/username')
+	updateUsername(
+		@Headers('x-user-id') requesterId: string,
+		@Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+		@Body() updateUsernameDto: UpdateUsernameDto,
+	) {
+		this.validateUserId(requesterId);
+		if (requesterId !== id) {
+			throw new ForbiddenException('You can only update your own username');
+		}
+		return this.usersService.updateUsername(id, updateUsernameDto.username);
 	}
 
 	@Patch('me/avatar')

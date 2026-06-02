@@ -1,17 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createStory } from '@test/helpers/create-story'
 import { teardown } from '@test/teardown'
 import { uuidv7 } from 'uuidv7'
 import { api } from '@/http/app'
 
 describe('Create story comment tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -29,7 +26,7 @@ describe('Create story comment tests', () => {
         },
         {
           headers: {
-            authorization: `Bearer ${token}`,
+            'x-user-id': userId,
           },
         }
       )
@@ -51,7 +48,7 @@ describe('Create story comment tests', () => {
         },
         {
           headers: {
-            authorization: `Bearer ${token}`,
+            'x-user-id': userId,
           },
         }
       )
@@ -69,7 +66,7 @@ describe('Create story comment tests', () => {
       },
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          'x-user-id': userId,
         },
       }
     )

@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { createTestToken } from '@test/helpers/auth'
 import { createPost } from '@test/helpers/create-post'
 import { teardown } from '@test/teardown'
 import { uuidv7 } from 'uuidv7'
@@ -7,12 +6,10 @@ import { api } from '@/http/app'
 import { r2 } from '@/storage'
 
 describe('Delete posts tests', () => {
-  let token: string
   let userId: string
 
-  beforeEach(async () => {
+  beforeEach(() => {
     userId = uuidv7()
-    token = await createTestToken(userId)
   })
 
   afterEach(async () => {
@@ -27,7 +24,7 @@ describe('Delete posts tests', () => {
 
     const { status, error } = await api.posts({ id }).delete(undefined, {
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -40,7 +37,7 @@ describe('Delete posts tests', () => {
 
     await api.posts({ id }).delete(undefined, {
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -56,7 +53,7 @@ describe('Delete posts tests', () => {
 
     const { status } = await api.posts({ id }).delete(undefined, {
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
@@ -66,7 +63,7 @@ describe('Delete posts tests', () => {
   it('should be able to return 404 if post does not exist', async () => {
     const { status } = await api.posts({ id: uuidv7() }).delete(undefined, {
       headers: {
-        authorization: `Bearer ${token}`,
+        'x-user-id': userId,
       },
     })
 
