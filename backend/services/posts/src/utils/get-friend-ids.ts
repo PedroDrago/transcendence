@@ -38,7 +38,7 @@ async function cacheFriendIds(userId: string, ids: string[]): Promise<void> {
 }
 
 async function fetchFriendIds(userId: string): Promise<string[]> {
-  const response = await fetch(`${env.USER_SERVICE_URL}/users/friends/${userId}/ids`, {
+  const response = await fetch(`${env.USER_SERVICE_URL}/users/friends/my/ids`, {
     headers: { 'x-user-id': userId },
   })
 
