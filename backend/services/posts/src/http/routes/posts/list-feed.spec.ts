@@ -124,6 +124,27 @@ describe('List feed tests', () => {
     expect(data?.nextCursor).not.toBeNull()
   })
 
+  it('should not reuse a smaller cached first page for a larger limit', async () => {
+    await createPost({ userId, caption: 'post 1' })
+    await createPost({ userId, caption: 'post 2' })
+    await createPost({ userId, caption: 'post 3' })
+    await createPost({ userId, caption: 'post 4' })
+    await createPost({ userId, caption: 'post 5' })
+
+    await api.posts.feed.get({
+      query: { limit: 2 },
+      headers: { 'x-user-id': userId },
+    })
+
+    const { data } = await api.posts.feed.get({
+      query: { limit: 20 },
+      headers: { 'x-user-id': userId },
+    })
+
+    expect(data?.posts).toHaveLength(5)
+    expect(data?.nextCursor).toBeNull()
+  })
+
   it('should paginate correctly with cursor', async () => {
     const first = await createPost({ userId, caption: 'post 1' })
     await createPost({ userId, caption: 'post 2' })
