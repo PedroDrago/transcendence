@@ -26,7 +26,7 @@ export const listFeed = new Elysia().use(middlewares).get(
   async ({ userId, query, status }) => {
     const { cursor, limit } = query
 
-    const key = `feed:${userId}`
+    const key = `feed:${userId}:limit:${limit}`
 
     if (!cursor) {
       const cached = await getCached(
