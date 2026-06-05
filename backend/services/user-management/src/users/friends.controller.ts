@@ -46,6 +46,14 @@ export class FriendsController {
     return this.friendsService.getPendingRequests(userId);
   }
 
+  @Get('my/ids')
+  getFriendIds(
+    @Headers('x-user-id') userId: string,
+  ) {
+    this.validateUserId(userId);
+    return this.friendsService.getFriendIds(userId);
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   removeFriend(
