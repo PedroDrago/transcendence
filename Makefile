@@ -36,14 +36,6 @@ re: fclean up
 
 reset: clean
 
-# Start only the database and user service for isolated development
-dev-user:
-	$(COMPOSE) up -d database user-service
-
-# Stop and wipe volumes for the entire environment
-dev-user-clean:
-	$(COMPOSE) down -v
-
 # Per-service targets: make build-<service> / up-<service> / logs-<service> / restart-<service>
 # Examples: make build-posts-service  make logs-gateway  make restart-auth-service
 build-%:
@@ -57,3 +49,6 @@ logs-%:
 
 restart-%:
 	$(COMPOSE) restart $*
+
+down-%:
+	$(COMPOSE) down $*
