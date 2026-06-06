@@ -68,9 +68,9 @@ services:
         mkdir -p /data/$${R2_BUCKET} && \
         minio server /data --console-address ':9001'
     environment:
-      MINIO_ROOT_USER: ${R2_ACCESS_KEY_ID:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${R2_SECRET_ACCESS_KEY:-minioadmin}
-      R2_BUCKET: ${R2_BUCKET:-transcendence-media}
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_ACCESS_KEY}
+      R2_BUCKET: ${MINIO_BUCKET}
     volumes:
       - minio-data:/data
     healthcheck:
@@ -128,16 +128,10 @@ services:
         condition: service_healthy
     ports:
       - "${BACKEND_PORT}:4000"
+    env_file:
+      - ./backend/api/transcendence-api-gateway/.env
     environment:
-      NODE_ENV: production
-      PORT: 4000
       JWT_SECRET: ${JWT_SECRET}
-      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
-      AUTH_SERVICE_URL: http://auth-service:4001
-      USER_SERVICE_URL: http://user-service:3002
-      CHAT_SERVICE_URL: http://chat-service:4002
-      POSTS_SERVICE_URL: http://posts-service:3333
     healthcheck:
       test:
         - CMD-SHELL
@@ -160,24 +154,13 @@ services:
         condition: service_completed_successfully
       user-service:
         condition: service_healthy
+    env_file:
+      - ./backend/services/auth/.env
     environment:
-      NODE_ENV: production
-      PORT: 4001
-      DB_HOST: database
-      DB_PORT: 5432
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_NAME: ${POSTGRES_DB}
       JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
-      USER_SERVICE_URL: http://user-service:3002
-      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
-      GOOGLE_TEST_CALLBACK_URL: ${GOOGLE_TEST_CALLBACK_URL}
-      FRONTEND_OAUTH_SUCCESS_URL: ${FRONTEND_OAUTH_SUCCESS_URL}
     healthcheck:
       test:
         - CMD-SHELL
@@ -197,17 +180,12 @@ services:
     depends_on:
       db-bootstrap:
         condition: service_completed_successfully
+    env_file:
+      - ./backend/services/chat/.env
     environment:
-      MIX_ENV: dev
-      PORT: 4002
-      PHX_IP: 0.0.0.0
-      PHX_SERVER: "true"
-      DB_HOST: database
-      DB_PORT: 5432
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_NAME: ${POSTGRES_DB}
-      DEV_SECRET_KEY_BASE: ${DEV_SECRET_KEY_BASE}
     command: sh -c "mix ecto.migrate && mix phx.server"
     healthcheck:
       test:
@@ -232,20 +210,17 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+    env_file:
+      - ./backend/services/posts/.env
     environment:
-      NODE_ENV: production
-      HOST: 0.0.0.0
-      PORT: 3333
-      ORIGIN: ${FRONTEND_ORIGIN}
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
-      REDIS_URL: redis://redis:6379
-      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-minioadmin}
-      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-minioadmin}
-      R2_ENDPOINT: http://minio:9000
-      R2_BUCKET: ${R2_BUCKET:-transcendence-media}
+      REDIS_URL: ${REDIS_URL}
+      R2_ACCESS_KEY_ID: ${MINIO_ACCESS_KEY_ID}
+      R2_SECRET_ACCESS_KEY: ${MINIO_SECRET_ACCESS_KEY}
+      R2_BUCKET: ${MINIO_BUCKET}
+      R2_ENDPOINT: ${MINIO_ENDPOINT}
       JWT_SECRET: ${JWT_SECRET}
-      SERVICE_NAME: posts-service
-      OTEL_EXPORTER_URL: http://jaeger:4318/v1/traces
+      OTEL_EXPORTER_URL: ${OTEL_EXPORTER_URL}
     healthcheck:
       test:
         - CMD
@@ -267,11 +242,9 @@ services:
     depends_on:
       db-bootstrap:
         condition: service_completed_successfully
+    env_file:
+      - ./backend/services/user-management/.env
     environment:
-      NODE_ENV: production
-      PORT: 3002
-      DB_HOST: database
-      DB_PORT: 5432
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_NAME: ${POSTGRES_DB}
