@@ -43,3 +43,17 @@ dev-user:
 # Stop and wipe volumes for the entire environment
 dev-user-clean:
 	$(COMPOSE) down -v
+
+# Per-service targets: make build-<service> / up-<service> / logs-<service> / restart-<service>
+# Examples: make build-posts-service  make logs-gateway  make restart-auth-service
+build-%:
+	$(COMPOSE) build $*
+
+up-%:
+	$(COMPOSE) up -d --build $*
+
+logs-%:
+	$(COMPOSE) logs -f $*
+
+restart-%:
+	$(COMPOSE) restart $*
