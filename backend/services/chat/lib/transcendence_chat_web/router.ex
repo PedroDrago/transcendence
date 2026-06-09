@@ -9,6 +9,13 @@ defmodule TranscendenceChatWeb.Router do
     plug TranscendenceChatWeb.Plugs.Authenticate
   end
 
+  # Liveness probe — sem autenticação, usado pelo healthcheck do container.
+  scope "/", TranscendenceChatWeb do
+    pipe_through :api
+
+    get "/health", HealthController, :index
+  end
+
   # Todas as rotas de conversa/mensagem/grupo/status exigem identidade
   # validada pelo API gateway no header `x-user-id`.
   scope "/api", TranscendenceChatWeb do
