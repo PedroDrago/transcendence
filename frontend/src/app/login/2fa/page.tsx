@@ -3,9 +3,11 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getStoredAuthBase, getStoredAppToken, setStoredAppToken } from '@/lib/auth';
+import { useTranslations } from 'next-intl';
 
 export default function TwoFactorLoginPage() {
   const router = useRouter();
+  const t = useTranslations('Auth');
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -47,9 +49,9 @@ export default function TwoFactorLoginPage() {
       <section className="auth-card auth-card--hero">
         <div>
           <p className="auth-kicker">Security</p>
-          <h1>Two-Factor Authentication</h1>
+          <h1>{t('twoFactor')}</h1>
           <p className="auth-copy">
-            Enter the 6-digit code from your authenticator app.
+            {t('enterCode')}
           </p>
         </div>
       </section>
@@ -57,7 +59,7 @@ export default function TwoFactorLoginPage() {
       <section className="auth-card auth-card--form">
         <form className="auth-form" onSubmit={handleSubmit}>
           <label className="auth-field">
-            <span>Authenticator Code</span>
+            <span>{t('codeLabel')}</span>
             <input
               type="text"
               inputMode="numeric"
@@ -72,9 +74,20 @@ export default function TwoFactorLoginPage() {
           </label>
           {error && <p className="auth-error">{error}</p>}
           <button type="submit" disabled={loading || code.length !== 6}>
-            {loading ? 'Verifying…' : 'Verify'}
+            {loading ? t('verifying') : t('verify')}
           </button>
         </form>
+        <div className="auth-actions" style={{ marginTop: 24 }}>
+          <p className="auth-switch">
+            <button
+              type="button"
+              className="auth-button auth-button--secondary"
+              onClick={() => router.push('/login')}
+            >
+              {t('backToLogin')}
+            </button>
+          </p>
+        </div>
       </section>
     </main>
   );

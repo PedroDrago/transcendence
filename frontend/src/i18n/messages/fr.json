@@ -10,5 +10,23 @@
     "signOut": "Se déconnecter",
     "privacy": "Confidentialité",
     "terms": "Conditions"
+  },
+  "Auth": {
+    "welcomeBack": "De retour",
+    "signInCopy": "Connectez-vous pour échanger avec vos amis, partager vos moments et suivre l'actualité.",
+    "identifier": "Nom d'utilisateur ou e-mail",
+    "password": "Mot de passe",
+    "signIn": "Se connecter",
+    "signingIn": "Connexion…",
+    "continueWithGoogle": "Continuer avec Google",
+    "needAccount": "Pas de compte ?",
+    "createOne": "Créer un compte",
+    "twoFactor": "Authentification à Deux Facteurs",
+    "enterCode": "Saisissez votre code d'authentification à 6 chiffres.",
+    "codeLabel": "Code d'Authentification",
+    "verify": "Vérifier",
+    "verifying": "Vérification…",
+    "cancel": "Annuler",
+    "backToLogin": "Retour à la connexion"
   }
 }
