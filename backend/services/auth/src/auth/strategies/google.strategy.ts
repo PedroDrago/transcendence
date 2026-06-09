@@ -3,13 +3,14 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy } from 'passport-google-oauth20';
 import { OAuthProvider } from '../../users/user.entity';
-import { UsersService } from '../../users/users.service';
+import { UsersService } from '../../users/users.service';import { ProfileSyncService } from '../profile-sync.service';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
     config: ConfigService,
     private readonly usersService: UsersService,
+    private readonly profileSyncService: ProfileSyncService,
   ) {
     super({
       clientID: config.getOrThrow<string>('GOOGLE_CLIENT_ID'),
@@ -28,12 +29,21 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     }
 
     try {
-      return await this.usersService.findOrCreateOAuthUser({
+      const { user, isNew } = await this.usersService.findOrCreateOAuthUser({
         oauthId: profile.id,
         oauthProvider: OAuthProvider.GOOGLE,
         email,
         displayName: profile.displayName,
       });
+
+      if (isNew) {
+        await this.profileSyncService.createProfile({
+          id: user.id,
+          username: user.username,
+        }).catch(() => undefined);
+      }
+
+      return user;
     } catch (err) {
       if (err instanceof ConflictException) {
         throw new UnauthorizedException('Email is already registered');

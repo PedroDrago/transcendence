@@ -134,12 +134,12 @@ export class UsersService {
     }
   }
 
-  async findOrCreateOAuthUser(profile: OAuthProfile): Promise<User> {
+  async findOrCreateOAuthUser(profile: OAuthProfile): Promise<{ user: User; isNew: boolean }> {
     const byOAuthId = await this.usersRepository.findOneBy({
       oauthId: profile.oauthId,
       oauthProvider: profile.oauthProvider,
     });
-    if (byOAuthId) return byOAuthId;
+    if (byOAuthId) return { user: byOAuthId, isNew: false };
 
     const byEmail = await this.findByEmail(profile.email);
     if (byEmail) {
@@ -156,7 +156,8 @@ export class UsersService {
     });
 
     try {
-      return await this.usersRepository.save(user);
+      const saved = await this.usersRepository.save(user);
+      return { user: saved, isNew: true };
     } catch (err) {
       if (err instanceof QueryFailedError && (err as any).code === '23505') {
         throw new ConflictException('OAuth user already exists');
