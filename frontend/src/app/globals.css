@@ -340,10 +340,20 @@ textarea {
 }
 
 .app-nav-icon {
-    font-size: 1.05rem;
+    position: relative;
     width: 20px;
-    text-align: center;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+}
+
+.app-nav-icon .badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    margin-left: 0;
 }
 
 .app-nav-bottom {
@@ -409,6 +419,9 @@ textarea {
     font-size: 0.85rem;
     transition: background 140ms, color 140ms;
     font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .app-nav-logout:hover {
@@ -1272,6 +1285,94 @@ textarea {
     font-style: normal;
     margin-left: 6px;
     flex-shrink: 0;
+}
+
+/* ─── Stories strip ──────────────────────────────────────── */
+
+.stories-strip {
+    display: flex;
+    gap: 18px;
+    overflow-x: auto;
+    padding: 4px 0 18px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.stories-strip::-webkit-scrollbar {
+    display: none;
+}
+
+.story-ring {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+}
+
+.story-ring-avatar {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    font-style: italic;
+    color: var(--accent-strong);
+    background: var(--bg-accent);
+    border: 2px solid var(--line);
+    overflow: hidden;
+    position: relative;
+    transition: transform 150ms ease;
+}
+
+.story-ring-avatar:hover {
+    transform: scale(1.07);
+}
+
+.story-ring-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.story-ring-avatar--active {
+    border-color: transparent;
+    box-shadow: 0 0 0 2.5px var(--accent), 0 0 0 4px var(--bg);
+}
+
+.story-ring-avatar--add-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    border: 2px solid var(--surface-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.88rem;
+    font-style: normal;
+    line-height: 1;
+}
+
+.story-ring-name {
+    font-size: 0.74rem;
+    color: var(--muted);
+    max-width: 68px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
 }
 
 /* ─── Responsive ─────────────────────────────────────────── */
