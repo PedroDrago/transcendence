@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import AppShell from '@/components/AppShell';
-import { users as usersApi, auth as authApi, UserProfile, FriendRequest } from '@/lib/api';
+import { users as usersApi, auth as authApi, UserProfile } from '@/lib/api';
 import { setStoredAppToken } from '@/lib/auth';
 
 type Msg = { text: string; ok: boolean } | null;
@@ -217,50 +217,6 @@ function PasswordSection() {
   );
 }
 
-// ─── Friend requests section ──────────────────────────────
-
-function FriendRequestsSection() {
-  const [requests, setRequests] = useState<FriendRequest[]>([]);
-  const [loading,  setLoading]  = useState(true);
-
-  useEffect(() => {
-    usersApi.friendRequests()
-      .then((reqs) => setRequests(reqs.filter((r) => r.status === 'PENDING')))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  async function respond(id: string, status: 'ACCEPTED' | 'REJECTED') {
-    try {
-      await usersApi.respondFriendRequest(id, status);
-      setRequests((prev) => prev.filter((r) => r.id !== id));
-    } catch {}
-  }
-
-  return (
-    <Section
-      title={`Friend requests${requests.length ? ` (${requests.length})` : ''}`}
-      description="Pending requests from other users."
-    >
-      {loading && <span className="spinner" />}
-      {!loading && requests.length === 0 && (
-        <p style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>No pending requests.</p>
-      )}
-      {requests.map((r) => (
-        <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-          <span style={{ flex: 1, fontSize: '0.9rem' }}>{r.requester.username}</span>
-          <button className="app-btn app-btn--sm" onClick={() => respond(r.id, 'ACCEPTED')}>
-            Accept
-          </button>
-          <button className="app-btn app-btn--ghost app-btn--sm" onClick={() => respond(r.id, 'REJECTED')}>
-            Decline
-          </button>
-        </div>
-      ))}
-    </Section>
-  );
-}
-
 // ─── Settings page ────────────────────────────────────────
 
 export default function SettingsPage() {
@@ -292,7 +248,6 @@ export default function SettingsPage() {
         <ProfileSection  profile={profile} onUpdate={setProfile} />
         <UsernameSection current={profile.username} />
         <PasswordSection />
-        <FriendRequestsSection />
       </div>
     </AppShell>
   );

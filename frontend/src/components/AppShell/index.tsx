@@ -43,6 +43,15 @@ function IconSettings() {
   );
 }
 
+function IconBell() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  );
+}
+
 function IconLogout() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -85,10 +94,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const myId = me?.id ?? (decodeJwt(getStoredAppToken())?.sub as string | undefined);
 
   const NAV: NavItem[] = [
-    { href: '/feed',     label: 'Feed',     icon: <IconHome /> },
-    { href: '/messages', label: 'Messages', icon: <IconMessage /> },
+    { href: '/feed',          label: 'Feed',          icon: <IconHome /> },
+    { href: '/messages',      label: 'Messages',      icon: <IconMessage /> },
+    { href: '/notifications', label: 'Notifications', icon: <IconBell />, badge: pendingRequests || undefined },
     ...(myId ? [{ href: `/profile/${myId}`, label: 'Profile', icon: <IconUser /> }] : []),
-    { href: '/settings', label: 'Settings', icon: <IconSettings />, badge: pendingRequests || undefined },
+    { href: '/settings',      label: 'Settings',      icon: <IconSettings /> },
   ];
 
   function logout() {
