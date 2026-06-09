@@ -270,8 +270,8 @@ services:
       gateway:
         condition: service_healthy
     ports:
-      - "443:443"
-      - "8443:8443"
+      - "${HTTPS_PORT:-443}:443"
+      - "${API_HTTPS_PORT:-8443}:8443"
     volumes:
       - ./ops/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./ops/nginx/certs:/etc/nginx/certs:ro
