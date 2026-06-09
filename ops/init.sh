@@ -31,6 +31,15 @@ POSTGRES_USER="transcendence"
 POSTGRES_DB="transcendence"
 MINIO_USER="minioadmin"
 
+# Validate custom Nginx ports
+EFFECTIVE_HTTPS_PORT=${HTTPS_PORT:-443}
+EFFECTIVE_API_HTTPS_PORT=${API_HTTPS_PORT:-8443}
+
+if [ "$EFFECTIVE_HTTPS_PORT" == "$EFFECTIVE_API_HTTPS_PORT" ]; then
+    echo "❌ Error: HTTPS_PORT and API_HTTPS_PORT cannot be the same ($EFFECTIVE_HTTPS_PORT)."
+    exit 1
+fi
+
 # ==============================================================================
 
 MODE=$1
