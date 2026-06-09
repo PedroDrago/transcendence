@@ -82,6 +82,24 @@ Then run: `docker compose restart auth-service`
 
 > **Important for Google Cloud Console:** Ensure your OAuth credentials in Google Cloud have the exact Authorized JavaScript Origins (`https://localhost:443`, etc.) and the precise Authorized Redirect URIs matching your API port (`https://localhost:8443/auth/google/callback`).
 
+### Cloudflare R2 Configuration (Optional)
+
+By default, the project uses a local **MinIO** container for S3-compatible object storage (avatars, images, etc.).
+
+If you wish to test with an actual Cloudflare R2 bucket instead of the local MinIO, you can override the storage credentials using environment variables:
+
+**Option 1: Pass them inline when running make**
+```bash
+R2_ACCESS_KEY_ID="your_access_key" \
+R2_SECRET_ACCESS_KEY="your_secret_key" \
+R2_ENDPOINT="https://your_r2_endpoint.r2.cloudflarestorage.com" \
+R2_BUCKET="your_bucket_name" \
+make up
+```
+
+**Option 2: Edit the generated environment file manually**
+If the stack is already running, you can manually edit `backend/services/posts/.env` and `backend/services/user-management/.env` to include the R2 variables and restart the services.
+
 ### Published Services (External)
 
 Only the **Nginx Reverse Proxy** is exposed to the host machine to ensure all external traffic is forced through HTTPS:
