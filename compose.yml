@@ -220,10 +220,6 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
       REDIS_URL: ${REDIS_URL}
-      R2_ACCESS_KEY_ID: ${MINIO_ACCESS_KEY_ID}
-      R2_SECRET_ACCESS_KEY: ${MINIO_SECRET_ACCESS_KEY}
-      R2_BUCKET: ${MINIO_BUCKET}
-      R2_ENDPOINT: ${MINIO_ENDPOINT}
       JWT_SECRET: ${JWT_SECRET}
       OTEL_EXPORTER_URL: ${OTEL_EXPORTER_URL}
     healthcheck:
@@ -237,6 +233,7 @@ services:
       retries: 5
       start_period: 30s
     networks:
+      - transcendence-public
       - transcendence-internal
 
   user-service:
