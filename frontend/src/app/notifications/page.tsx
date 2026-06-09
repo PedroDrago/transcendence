@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import AppShell from '@/components/AppShell';
+import Avatar from '@/components/Avatar';
 import { users as usersApi, FriendRequest } from '@/lib/api';
 
 function FriendRequestItem({
@@ -13,9 +14,7 @@ function FriendRequestItem({
 }) {
   return (
     <div className="notif-item">
-      <div className="notif-item-avatar">
-        {request.requester.username[0].toUpperCase()}
-      </div>
+      <Avatar username={request.requester.username} avatarUrl={request.requester.avatarUrl} size={40} className="notif-item-avatar" />
       <div className="notif-item-body">
         <span className="notif-item-name">{request.requester.username}</span>
         <span className="notif-item-text">sent you a friend request</span>

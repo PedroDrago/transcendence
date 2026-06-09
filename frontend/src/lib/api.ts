@@ -1,5 +1,15 @@
 import { getStoredAuthBase, getStoredAppToken } from './auth';
 
+function resolveUrl(path?: string | null): string | undefined {
+  if (!path) return undefined;
+  if (path.startsWith('http')) return path;
+  return `${getStoredAuthBase()}${path}`;
+}
+
+function resolveProfile(user: UserProfile): UserProfile {
+  return { ...user, avatarUrl: resolveUrl(user.avatarUrl) };
+}
+
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   const base = getStoredAuthBase();
   const token = getStoredAppToken();
@@ -51,17 +61,20 @@ export const auth = {
 
 // --- Users ---
 export const users = {
-  me: () => req<UserProfile>('/users/me'),
-  get: (id: string) => req<UserProfile>(`/users/${id}`),
+  me: () => req<UserProfile>('/users/me').then(resolveProfile),
+  get: (id: string) => req<UserProfile>(`/users/${id}`).then(resolveProfile),
   updateMe: (data: { bio?: string; websiteUrl?: string }) =>
-    req<UserProfile>('/users/me', { method: 'PATCH', body: JSON.stringify(data) }),
+    req<UserProfile>('/users/me', { method: 'PATCH', body: JSON.stringify(data) }).then(resolveProfile),
   updateAvatar: (file: File) => {
     const form = new FormData();
     form.append('avatar', file);
-    return req<UserProfile>('/users/me/avatar', { method: 'PATCH', body: form });
+    return req<UserProfile>('/users/me/avatar', { method: 'PATCH', body: form }).then(resolveProfile);
   },
-  friends: () => req<UserProfile[]>('/users/friends'),
-  friendRequests: () => req<FriendRequest[]>('/users/friends/requests'),
+  friends: () => req<UserProfile[]>('/users/friends').then((list) => list.map(resolveProfile)),
+  friendRequests: () =>
+    req<FriendRequest[]>('/users/friends/requests').then((list) =>
+      list.map((r) => ({ ...r, requester: resolveProfile(r.requester) })),
+    ),
   friendIds: () => req<string[]>('/users/friends/my/ids'),
   sendFriendRequest: (addresseeId: string) =>
     req<FriendRequest>('/users/friends/requests', {

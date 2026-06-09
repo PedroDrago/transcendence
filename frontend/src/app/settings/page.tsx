@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import AppShell from '@/components/AppShell';
+import Avatar from '@/components/Avatar';
 import { users as usersApi, auth as authApi, UserProfile } from '@/lib/api';
 import { setStoredAppToken } from '@/lib/auth';
 
@@ -61,13 +62,7 @@ function AvatarSection({ profile, onUpdate }: { profile: UserProfile; onUpdate: 
 
   return (
     <Section title="Avatar" description="Upload a photo. Supported: jpg, png, webp (max 5 MB).">
-      {preview
-        ? <img className="settings-avatar-preview" src={preview} alt="avatar" />
-        : (
-          <div className="settings-avatar-placeholder">
-            {profile.username[0].toUpperCase()}
-          </div>
-        )}
+      <Avatar username={profile.username} avatarUrl={preview} size={72} className="settings-avatar-preview" />
       <input
         ref={inputRef}
         type="file"

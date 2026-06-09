@@ -4,6 +4,7 @@ import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppShell from '@/components/AppShell';
 import PostCard from '@/components/PostCard';
+import Avatar from '@/components/Avatar';
 import {
   users as usersApi,
   posts as postsApi,
@@ -131,11 +132,7 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
       <div className="profile-wrap">
         {/* Header */}
         <header className="profile-header">
-          <div className="profile-avatar">
-            {profile.avatarUrl
-              ? <img src={profile.avatarUrl} alt={profile.username} />
-              : profile.username[0].toUpperCase()}
-          </div>
+          <Avatar username={profile.username} avatarUrl={profile.avatarUrl} size={96} className="profile-avatar" />
 
           <div className="profile-meta">
             <h1 className="profile-username">{profile.username}</h1>
