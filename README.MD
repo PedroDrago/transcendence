@@ -60,6 +60,28 @@ HTTPS_PORT=4443 API_HTTPS_PORT=9443 make up
 
 This will automatically configure the Nginx proxy, generate the appropriate CORS rules, and build the Next.js frontend to communicate with the correct API port.
 
+### Google OAuth Configuration
+
+For security reasons, Google OAuth credentials (`GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`) are not stored in the repository. The application will start successfully without them, but the "Continue with Google" button will fail.
+
+To run the application with OAuth enabled, you can either:
+
+**Option 1: Pass them inline when running make (Recommended for fresh starts)**
+```bash
+GOOGLE_CLIENT_ID="your_client_id" GOOGLE_CLIENT_SECRET="your_secret" make up
+```
+
+**Option 2: Edit the generated environment file manually**
+If the stack is already running, you can manually edit `backend/services/auth/.env` and restart the auth service:
+```bash
+# Inside backend/services/auth/.env
+GOOGLE_CLIENT_ID=your_client_id
+GOOGLE_CLIENT_SECRET=your_secret
+```
+Then run: `docker compose restart auth-service`
+
+> **Important for Google Cloud Console:** Ensure your OAuth credentials in Google Cloud have the exact Authorized JavaScript Origins (`https://localhost:443`, etc.) and the precise Authorized Redirect URIs matching your API port (`https://localhost:8443/auth/google/callback`).
+
 ### Published Services (External)
 
 Only the **Nginx Reverse Proxy** is exposed to the host machine to ensure all external traffic is forced through HTTPS:
