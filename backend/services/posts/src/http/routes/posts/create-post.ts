@@ -6,6 +6,7 @@ import { schemas } from '@/database/schemas'
 import { postInsertSchema } from '@/database/schemas/posts'
 import { middlewares } from '@/http/middlewares'
 import { r2 } from '@/storage'
+import { getSignedMediaUrl } from '@/utils/get-signed-media-url'
 
 export const createPost = new Elysia().use(middlewares).post(
   '/posts',
@@ -43,9 +44,16 @@ export const createPost = new Elysia().use(middlewares).post(
       })
       .returning()
 
+    if (!post) {
+      return
+    }
+
     await redis.del(`posts:user:${userId}`)
 
-    return status(201, { ...post })
+    return status(201, {
+      ...post,
+      mediaUrl: await getSignedMediaUrl(post.mediaKey),
+    })
   },
   {
     auth: true,
@@ -60,7 +68,9 @@ export const createPost = new Elysia().use(middlewares).post(
       caption: z.string().max(2200).optional(),
     }),
     response: {
-      201: postInsertSchema,
+      201: postInsertSchema.extend({
+        mediaUrl: z.string(),
+      }),
       404: z.object({
         error: z.string(),
         message: z.string(),
