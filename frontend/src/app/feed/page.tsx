@@ -195,31 +195,38 @@ export default function FeedPage() {
   const [me,        setMe]        = useState<UserProfile | null>(null);
   const [postsList, setPostsList] = useState<Post[]>([]);
   const [profiles,  setProfiles]  = useState<Record<string, UserProfile>>({});
-  const [cursor,    setCursor]    = useState<string | undefined>(undefined);
   const [loading,   setLoading]   = useState(false);
   const [exhausted, setExhausted] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const loaderRef = useRef<HTMLDivElement>(null);
+  const loaderRef   = useRef<HTMLDivElement>(null);
+  const loadingRef  = useRef(false);
+  const exhaustedRef = useRef(false);
+  const cursorRef   = useRef<string | undefined>(undefined);
+  const profilesRef = useRef<Record<string, UserProfile>>({});
 
   useEffect(() => {
     if (myId) usersApi.get(myId).then(setMe).catch(() => {});
   }, [myId]);
 
   const loadMore = useCallback(async () => {
-    if (loading || exhausted) return;
+    if (loadingRef.current || exhaustedRef.current) return;
+    loadingRef.current = true;
     setLoading(true);
     try {
-      const page = await postsApi.feed(cursor);
-      if (page.posts.length === 0 || !page.nextCursor) setExhausted(true);
+      const page = await postsApi.feed(cursorRef.current);
+      if (page.posts.length === 0 || !page.nextCursor) {
+        exhaustedRef.current = true;
+        setExhausted(true);
+      }
 
       setPostsList((prev) => {
         const ids = new Set(prev.map((p) => p.id));
         return [...prev, ...page.posts.filter((p) => !ids.has(p.id))];
       });
-      setCursor(page.nextCursor ?? undefined);
+      cursorRef.current = page.nextCursor ?? undefined;
 
       const unknownIds = [...new Set(page.posts.map((p) => p.userId))].filter(
-        (id) => !profiles[id],
+        (id) => !profilesRef.current[id],
       );
       if (unknownIds.length) {
         const results = await Promise.allSettled(unknownIds.map((id) => usersApi.get(id)));
@@ -228,17 +235,20 @@ export default function FeedPage() {
           results.forEach((r, i) => {
             if (r.status === 'fulfilled') next[unknownIds[i]] = r.value;
           });
+          profilesRef.current = next;
           return next;
         });
       }
     } catch {}
+    loadingRef.current = false;
     setLoading(false);
-  }, [cursor, exhausted, loading, profiles]);
+  // stable — mutable state is tracked via refs
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     loadMore();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadMore]);
 
   useEffect(() => {
     const el = loaderRef.current;
@@ -249,6 +259,7 @@ export default function FeedPage() {
     );
     obs.observe(el);
     return () => obs.disconnect();
+  // loadMore is stable (created once), so this effect also runs once
   }, [loadMore]);
 
   function handleCreated(post: Post) {
