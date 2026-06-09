@@ -132,6 +132,11 @@ EOF
     echo "✅ Global .env generated!"
 fi
 
+# Load shared values for the service-specific environment files.
+set -a
+. ./.env
+set +a
+
 # --- Microservices .env Generation ---
 
 GATEWAY_ENV="./backend/api/transcendence-api-gateway/.env"
@@ -208,8 +213,12 @@ if [ ! -f "$POSTS_ENV" ]; then
 NODE_ENV=development
 HOST=0.0.0.0
 PORT=${POSTS_PORT}
-ORIGIN=${FRONTEND_URL}
+ORIGIN=${PUBLIC_FRONTEND_URL},${PUBLIC_API_URL},${FRONTEND_URL},${GATEWAY_URL}
 USER_SERVICE_URL=${USER_SERVICE_URL}
+R2_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
+R2_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
+R2_ENDPOINT=${MINIO_ENDPOINT}
+R2_BUCKET=${MINIO_BUCKET}
 SERVICE_NAME=posts
 EOF
     echo "✅ Posts .env generated!"
