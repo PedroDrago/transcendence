@@ -113,6 +113,7 @@ export const users = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  deleteMe: (id: string) => req<void>(`/users/${id}`, { method: 'DELETE' }),
 };
 
 // --- Posts ---

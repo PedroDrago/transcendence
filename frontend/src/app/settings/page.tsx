@@ -1,10 +1,11 @@
 'use client';
 
 import { FormEvent, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import AppShell from '@/components/AppShell';
 import Avatar from '@/components/Avatar';
 import { users as usersApi, auth as authApi, UserProfile } from '@/lib/api';
-import { setStoredAppToken } from '@/lib/auth';
+import { setStoredAppToken, clearStoredAuth } from '@/lib/auth';
 
 type Msg = { text: string; ok: boolean } | null;
 
@@ -391,6 +392,50 @@ function PrivacySection({ onProfileUpdate }: { onProfileUpdate: (p: UserProfile)
   );
 }
 
+// ─── Danger Zone section ──────────────────────────────────
+
+function DangerZoneSection({ profile }: { profile: UserProfile }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState<Msg>(null);
+
+  async function handleDelete() {
+    if (!window.confirm("Are you sure you want to permanently delete your account? This action cannot be undone.")) {
+      return;
+    }
+    
+    setLoading(true);
+    setMsg(null);
+    try {
+      await usersApi.deleteMe(profile.id);
+      clearStoredAuth();
+      router.replace('/login');
+    } catch (err: any) {
+      setMsg({ ok: false, text: err.message || 'Failed to delete account.' });
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Section title="Danger Zone" description="Irreversible and destructive actions.">
+      <div className="settings-field">
+        <p className="settings-msg" style={{ marginBottom: 16 }}>
+          Deleting your account will permanently remove all your data, including profile, posts, and messages. This action cannot be undone.
+        </p>
+        <button 
+          className="app-btn" 
+          style={{ backgroundColor: '#dc2626', borderColor: '#dc2626' }}
+          onClick={handleDelete}
+          disabled={loading}
+        >
+          {loading ? 'Deleting...' : 'Delete Account'}
+        </button>
+        <StatusMsg msg={msg} />
+      </div>
+    </Section>
+  );
+}
+
 // ─── Settings page ────────────────────────────────────────
 
 export default function SettingsPage() {
@@ -424,6 +469,7 @@ export default function SettingsPage() {
         <PasswordSection />
         <TwoFactorSection />
         <PrivacySection onProfileUpdate={setProfile} />
+        <DangerZoneSection profile={profile} />
       </div>
     </AppShell>
   );
