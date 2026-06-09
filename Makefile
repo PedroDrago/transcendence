@@ -34,7 +34,7 @@ clean:
 fclean: clean
 	$(COMPOSE) down --rmi all
 	docker system prune -af
-	@$(MAKE) clean-envs
+	@$(MAKE) --no-print-directory clean-envs
 
 clean-envs:
 	@echo "Removing all .env files and SSL certificates..."

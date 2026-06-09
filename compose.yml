@@ -130,7 +130,8 @@ services:
       user-service:
         condition: service_healthy
     env_file:
-      - ./backend/api/transcendence-api-gateway/.env
+      - path: ./backend/api/transcendence-api-gateway/.env
+        required: false
     environment:
       JWT_SECRET: ${JWT_SECRET}
     healthcheck:
@@ -156,7 +157,8 @@ services:
       user-service:
         condition: service_healthy
     env_file:
-      - ./backend/services/auth/.env
+      - path: ./backend/services/auth/.env
+        required: false
     environment:
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
@@ -182,7 +184,8 @@ services:
       db-bootstrap:
         condition: service_completed_successfully
     env_file:
-      - ./backend/services/chat/.env
+      - path: ./backend/services/chat/.env
+        required: false
     environment:
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
@@ -212,7 +215,8 @@ services:
       minio:
         condition: service_healthy
     env_file:
-      - ./backend/services/posts/.env
+      - path: ./backend/services/posts/.env
+        required: false
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
       REDIS_URL: ${REDIS_URL}
@@ -244,7 +248,8 @@ services:
       db-bootstrap:
         condition: service_completed_successfully
     env_file:
-      - ./backend/services/user-management/.env
+      - path: ./backend/services/user-management/.env
+        required: false
     environment:
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
