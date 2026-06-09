@@ -34,31 +34,25 @@ Both backend services share a single PostgreSQL instance but use separate schema
 - [Bun](https://bun.sh/) >= 1.3
 - Docker + Docker Compose
 
-### 1. Start local infrastructure
+### 1. Generate environment and start the project
+
+From the repository root, run:
 
 ```bash
-docker compose up -d
+make
 ```
 
-This starts PostgreSQL, Redis, MinIO, and Jaeger.
+The Makefile runs `ops/init.sh --auto` to generate all required `.env` files,
+then builds and starts the project. Use `make setup` before `make` to provide
+credentials interactively.
 
-### 2. Configure environment
-
-Copy the example env as a starting point:
-
-```bash
-cp .env.example .env
-```
-
-Adjust any values as needed (ports, credentials).
-
-### 3. Run migrations
+### 2. Run migrations
 
 ```bash
 bun run db:migrate
 ```
 
-### 4. Start the dev server
+### 3. Start the dev server
 
 ```bash
 bun run dev
