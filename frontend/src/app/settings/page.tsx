@@ -319,6 +319,78 @@ function TwoFactorSection() {
   );
 }
 
+// ─── Privacy & Data section ───────────────────────────────
+
+function PrivacySection({ onProfileUpdate }: { onProfileUpdate: (p: UserProfile) => void }) {
+  const [msg, setMsg] = useState<Msg>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExport = async () => {
+    try {
+      const data = await usersApi.exportData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'transcendence-data-export.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      setMsg({ ok: true, text: 'Data exported successfully.' });
+    } catch (err: any) {
+      setMsg({ ok: false, text: err.message || 'Failed to export data.' });
+    }
+  };
+
+  const handleImport = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const updatedProfile = await usersApi.importData(data);
+      onProfileUpdate(updatedProfile);
+      setMsg({ ok: true, text: 'Data imported successfully.' });
+    } catch (err: any) {
+      setMsg({ ok: false, text: err.message || 'Failed to import data. Invalid JSON file.' });
+    }
+    
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  return (
+    <Section title="Privacy & Data" description="Manage your data and privacy settings (GDPR Compliance).">
+      <div className="settings-field">
+        <p className="settings-msg" style={{ marginBottom: 16 }}>
+          You can request a copy of all your personal data stored on our servers. You can also import previously exported data to restore your profile settings. Note: importing data will overwrite your current profile.
+        </p>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button className="app-btn" onClick={handleExport}>
+            Export My Data
+          </button>
+          <button className="app-btn app-btn--ghost" onClick={handleImport}>
+            Import Data
+          </button>
+        </div>
+        <input
+          type="file"
+          accept=".json"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
+        />
+        <StatusMsg msg={msg} />
+      </div>
+    </Section>
+  );
+}
+
 // ─── Settings page ────────────────────────────────────────
 
 export default function SettingsPage() {
@@ -351,6 +423,7 @@ export default function SettingsPage() {
         <UsernameSection current={profile.username} />
         <PasswordSection />
         <TwoFactorSection />
+        <PrivacySection onProfileUpdate={setProfile} />
       </div>
     </AppShell>
   );
