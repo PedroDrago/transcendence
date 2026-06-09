@@ -8,6 +8,7 @@ import { CreateUsersTable1742600000000 } from './database/migrations/17426000000
 import { AddOAuthColumns1776200000000 } from './database/migrations/1776200000000-AddOAuthColumns';
 import { AddUpdatedAtToUsers1776614861000 } from './database/migrations/1776614861000-AddUpdatedAtToUsers';
 import { AddUsernamePendingToUsers1776616088000 } from './database/migrations/1776616088000-AddUsernamePendingToUsers';
+import { Add2fa1781028039975 } from './database/migrations/1781028039975-add-2fa';
 
 @Module({
   controllers: [AppController],
@@ -28,6 +29,7 @@ import { AddUsernamePendingToUsers1776616088000 } from './database/migrations/17
           AddOAuthColumns1776200000000,
           AddUpdatedAtToUsers1776614861000,
           AddUsernamePendingToUsers1776616088000,
+          Add2fa1781028039975,
         ],
         migrationsRun: true,
       }),
