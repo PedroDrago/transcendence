@@ -1,7 +1,8 @@
 'use client';
 
 import { FormEvent, useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter }
+import { useTranslations } from 'next-intl'; from 'next/navigation';
 import AppShell from '@/components/AppShell';
 import Avatar from '@/components/Avatar';
 import { users as usersApi, auth as authApi, UserProfile } from '@/lib/api';
@@ -39,6 +40,7 @@ function StatusMsg({ msg }: { msg: Msg }) {
 // ─── Avatar section ───────────────────────────────────────
 
 function AvatarSection({ profile, onUpdate }: { profile: UserProfile; onUpdate: (p: UserProfile) => void }) {
+  const t = useTranslations('Settings');
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(profile.avatarUrl ?? null);
   const [loading, setLoading] = useState(false);
@@ -62,7 +64,7 @@ function AvatarSection({ profile, onUpdate }: { profile: UserProfile; onUpdate: 
   }
 
   return (
-    <Section title="Avatar" description="Upload a photo. Supported: jpg, png, webp (max 5 MB).">
+    <Section title={t('avatar')} description={t('avatarDesc')}>
       <Avatar username={profile.username} avatarUrl={preview} size={72} className="settings-avatar-preview" />
       <input
         ref={inputRef}
@@ -76,7 +78,7 @@ function AvatarSection({ profile, onUpdate }: { profile: UserProfile; onUpdate: 
         onClick={() => inputRef.current?.click()}
         disabled={loading}
       >
-        {loading ? 'Uploading…' : 'Change avatar'}
+        {loading ? t('uploading') : t('changeAvatar')}
       </button>
       <StatusMsg msg={msg} />
     </Section>
@@ -86,6 +88,7 @@ function AvatarSection({ profile, onUpdate }: { profile: UserProfile; onUpdate: 
 // ─── Profile section ──────────────────────────────────────
 
 function ProfileSection({ profile, onUpdate }: { profile: UserProfile; onUpdate: (p: UserProfile) => void }) {
+  const t = useTranslations('Settings');
   const [bio,        setBio]     = useState(profile.bio ?? '');
   const [website,    setWebsite] = useState(profile.websiteUrl ?? '');
   const [loading,    setLoading] = useState(false);
@@ -107,14 +110,14 @@ function ProfileSection({ profile, onUpdate }: { profile: UserProfile; onUpdate:
   }
 
   return (
-    <Section title="Profile" description="Update your bio and website URL.">
+    <Section title={t('profile')} description={t('profileDesc')}>
       <form onSubmit={save}>
         <div className="settings-field">
-          <span>Bio</span>
+          <span>{t('bio')}</span>
           <textarea value={bio} onChange={(e) => setBio(e.target.value)} maxLength={200} />
         </div>
         <div className="settings-field">
-          <span>Website URL</span>
+          <span>{t('website')}</span>
           <input
             type="url"
             value={website}
@@ -123,7 +126,7 @@ function ProfileSection({ profile, onUpdate }: { profile: UserProfile; onUpdate:
           />
         </div>
         <button type="submit" className="app-btn app-btn--sm" disabled={loading}>
-          {loading ? 'Saving…' : 'Save'}
+          {loading ? t('saving') : t('save')}
         </button>
         <StatusMsg msg={msg} />
       </form>
@@ -134,6 +137,7 @@ function ProfileSection({ profile, onUpdate }: { profile: UserProfile; onUpdate:
 // ─── Username section ─────────────────────────────────────
 
 function UsernameSection({ current }: { current: string }) {
+  const t = useTranslations('Settings');
   const [username, setUsername] = useState(current);
   const [loading,  setLoading]  = useState(false);
   const [msg,      setMsg]      = useState<Msg>(null);
@@ -161,7 +165,7 @@ function UsernameSection({ current }: { current: string }) {
           <input value={username} onChange={(e) => setUsername(e.target.value)} minLength={3} maxLength={20} />
         </div>
         <button type="submit" className="app-btn app-btn--sm" disabled={loading}>
-          {loading ? 'Saving…' : 'Save'}
+          {loading ? t('saving') : t('save')}
         </button>
         <StatusMsg msg={msg} />
       </form>
@@ -172,6 +176,7 @@ function UsernameSection({ current }: { current: string }) {
 // ─── Password section ─────────────────────────────────────
 
 function PasswordSection() {
+  const t = useTranslations('Settings');
   const [current,  setCurrent]  = useState('');
   const [next,     setNext]     = useState('');
   const [loading,  setLoading]  = useState(false);
@@ -197,11 +202,11 @@ function PasswordSection() {
     <Section title="Password" description="Choose a strong password with at least 8 characters.">
       <form onSubmit={save}>
         <div className="settings-field">
-          <span>Current password</span>
+          <span>{t('currentPassword')}</span>
           <input type="password" value={current} onChange={(e) => setCurrent(e.target.value)} />
         </div>
         <div className="settings-field">
-          <span>New password</span>
+          <span>{t('newPassword')}</span>
           <input type="password" value={next} onChange={(e) => setNext(e.target.value)} minLength={8} />
         </div>
         <button type="submit" className="app-btn app-btn--sm" disabled={loading}>
@@ -215,6 +220,7 @@ function PasswordSection() {
 
 // ─── Two-Factor Authentication ──────────────────────────────
 function TwoFactorSection() {
+  const t = useTranslations('Settings');
   const [isEnabled, setIsEnabled] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   const [code, setCode] = useState('');
@@ -272,7 +278,7 @@ function TwoFactorSection() {
   }
 
   return (
-    <Section title="Two-Factor Authentication" description="Add an extra layer of security to your account.">
+    <Section title={t('twoFactor')} description={t('twoFactorDesc')}>
       {!isEnabled && !qrCodeDataUrl && (
         <>
           <p className="settings-msg">Two-Factor Authentication is currently disabled.</p>
@@ -323,6 +329,7 @@ function TwoFactorSection() {
 // ─── Privacy & Data section ───────────────────────────────
 
 function PrivacySection({ onProfileUpdate }: { onProfileUpdate: (p: UserProfile) => void }) {
+  const t = useTranslations('Settings');
   const [msg, setMsg] = useState<Msg>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -366,18 +373,14 @@ function PrivacySection({ onProfileUpdate }: { onProfileUpdate: (p: UserProfile)
   };
 
   return (
-    <Section title="Privacy & Data" description="Manage your data and privacy settings (GDPR Compliance).">
+    <Section title={t('privacy')} description={t('privacyDesc')}>
       <div className="settings-field">
         <p className="settings-msg" style={{ marginBottom: 16 }}>
-          You can request a copy of all your personal data stored on our servers. You can also import previously exported data to restore your profile settings. Note: importing data will overwrite your current profile.
+          {t('privacyMsg')}
         </p>
         <div style={{ display: 'flex', gap: 12 }}>
-          <button className="app-btn" onClick={handleExport}>
-            Export My Data
-          </button>
-          <button className="app-btn app-btn--ghost" onClick={handleImport}>
-            Import Data
-          </button>
+          <button className="app-btn" onClick={handleExport}>{t('exportData')}</button>
+          <button className="app-btn app-btn--ghost" onClick={handleImport}>{t('importData')}</button>
         </div>
         <input
           type="file"
@@ -395,6 +398,7 @@ function PrivacySection({ onProfileUpdate }: { onProfileUpdate: (p: UserProfile)
 // ─── Danger Zone section ──────────────────────────────────
 
 function DangerZoneSection({ profile }: { profile: UserProfile }) {
+  const t = useTranslations('Settings');
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<Msg>(null);
@@ -417,10 +421,10 @@ function DangerZoneSection({ profile }: { profile: UserProfile }) {
   }
 
   return (
-    <Section title="Danger Zone" description="Irreversible and destructive actions.">
+    <Section title={t('dangerZone')} description={t('dangerZoneDesc')}>
       <div className="settings-field">
         <p className="settings-msg" style={{ marginBottom: 16 }}>
-          Deleting your account will permanently remove all your data, including profile, posts, and messages. This action cannot be undone.
+          {t('dangerZoneMsg')}
         </p>
         <button 
           className="app-btn" 
@@ -428,7 +432,7 @@ function DangerZoneSection({ profile }: { profile: UserProfile }) {
           onClick={handleDelete}
           disabled={loading}
         >
-          {loading ? 'Deleting...' : 'Delete Account'}
+          {loading ? t('deleting') : t('deleteAccount')}
         </button>
         <StatusMsg msg={msg} />
       </div>
@@ -439,6 +443,7 @@ function DangerZoneSection({ profile }: { profile: UserProfile }) {
 // ─── Settings page ────────────────────────────────────────
 
 export default function SettingsPage() {
+  const t = useTranslations('Settings');
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
@@ -460,7 +465,7 @@ export default function SettingsPage() {
       <div className="settings-wrap">
         <div className="settings-header">
           <p className="settings-kicker">Vellum</p>
-          <h1>Settings</h1>
+          <h1>{t('title')}</h1>
         </div>
 
         <AvatarSection   profile={profile} onUpdate={setProfile} />

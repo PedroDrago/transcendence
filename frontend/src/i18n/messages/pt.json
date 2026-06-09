@@ -28,5 +28,85 @@
     "verifying": "Verificando…",
     "cancel": "Cancelar",
     "backToLogin": "Voltar ao login"
+  },
+  "Feed": {
+    "title": "Feed",
+    "createPostPlaceholder": "O que você está pensando?",
+    "createPostButton": "Publicar",
+    "endOfFeed": "Não há mais postagens",
+    "noPosts": "Nenhuma postagem ainda. Seja o primeiro!"
+  },
+  "Messages": {
+    "title": "Mensagens",
+    "newConversation": "Nova Conversa",
+    "typeMessage": "Digite uma mensagem...",
+    "send": "Enviar"
+  },
+  "Notifications": {
+    "title": "Notificações",
+    "friendRequest": "enviou uma solicitação de amizade",
+    "accept": "Aceitar",
+    "reject": "Recusar",
+    "empty": "Nenhuma notificação ainda."
+  },
+  "Profile": {
+    "title": "Perfil",
+    "editProfile": "Editar Perfil",
+    "follow": "Seguir",
+    "unfollow": "Deixar de seguir",
+    "addFriend": "Adicionar Amigo",
+    "removeFriend": "Remover Amigo",
+    "message": "Mensagem",
+    "block": "Bloquear",
+    "unblock": "Desbloquear",
+    "posts": "Postagens",
+    "followers": "Seguidores",
+    "following": "Seguindo",
+    "friends": "Amigos"
+  },
+  "Settings": {
+    "title": "Configurações",
+    "avatar": "Avatar",
+    "avatarDesc": "Envie uma foto. Suportado: jpg, png, webp (max 5 MB).",
+    "changeAvatar": "Mudar avatar",
+    "uploading": "Enviando…",
+    "profile": "Perfil",
+    "profileDesc": "Atualize sua bio e a URL do seu site.",
+    "bio": "Bio",
+    "website": "URL do Site",
+    "save": "Salvar",
+    "saving": "Salvando…",
+    "username": "Nome de usuário",
+    "usernameDesc": "Mude seu nome de usuário.",
+    "password": "Senha",
+    "passwordDesc": "Mude sua senha.",
+    "currentPassword": "Senha atual",
+    "newPassword": "Nova senha",
+    "twoFactor": "Autenticação de Dois Fatores",
+    "twoFactorDesc": "Adicione uma camada extra de segurança à sua conta.",
+    "enable2FA": "Ativar 2FA",
+    "disable2FA": "Desativar 2FA",
+    "privacy": "Privacidade & Dados",
+    "privacyDesc": "Gerencie seus dados e configurações de privacidade (Conformidade com GDPR).",
+    "privacyMsg": "Você pode solicitar uma cópia de todos os seus dados pessoais armazenados em nossos servidores. Você também pode importar dados previamente exportados para restaurar as configurações do seu perfil. Observação: a importação de dados substituirá seu perfil atual.",
+    "exportData": "Exportar Meus Dados",
+    "importData": "Importar Dados",
+    "dangerZone": "Zona de Perigo",
+    "dangerZoneDesc": "Ações irreversíveis e destrutivas.",
+    "dangerZoneMsg": "A exclusão da sua conta removerá permanentemente todos os seus dados, incluindo perfil, postagens e mensagens. Esta ação não pode ser desfeita.",
+    "deleteAccount": "Excluir Conta",
+    "deleting": "Excluindo..."
+  },
+  "Time": {
+    "justNow": "agora mesmo",
+    "m": "{count}m",
+    "h": "{count}h",
+    "d": "{count}d"
+  },
+  "PostCard": {
+    "addComment": "Adicione um comentário…",
+    "post": "Publicar",
+    "unlike": "Descurtir",
+    "like": "Curtir"
   }
 }

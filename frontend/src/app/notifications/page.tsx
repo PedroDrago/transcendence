@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import AppShell from '@/components/AppShell';
 import Avatar from '@/components/Avatar';
 import { users as usersApi, FriendRequest } from '@/lib/api';
+import { useTranslations } from 'next-intl';
 
 function FriendRequestItem({
   request,
@@ -12,22 +13,24 @@ function FriendRequestItem({
   request: FriendRequest;
   onRespond: (id: string, status: 'ACCEPTED' | 'REJECTED') => void;
 }) {
+  const t = useTranslations('Notifications');
+
   return (
     <div className="notif-item">
       <Avatar username={request.requester.username} avatarUrl={request.requester.avatarUrl} size={40} className="notif-item-avatar" />
       <div className="notif-item-body">
         <span className="notif-item-name">{request.requester.username}</span>
-        <span className="notif-item-text">sent you a friend request</span>
+        <span className="notif-item-text">{t('friendRequest')}</span>
       </div>
       <div className="notif-item-actions">
         <button className="app-btn app-btn--sm" onClick={() => onRespond(request.id, 'ACCEPTED')}>
-          Accept
+          {t('accept')}
         </button>
         <button
           className="app-btn app-btn--ghost app-btn--sm"
           onClick={() => onRespond(request.id, 'REJECTED')}
         >
-          Decline
+          {t('reject')}
         </button>
       </div>
     </div>
@@ -35,6 +38,7 @@ function FriendRequestItem({
 }
 
 export default function NotificationsPage() {
+  const t = useTranslations('Notifications');
   const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -57,7 +61,7 @@ export default function NotificationsPage() {
     <AppShell>
       <div className="notif-wrap">
         <div className="feed-topbar">
-          <span className="feed-title">Notifications</span>
+          <span className="feed-title">{t('title')}</span>
         </div>
 
         {loading && (
@@ -67,7 +71,7 @@ export default function NotificationsPage() {
         )}
 
         {!loading && requests.length === 0 && (
-          <p className="notif-empty">No new notifications.</p>
+          <p className="notif-empty">{t('empty')}</p>
         )}
 
         {!loading && requests.length > 0 && (

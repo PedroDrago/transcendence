@@ -6,6 +6,7 @@ import PostCard from '@/components/PostCard';
 import Avatar from '@/components/Avatar';
 import { posts as postsApi, stories as storiesApi, users as usersApi, Post, Story, UserProfile } from '@/lib/api';
 import { decodeJwt, getStoredAppToken } from '@/lib/auth';
+import { useTranslations } from 'next-intl';
 
 // ─── Stories strip ────────────────────────────────────────
 
@@ -189,6 +190,7 @@ function NewPostModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
 // ─── Feed page ────────────────────────────────────────────
 
 export default function FeedPage() {
+  const t = useTranslations('Feed');
   const myId = decodeJwt(getStoredAppToken())?.sub as string | undefined;
 
   const [me,        setMe]        = useState<UserProfile | null>(null);
@@ -276,8 +278,8 @@ export default function FeedPage() {
     <AppShell>
       <div className="feed-wrap">
         <div className="feed-topbar">
-          <span className="feed-title">Feed</span>
-          <button className="app-btn" onClick={() => setShowModal(true)}>+ New post</button>
+          <span className="feed-title">{t("title")}</span>
+          <button className="app-btn" onClick={() => setShowModal(true)}>{t("createPostPlaceholder")}</button>
         </div>
 
         <StoriesStrip me={me} />
@@ -290,12 +292,11 @@ export default function FeedPage() {
           {loading && <span className="spinner" />}
           {!loading && exhausted && postsList.length === 0 && (
             <p className="feed-empty">
-              Your feed is empty.<br />
-              Add friends to see their posts here, or share your first post.
+              {t("noPosts")}
             </p>
           )}
           {!loading && exhausted && postsList.length > 0 && (
-            <p style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>You&apos;re all caught up.</p>
+            <p style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{t("endOfFeed")}</p>
           )}
         </div>
       </div>

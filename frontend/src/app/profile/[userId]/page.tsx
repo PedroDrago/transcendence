@@ -13,6 +13,7 @@ import {
   FriendRequest,
 } from '@/lib/api';
 import { decodeJwt, getStoredAppToken } from '@/lib/auth';
+import { useTranslations } from 'next-intl';
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -25,6 +26,7 @@ function timeAgo(iso: string) {
 }
 
 export default function ProfilePage({ params }: { params: Promise<{ userId: string }> }) {
+  const t = useTranslations('Profile');
   const { userId: rawId } = use(params);
   const router = useRouter();
 
@@ -149,7 +151,7 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
             )}
             <div className="profile-stats">
               <span className="profile-stat">
-                <strong>{postsList.length}{!exhausted ? '+' : ''}</strong> posts
+                <strong>{postsList.length}{!exhausted ? '+' : ''}</strong> {t('posts')}
               </span>
             </div>
           </div>
@@ -161,7 +163,7 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
               </button>
             )}
             {!isSelf && friendStatus === 'none' && (
-              <button className="app-btn" onClick={sendFriendRequest}>Add friend</button>
+              <button className="app-btn" onClick={sendFriendRequest}>{t('addFriend')}</button>
             )}
             {!isSelf && friendStatus === 'pending' && (
               <button className="app-btn app-btn--ghost" disabled>
@@ -169,10 +171,10 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
               </button>
             )}
             {!isSelf && friendStatus === 'friends' && (
-              <button className="app-btn app-btn--ghost" onClick={removeFriend}>Friends</button>
+              <button className="app-btn app-btn--ghost" onClick={removeFriend}>{t('friends')}</button>
             )}
             {!isSelf && (
-              <button className="app-btn app-btn--ghost" onClick={startChat}>Message</button>
+              <button className="app-btn app-btn--ghost" onClick={startChat}>{t('message')}</button>
             )}
           </div>
         </header>

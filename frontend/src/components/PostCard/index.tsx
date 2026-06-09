@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Post, UserProfile, posts as postsApi, Comment, users as usersApi } from '@/lib/api';
 import { decodeJwt, getStoredAppToken } from '@/lib/auth';
 import Avatar from '@/components/Avatar';
+import { useTranslations } from 'next-intl';
 
 interface Props {
   post: Post;
@@ -11,17 +12,19 @@ interface Props {
   me?: UserProfile | null;
 }
 
-function timeAgo(iso: string): string {
+function timeAgo(iso: string, t: any): string {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60_000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m}m`;
+  if (m < 1) return t('justNow');
+  if (m < 60) return t('m', { count: m });
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h`;
-  return `${Math.floor(h / 24)}d`;
+  if (h < 24) return t('h', { count: h });
+  return t('d', { count: Math.floor(h / 24) });
 }
 
 export default function PostCard({ post, author, me }: Props) {
+  const tTime = useTranslations('Time');
+  const tPost = useTranslations('PostCard');
   const myId = decodeJwt(getStoredAppToken())?.sub as string | undefined;
 
   const [liked,     setLiked]     = useState(false);
@@ -97,7 +100,7 @@ export default function PostCard({ post, author, me }: Props) {
         <Avatar username={author?.username ?? post.userId.slice(0, 8)} avatarUrl={author?.avatarUrl} size={38} className="post-card-avatar" />
         <div className="post-card-author">
           <p className="post-card-username">{author?.username ?? post.userId.slice(0, 8)}</p>
-          <p className="post-card-time">{timeAgo(post.createdAt)}</p>
+          <p className="post-card-time">{timeAgo(post.createdAt, tTime)}</p>
         </div>
       </header>
 
@@ -114,7 +117,7 @@ export default function PostCard({ post, author, me }: Props) {
           <button
             className={`post-card-action${liked ? ' post-card-action--active' : ''}`}
             onClick={toggleLike}
-            title={liked ? 'Unlike' : 'Like'}
+            title={liked ? tPost('unlike') : tPost('like')}
           >
             <span>{liked ? '♥' : '♡'}</span>
             <span>{likeCount}</span>
@@ -149,9 +152,9 @@ export default function PostCard({ post, author, me }: Props) {
               <input
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Add a comment…"
+                placeholder={tPost('addComment')}
               />
-              <button type="submit" className="app-btn app-btn--sm">Post</button>
+              <button type="submit" className="app-btn app-btn--sm">{tPost('post')}</button>
             </form>
           )}
         </div>
