@@ -1,5 +1,14 @@
 {
-  "HomePage": {
-    "title": "Bonjour le monde!"
+  "AppShell": {
+    "nav": {
+      "feed": "Flux",
+      "messages": "Messages",
+      "notifications": "Notifications",
+      "profile": "Profil",
+      "settings": "Paramètres"
+    },
+    "signOut": "Se déconnecter",
+    "privacy": "Confidentialité",
+    "terms": "Conditions"
   }
 }

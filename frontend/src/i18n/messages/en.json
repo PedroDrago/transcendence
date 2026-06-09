@@ -1,5 +1,14 @@
 {
-  "HomePage": {
-    "title": "Hello world!"
+  "AppShell": {
+    "nav": {
+      "feed": "Feed",
+      "messages": "Messages",
+      "notifications": "Notifications",
+      "profile": "Profile",
+      "settings": "Settings"
+    },
+    "signOut": "Sign out",
+    "privacy": "Privacy",
+    "terms": "Terms"
   }
 }

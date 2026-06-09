@@ -1,0 +1,14 @@
+{
+  "AppShell": {
+    "nav": {
+      "feed": "Feed",
+      "messages": "Mensajes",
+      "notifications": "Notificaciones",
+      "profile": "Perfil",
+      "settings": "Configuración"
+    },
+    "signOut": "Cerrar sesión",
+    "privacy": "Privacidad",
+    "terms": "Términos"
+  }
+}

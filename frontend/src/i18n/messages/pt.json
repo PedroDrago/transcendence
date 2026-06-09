@@ -1,5 +1,14 @@
 {
-  "HomePage": {
-    "title": "Olá mundo!"
+  "AppShell": {
+    "nav": {
+      "feed": "Feed",
+      "messages": "Mensagens",
+      "notifications": "Notificações",
+      "profile": "Perfil",
+      "settings": "Configurações"
+    },
+    "signOut": "Sair",
+    "privacy": "Privacidade",
+    "terms": "Termos"
   }
 }
