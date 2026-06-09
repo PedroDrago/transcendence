@@ -17,12 +17,14 @@ import {
 	HttpStatus,
 	ForbiddenException,
 	ParseUUIDPipe,
+	Header,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { isUUID } from 'class-validator';
 import { UsersService } from './users.service';
 import { BlockService } from './block.service';
+import { FriendsService } from './friends.service';
 import type { AvatarUploadFile } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -42,6 +44,7 @@ export class UsersController {
 	constructor(
 		private readonly usersService: UsersService,
 		private readonly blockService: BlockService,
+		private readonly friendsService: FriendsService,
 	) { }
 
 	private validateUserId(userId: string) {
@@ -69,6 +72,31 @@ export class UsersController {
 	) {
 		this.validateUserId(userId);
 		return this.usersService.update(userId, updateProfileDto);
+	}
+
+	@Get('me/export')
+	@Header('Content-Type', 'application/json')
+	@Header('Content-Disposition', 'attachment; filename="transcendence-data-export.json"')
+	async exportMyData(@Headers('x-user-id') userId: string) {
+		this.validateUserId(userId);
+		const profile = await this.usersService.findOne(userId);
+		const friends = await this.friendsService.getFriends(userId);
+		const blocked = await this.blockService.getBlockedUsers(userId);
+		return {
+			exportedAt: new Date().toISOString(),
+			profile,
+			friends,
+			blocked,
+		};
+	}
+
+	@Post('me/import')
+	async importMyData(
+		@Headers('x-user-id') userId: string,
+		@Body() data: any,
+	) {
+		this.validateUserId(userId);
+		return this.usersService.importData(userId, data);
 	}
 
 	@Patch(':id/username')
