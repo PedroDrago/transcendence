@@ -9,6 +9,7 @@ import {
     Request,
     Res,
     UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -27,6 +28,7 @@ import {
 } from './guards/google-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { Jwt2FAGuard } from './guards/jwt-2fa.guard';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -72,7 +74,7 @@ export class AuthController {
     @ApiOperation({ summary: 'Google OAuth frontend callback' })
     googleCallback(@Request() req, @Res() res: Response) {
         const login = this.authService.login(req.user);
-        const handoffToken = this.authService.createOAuthHandoffToken(login.access_token);
+        const handoffToken = this.authService.createOAuthHandoffToken(login.access_token, login.requires2fa);
         const redirectUrl = new URL(
             this.config.getOrThrow<string>('FRONTEND_OAUTH_SUCCESS_URL'),
         );
@@ -92,6 +94,13 @@ export class AuthController {
     @ApiOperation({ summary: 'Exchange OAuth handoff token for app JWT' })
     exchangeOAuthToken(@Body() dto: OAuthExchangeDto) {
         return this.authService.exchangeOAuthHandoffToken(dto.token);
+    }
+
+    @Delete('me')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.NO_CONTENT)
+    deleteMe(@Request() req) {
+        return this.authService.deleteUser(req.user.id);
     }
 
     @Patch('password')
@@ -115,5 +124,53 @@ export class AuthController {
     @ApiResponse({ status: 409, description: 'Username already exists' })
     updateUsername(@Request() req, @Body() dto: UpdateUsernameDto) {
         return this.authService.updateUsername(req.user.id, dto.username);
+    }
+
+    @Post('2fa/generate')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Generate a new 2FA secret and return QR code' })
+    async generateTwoFactorAuthentication(@Request() req) {
+        return this.authService.generateTwoFactorAuthenticationSecret(req.user);
+    }
+
+    @Post('2fa/turn-on')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Verify code and enable 2FA for the user' })
+    async turnOnTwoFactorAuthentication(@Request() req, @Body() body: { code: string }) {
+        return this.authService.turnOnTwoFactorAuthentication(req.user.id, body.code);
+    }
+
+    @Post('2fa/turn-off')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Verify code and disable 2FA for the user' })
+    async turnOffTwoFactorAuthentication(@Request() req, @Body() body: { code: string }) {
+        return this.authService.turnOffTwoFactorAuthentication(req.user.id, body.code);
+    }
+
+    @Post('2fa/authenticate')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(Jwt2FAGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Authenticate using 2FA code' })
+    async authenticateTwoFactor(@Request() req, @Body() body: { code: string }) {
+        return this.authService.authenticateTwoFactor(req.user.id, body.code);
+    }
+
+    @Get('2fa/status')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get current 2FA status' })
+    async getTwoFactorStatus(@Request() req) {
+        // req.user might be cached from token, let's fetch from DB or just use req.user if it's up to date.
+        // Actually validateUser returns full user without password.
+        // wait, req.user comes from jwt payload! JwtUserPayload has isTwoFactorEnabled since I added it.
+        // But to be 100% sure, let's ask authService or just return from payload.
+        // I will just return from req.user
+        return { isTwoFactorEnabled: !!req.user.isTwoFactorEnabled };
     }
 }

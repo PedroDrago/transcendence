@@ -5,6 +5,7 @@ import { CreateUsersTable1742600000000 } from './migrations/1742600000000-Create
 import { AddOAuthColumns1776200000000 } from './migrations/1776200000000-AddOAuthColumns';
 import { AddUpdatedAtToUsers1776614861000 } from './migrations/1776614861000-AddUpdatedAtToUsers';
 import { AddUsernamePendingToUsers1776616088000 } from './migrations/1776616088000-AddUsernamePendingToUsers';
+import { Add2fa1781028039975 } from './migrations/1781028039975-add-2fa';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -19,5 +20,6 @@ export const AppDataSource = new DataSource({
     AddOAuthColumns1776200000000,
     AddUpdatedAtToUsers1776614861000,
     AddUsernamePendingToUsers1776616088000,
+    Add2fa1781028039975,
   ],
 });

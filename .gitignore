@@ -38,9 +38,13 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-#.env*
-!.env
+# env files
+.env
+.env.*
+!.env.example
+
+# SSL Certificates
+ops/nginx/certs/
 
 # vercel
 .vercel

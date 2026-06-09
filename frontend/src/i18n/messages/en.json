@@ -1,5 +1,112 @@
 {
-  "HomePage": {
-    "title": "Hello world!"
+  "AppShell": {
+    "nav": {
+      "feed": "Feed",
+      "messages": "Messages",
+      "notifications": "Notifications",
+      "profile": "Profile",
+      "settings": "Settings"
+    },
+    "signOut": "Sign out",
+    "privacy": "Privacy",
+    "terms": "Terms"
+  },
+  "Auth": {
+    "welcomeBack": "Welcome back",
+    "signInCopy": "Sign in to connect with friends, share moments, and see what's happening.",
+    "identifier": "Username or email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "continueWithGoogle": "Continue with Google",
+    "needAccount": "Need an account?",
+    "createOne": "Create one",
+    "twoFactor": "Two-Factor Authentication",
+    "enterCode": "Enter your 6-digit authentication code.",
+    "codeLabel": "Authentication Code",
+    "verify": "Verify",
+    "verifying": "Verifying…",
+    "cancel": "Cancel",
+    "backToLogin": "Back to login"
+  },
+  "Feed": {
+    "title": "Feed",
+    "createPostPlaceholder": "What's on your mind?",
+    "createPostButton": "Post",
+    "endOfFeed": "No more posts",
+    "noPosts": "No posts yet. Be the first!"
+  },
+  "Messages": {
+    "title": "Messages",
+    "newConversation": "New Conversation",
+    "typeMessage": "Type a message...",
+    "send": "Send"
+  },
+  "Notifications": {
+    "title": "Notifications",
+    "friendRequest": "sent you a friend request",
+    "accept": "Accept",
+    "reject": "Reject",
+    "empty": "No notifications yet."
+  },
+  "Profile": {
+    "title": "Profile",
+    "editProfile": "Edit Profile",
+    "follow": "Follow",
+    "unfollow": "Unfollow",
+    "addFriend": "Add Friend",
+    "removeFriend": "Remove Friend",
+    "message": "Message",
+    "block": "Block",
+    "unblock": "Unblock",
+    "posts": "Posts",
+    "followers": "Followers",
+    "following": "Following",
+    "friends": "Friends"
+  },
+  "Settings": {
+    "title": "Settings",
+    "avatar": "Avatar",
+    "avatarDesc": "Upload a photo. Supported: jpg, png, webp (max 5 MB).",
+    "changeAvatar": "Change avatar",
+    "uploading": "Uploading…",
+    "profile": "Profile",
+    "profileDesc": "Update your bio and website URL.",
+    "bio": "Bio",
+    "website": "Website URL",
+    "save": "Save",
+    "saving": "Saving…",
+    "username": "Username",
+    "usernameDesc": "Change your username.",
+    "password": "Password",
+    "passwordDesc": "Change your password.",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "twoFactor": "Two-Factor Authentication",
+    "twoFactorDesc": "Add an extra layer of security to your account.",
+    "enable2FA": "Enable 2FA",
+    "disable2FA": "Disable 2FA",
+    "privacy": "Privacy & Data",
+    "privacyDesc": "Manage your data and privacy settings (GDPR Compliance).",
+    "privacyMsg": "You can request a copy of all your personal data stored on our servers. You can also import previously exported data to restore your profile settings. Note: importing data will overwrite your current profile.",
+    "exportData": "Export My Data",
+    "importData": "Import Data",
+    "dangerZone": "Danger Zone",
+    "dangerZoneDesc": "Irreversible and destructive actions.",
+    "dangerZoneMsg": "Deleting your account will permanently remove all your data, including profile, posts, and messages. This action cannot be undone.",
+    "deleteAccount": "Delete Account",
+    "deleting": "Deleting..."
+  },
+  "Time": {
+    "justNow": "just now",
+    "m": "{count}m",
+    "h": "{count}h",
+    "d": "{count}d"
+  },
+  "PostCard": {
+    "addComment": "Add a comment…",
+    "post": "Post",
+    "unlike": "Unlike",
+    "like": "Like"
   }
 }

@@ -95,6 +95,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL}
     restart: unless-stopped
     command: npm start -- --hostname 0.0.0.0 --port 3000
     environment:
@@ -110,6 +112,7 @@ services:
       retries: 5
       start_period: 30s
     networks:
+      - transcendence-public
       - transcendence-internal
 
   gateway:
@@ -126,10 +129,9 @@ services:
         condition: service_healthy
       user-service:
         condition: service_healthy
-    ports:
-      - "${BACKEND_PORT}:4000"
     env_file:
-      - ./backend/api/transcendence-api-gateway/.env
+      - path: ./backend/api/transcendence-api-gateway/.env
+        required: false
     environment:
       JWT_SECRET: ${JWT_SECRET}
     healthcheck:
@@ -155,7 +157,8 @@ services:
       user-service:
         condition: service_healthy
     env_file:
-      - ./backend/services/auth/.env
+      - path: ./backend/services/auth/.env
+        required: false
     environment:
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
@@ -170,6 +173,7 @@ services:
       retries: 5
       start_period: 30s
     networks:
+      - transcendence-public
       - transcendence-internal
 
   chat-service:
@@ -181,7 +185,8 @@ services:
       db-bootstrap:
         condition: service_completed_successfully
     env_file:
-      - ./backend/services/chat/.env
+      - path: ./backend/services/chat/.env
+        required: false
     environment:
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
@@ -196,6 +201,7 @@ services:
       retries: 5
       start_period: 30s
     networks:
+      - transcendence-public
       - transcendence-internal
 
   posts-service:
@@ -211,14 +217,11 @@ services:
       minio:
         condition: service_healthy
     env_file:
-      - ./backend/services/posts/.env
+      - path: ./backend/services/posts/.env
+        required: false
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
       REDIS_URL: ${REDIS_URL}
-      R2_ACCESS_KEY_ID: ${MINIO_ACCESS_KEY_ID}
-      R2_SECRET_ACCESS_KEY: ${MINIO_SECRET_ACCESS_KEY}
-      R2_BUCKET: ${MINIO_BUCKET}
-      R2_ENDPOINT: ${MINIO_ENDPOINT}
       JWT_SECRET: ${JWT_SECRET}
       OTEL_EXPORTER_URL: ${OTEL_EXPORTER_URL}
     healthcheck:
@@ -232,6 +235,7 @@ services:
       retries: 5
       start_period: 30s
     networks:
+      - transcendence-public
       - transcendence-internal
 
   user-service:
@@ -243,7 +247,8 @@ services:
       db-bootstrap:
         condition: service_completed_successfully
     env_file:
-      - ./backend/services/user-management/.env
+      - path: ./backend/services/user-management/.env
+        required: false
     environment:
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
@@ -260,6 +265,24 @@ services:
       retries: 5
       start_period: 30s
     networks:
+      - transcendence-internal
+
+  nginx:
+    image: nginx:1.27.0-alpine
+    restart: unless-stopped
+    depends_on:
+      frontend:
+        condition: service_healthy
+      gateway:
+        condition: service_healthy
+    ports:
+      - "${HTTPS_PORT:-443}:443"
+      - "${API_HTTPS_PORT:-8443}:8443"
+    volumes:
+      - ./ops/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ops/nginx/certs:/etc/nginx/certs:ro
+    networks:
+      - transcendence-public
       - transcendence-internal
 
 networks:

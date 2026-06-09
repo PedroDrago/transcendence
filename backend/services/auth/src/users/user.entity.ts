@@ -35,6 +35,12 @@ export class User {
   @Column({ default: false })
   usernamePending: boolean;
 
+  @Column({ default: false })
+  isTwoFactorEnabled: boolean;
+
+  @Column({ type: 'varchar', nullable: true })
+  twoFactorSecret: string | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

@@ -6,7 +6,10 @@ const envSchema = z.object({
     .default('development'),
   HOST: z.string().default('0.0.0.0'),
   PORT: z.coerce.number().default(3333),
-  ORIGIN: z.url(),
+  ORIGIN: z
+    .string()
+    .transform((val) => val.split(',').map((url) => url.trim()))
+    .pipe(z.array(z.url())),
   DATABASE_URL: z.url().startsWith('postgres://'),
   REDIS_URL: z.url().startsWith('redis://'),
   R2_ACCESS_KEY_ID: z.string(),

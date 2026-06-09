@@ -1,11 +1,10 @@
-export const DEFAULT_AUTH_BASE = 'http://localhost:4000';
+export const DEFAULT_AUTH_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:8443';
 export const AUTH_BASE_STORAGE_KEY = 'transcendence.auth.base';
 export const APP_TOKEN_STORAGE_KEY = 'transcendence.auth.token';
 export const HANDOFF_TOKEN_STORAGE_KEY = 'transcendence.auth.handoff-token';
 
 export function getStoredAuthBase() {
-  if (typeof window === 'undefined') return DEFAULT_AUTH_BASE;
-  return window.localStorage.getItem(AUTH_BASE_STORAGE_KEY) ?? DEFAULT_AUTH_BASE;
+  return DEFAULT_AUTH_BASE;
 }
 
 export function setStoredAuthBase(value: string) {

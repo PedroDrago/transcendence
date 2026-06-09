@@ -178,7 +178,7 @@ function blockUserManagementWriteEndpoints(): RequestHandler {
     if (
       (request.method === 'POST' && request.path === '/users') ||
       (request.method === 'PATCH' && /^\/users\/[^/]+\/username$/.test(request.path)) ||
-      (request.method === 'DELETE' && /^\/users\/[^/]+$/.test(request.path))
+      (request.method === 'DELETE' && /^\/users\/[^/]+$/.test(request.path) && request.path !== '/users/me')
     ) {
       createForbiddenResponse(
         response,

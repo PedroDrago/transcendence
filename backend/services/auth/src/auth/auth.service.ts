@@ -13,6 +13,8 @@ type JwtUserPayload = {
   createdAt: Date;
   updatedAt: Date;
   usernamePending: boolean;
+  isTwoFactorEnabled: boolean;
+  twoFactorSecret?: string | null;
 };
 
 @Injectable()
@@ -55,6 +57,17 @@ export class AuthService {
   }
 
   login(user: JwtUserPayload) {
+    if (user.isTwoFactorEnabled) {
+      const payload = {
+        typ: '2fa',
+        sub: user.id,
+      };
+      return { 
+        access_token: this.jwtService.sign(payload, { expiresIn: '5m' }),
+        requires2fa: true,
+      };
+    }
+
     const payload = {
       typ: 'access',
       sub: user.id,
@@ -65,6 +78,94 @@ export class AuthService {
       usernamePending: user.usernamePending,
     };
     return { access_token: this.jwtService.sign(payload) };
+  }
+
+  async generateTwoFactorAuthenticationSecret(user: JwtUserPayload) {
+    const otplib = await import('otplib');
+    const qrcode = await import('qrcode');
+    const secret = otplib.authenticator.generateSecret();
+
+    const otpauthUrl = otplib.authenticator.keyuri(
+      user.email,
+      'Transcendence',
+      secret
+    );
+
+    const userEntity = await this.usersService.findById(user.id);
+    if (userEntity) {
+      userEntity.twoFactorSecret = secret;
+      // We don't enable it yet until they confirm
+      await this.usersService['usersRepository'].save(userEntity);
+    }
+
+    return {
+      qrCodeDataUrl: await qrcode.toDataURL(otpauthUrl),
+    };
+  }
+
+  async turnOnTwoFactorAuthentication(userId: string, code: string) {
+    const otplib = await import('otplib');
+    const user = await this.usersService.findById(userId);
+    if (!user || !user.twoFactorSecret) {
+      throw new BadRequestException('2FA not set up');
+    }
+
+    const isCodeValid = otplib.authenticator.verify({
+      token: code,
+      secret: user.twoFactorSecret,
+    });
+
+    if (!isCodeValid) {
+      throw new UnauthorizedException('Wrong authentication code');
+    }
+
+    user.isTwoFactorEnabled = true;
+    await this.usersService['usersRepository'].save(user);
+    return { message: '2FA enabled' };
+  }
+
+  async turnOffTwoFactorAuthentication(userId: string, code: string) {
+    const otplib = await import('otplib');
+    const user = await this.usersService.findById(userId);
+    if (!user || !user.twoFactorSecret || !user.isTwoFactorEnabled) {
+      throw new BadRequestException('2FA not enabled');
+    }
+
+    const isCodeValid = otplib.authenticator.verify({
+      token: code,
+      secret: user.twoFactorSecret,
+    });
+
+    if (!isCodeValid) {
+      throw new UnauthorizedException('Wrong authentication code');
+    }
+
+    user.isTwoFactorEnabled = false;
+    user.twoFactorSecret = null;
+    await this.usersService['usersRepository'].save(user);
+    return { message: '2FA disabled' };
+  }
+
+  async authenticateTwoFactor(userId: string, code: string) {
+    const otplib = await import('otplib');
+    const user = await this.usersService.findById(userId);
+    if (!user || !user.twoFactorSecret || !user.isTwoFactorEnabled) {
+      throw new BadRequestException('2FA not enabled');
+    }
+
+    const isCodeValid = otplib.authenticator.verify({
+      token: code,
+      secret: user.twoFactorSecret,
+    });
+
+    if (!isCodeValid) {
+      throw new UnauthorizedException('Wrong authentication code');
+    }
+
+    return this.login({
+      ...user,
+      isTwoFactorEnabled: false, // Bypass 2FA check to get full token
+    });
   }
 
   async updateUsername(userId: string, username: string) {
@@ -130,20 +231,20 @@ export class AuthService {
     await this.usersService.updatePassword(userId, newHash);
   }
 
-  createOAuthHandoffToken(accessToken: string) {
+  createOAuthHandoffToken(accessToken: string, requires2fa?: boolean) {
     return this.jwtService.sign(
-      { access_token: accessToken, typ: 'oauth_handoff' },
+      { access_token: accessToken, typ: 'oauth_handoff', requires2fa: !!requires2fa },
       { expiresIn: '60s' },
     );
   }
 
   exchangeOAuthHandoffToken(token: string) {
     try {
-      const payload = this.jwtService.verify<{ access_token: string; typ: string }>(token);
+      const payload = this.jwtService.verify<{ access_token: string; typ: string; requires2fa?: boolean }>(token);
       if (payload.typ !== 'oauth_handoff' || !payload.access_token) {
         throw new UnauthorizedException('Invalid OAuth handoff token');
       }
-      return { access_token: payload.access_token };
+      return { access_token: payload.access_token, requires2fa: !!payload.requires2fa };
     } catch {
       throw new UnauthorizedException('Invalid OAuth handoff token');
     }

@@ -1,0 +1,112 @@
+{
+  "AppShell": {
+    "nav": {
+      "feed": "Feed",
+      "messages": "Mensajes",
+      "notifications": "Notificaciones",
+      "profile": "Perfil",
+      "settings": "Configuración"
+    },
+    "signOut": "Cerrar sesión",
+    "privacy": "Privacidad",
+    "terms": "Términos"
+  },
+  "Auth": {
+    "welcomeBack": "Bienvenido de nuevo",
+    "signInCopy": "Inicia sesión para conectarte con amigos, compartir momentos y ver qué está pasando.",
+    "identifier": "Nombre de usuario o correo",
+    "password": "Contraseña",
+    "signIn": "Iniciar sesión",
+    "signingIn": "Iniciando…",
+    "continueWithGoogle": "Continuar con Google",
+    "needAccount": "¿No tienes cuenta?",
+    "createOne": "Crea una",
+    "twoFactor": "Autenticación de Dos Factores",
+    "enterCode": "Ingresa tu código de autenticación de 6 dígitos.",
+    "codeLabel": "Código de Autenticación",
+    "verify": "Verificar",
+    "verifying": "Verificando…",
+    "cancel": "Cancelar",
+    "backToLogin": "Volver al login"
+  },
+  "Feed": {
+    "title": "Feed",
+    "createPostPlaceholder": "¿Qué tienes en mente?",
+    "createPostButton": "Publicar",
+    "endOfFeed": "No hay más publicaciones",
+    "noPosts": "Aún no hay publicaciones. ¡Sé el primero!"
+  },
+  "Messages": {
+    "title": "Mensajes",
+    "newConversation": "Nueva Conversación",
+    "typeMessage": "Escribe un mensaje...",
+    "send": "Enviar"
+  },
+  "Notifications": {
+    "title": "Notificaciones",
+    "friendRequest": "te envió una solicitud de amistad",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "empty": "Aún no hay notificaciones."
+  },
+  "Profile": {
+    "title": "Perfil",
+    "editProfile": "Editar Perfil",
+    "follow": "Seguir",
+    "unfollow": "Dejar de seguir",
+    "addFriend": "Añadir Amigo",
+    "removeFriend": "Eliminar Amigo",
+    "message": "Mensaje",
+    "block": "Bloquear",
+    "unblock": "Desbloquear",
+    "posts": "Publicaciones",
+    "followers": "Seguidores",
+    "following": "Siguiendo",
+    "friends": "Amigos"
+  },
+  "Settings": {
+    "title": "Configuración",
+    "avatar": "Avatar",
+    "avatarDesc": "Sube una foto. Formatos: jpg, png, webp (máx 5 MB).",
+    "changeAvatar": "Cambiar avatar",
+    "uploading": "Subiendo…",
+    "profile": "Perfil",
+    "profileDesc": "Actualiza tu biografía y la URL de tu sitio web.",
+    "bio": "Biografía",
+    "website": "URL del sitio web",
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "username": "Nombre de usuario",
+    "usernameDesc": "Cambia tu nombre de usuario.",
+    "password": "Contraseña",
+    "passwordDesc": "Cambia tu contraseña.",
+    "currentPassword": "Contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "twoFactor": "Autenticación de Dos Factores",
+    "twoFactorDesc": "Añade una capa adicional de seguridad a tu cuenta.",
+    "enable2FA": "Activar 2FA",
+    "disable2FA": "Desactivar 2FA",
+    "privacy": "Privacidad y Datos",
+    "privacyDesc": "Gestiona tus datos y configuraciones de privacidad (Cumplimiento GDPR).",
+    "privacyMsg": "Puedes solicitar una copia de todos tus datos personales almacenados en nuestros servidores. También puedes importar datos previamente exportados para restaurar la configuración de tu perfil. Nota: importar datos sobrescribirá tu perfil actual.",
+    "exportData": "Exportar mis datos",
+    "importData": "Importar datos",
+    "dangerZone": "Zona de Peligro",
+    "dangerZoneDesc": "Acciones irreversíveis y destructivas.",
+    "dangerZoneMsg": "Al eliminar tu cuenta, todos tus datos, incluyendo perfil, publicaciones y mensajes, serán eliminados de forma permanente. Esta acción no se puede deshacer.",
+    "deleteAccount": "Eliminar Cuenta",
+    "deleting": "Eliminando..."
+  },
+  "Time": {
+    "justNow": "ahora",
+    "m": "{count}m",
+    "h": "{count}h",
+    "d": "{count}d"
+  },
+  "PostCard": {
+    "addComment": "Añadir un comentario…",
+    "post": "Publicar",
+    "unlike": "Ya no me gusta",
+    "like": "Me gusta"
+  }
+}

@@ -5,40 +5,34 @@ import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import LanguagePicker from '@/components/LanguangePicker';
 import {
-  DEFAULT_AUTH_BASE,
   getStoredAuthBase,
   getStoredAppToken,
   setStoredAppToken,
-  setStoredAuthBase,
 } from '@/lib/auth';
+import { useTranslations } from 'next-intl';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [authBase, setAuthBase] = useState(DEFAULT_AUTH_BASE);
+  const t = useTranslations('Auth');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setAuthBase(getStoredAuthBase());
-    if (getStoredAppToken()) {
-      router.replace('/account');
-    }
+    if (getStoredAppToken()) router.replace('/feed');
   }, [router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError('');
-    setStoredAuthBase(authBase);
 
     try {
+      const authBase = getStoredAuthBase();
       const response = await fetch(`${authBase}/auth/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier, password }),
       });
 
@@ -48,9 +42,14 @@ export default function LoginPage() {
       }
 
       setStoredAppToken(body.access_token);
-      router.push('/account');
-    } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : 'Unknown login error.');
+
+      if (body.requires2fa) {
+        router.push('/login/2fa');
+      } else {
+        router.push('/feed');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong.');
     } finally {
       setLoading(false);
     }
@@ -60,11 +59,10 @@ export default function LoginPage() {
     <main className="auth-shell">
       <section className="auth-card auth-card--hero">
         <div>
-          <p className="auth-kicker">Transcendence</p>
-          <h1>Sign in</h1>
+          <p className="auth-kicker">Vellum</p>
+          <h1>{t('welcomeBack')}</h1>
           <p className="auth-copy">
-            Use your username or email, or continue with Google. This page talks to the
-            API gateway so you can exercise the backend entrypoint the frontend will use.
+            {t('signInCopy')}
           </p>
         </div>
         <LanguagePicker />
@@ -73,24 +71,28 @@ export default function LoginPage() {
       <section className="auth-card auth-card--form">
         <form className="auth-form" onSubmit={handleSubmit}>
           <label className="auth-field">
-            <span>API gateway URL</span>
-            <input value={authBase} onChange={(event) => setAuthBase(event.target.value)} />
+            <span>{t('identifier')}</span>
+            <input
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="yourname or you@example.com"
+              autoComplete="username"
+              autoFocus
+            />
           </label>
           <label className="auth-field">
-            <span>Username or email</span>
-            <input value={identifier} onChange={(event) => setIdentifier(event.target.value)} />
-          </label>
-          <label className="auth-field">
-            <span>Password</span>
+            <span>{t('password')}</span>
             <input
               type="password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              autoComplete="current-password"
             />
           </label>
-          {error ? <p className="auth-error">{error}</p> : null}
+          {error && <p className="auth-error">{error}</p>}
           <button type="submit" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign in'}
+            {loading ? t('signingIn') : t('signIn')}
           </button>
         </form>
 
@@ -99,24 +101,13 @@ export default function LoginPage() {
             type="button"
             className="auth-button auth-button--secondary"
             onClick={() => {
-              setStoredAuthBase(authBase);
-              window.location.href = `${authBase}/auth/google`;
+              window.location.href = `${getStoredAuthBase()}/auth/google`;
             }}
           >
-            Continue with Google
-          </button>
-          <button
-            type="button"
-            className="auth-button auth-button--ghost"
-            onClick={() => {
-              setStoredAuthBase(authBase);
-              window.location.href = `${authBase}/auth/google/test`;
-            }}
-          >
-            Google test flow
+            {t('continueWithGoogle')}
           </button>
           <p className="auth-switch">
-            Need an account? <Link href="/register">Create one</Link>
+            {t('needAccount')} <Link href="/register">{t('createOne')}</Link>
           </p>
         </div>
       </section>
