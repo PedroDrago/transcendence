@@ -23,8 +23,17 @@ POSTS_SERVICE_URL="http://posts-service:${POSTS_PORT}"
 DB_HOST="database"
 
 # Public URLs (Used by the Browser and OAuth Providers via Nginx HTTPS)
-PUBLIC_FRONTEND_URL="https://localhost"
-PUBLIC_API_URL="https://localhost:8443"
+if [ "$EFFECTIVE_HTTPS_PORT" == "443" ]; then
+    PUBLIC_FRONTEND_URL="https://localhost"
+else
+    PUBLIC_FRONTEND_URL="https://localhost:${EFFECTIVE_HTTPS_PORT}"
+fi
+
+if [ "$EFFECTIVE_API_HTTPS_PORT" == "443" ]; then
+    PUBLIC_API_URL="https://localhost"
+else
+    PUBLIC_API_URL="https://localhost:${EFFECTIVE_API_HTTPS_PORT}"
+fi
 
 # Default Values (Database and MinIO)
 POSTGRES_USER="transcendence"

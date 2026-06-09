@@ -95,6 +95,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL}
     restart: unless-stopped
     command: npm start -- --hostname 0.0.0.0 --port 3000
     environment:
