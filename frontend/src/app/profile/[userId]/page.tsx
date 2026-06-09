@@ -12,7 +12,7 @@ import {
   Post,
   FriendRequest,
 } from '@/lib/api';
-import { decodeJwt, getStoredAppToken } from '@/lib/auth';
+import { useMyId } from '@/lib/hooks';
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -28,7 +28,7 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
   const { userId: rawId } = use(params);
   const router = useRouter();
 
-  const myId = decodeJwt(getStoredAppToken())?.sub as string | undefined;
+  const myId = useMyId();
   const isSelf = rawId === myId;
 
   const [profile,  setProfile]  = useState<UserProfile | null>(null);

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Post, UserProfile, posts as postsApi, Comment, users as usersApi } from '@/lib/api';
-import { decodeJwt, getStoredAppToken } from '@/lib/auth';
+import { useMyId } from '@/lib/hooks';
 import Avatar from '@/components/Avatar';
 
 interface Props {
@@ -21,7 +21,7 @@ function timeAgo(iso: string): string {
 }
 
 export default function PostCard({ post, author }: Props) {
-  const myId = decodeJwt(getStoredAppToken())?.sub as string | undefined;
+  const myId = useMyId();
 
   const [liked,     setLiked]     = useState(false);
   const [likeId,    setLikeId]    = useState<string | null>(null);

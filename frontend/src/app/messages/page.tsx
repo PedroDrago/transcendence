@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import AppShell from '@/components/AppShell';
 import Avatar from '@/components/Avatar';
 import { chat as chatApi, getChatWsUrl, Conversation, Message } from '@/lib/api';
-import { decodeJwt, getStoredAppToken } from '@/lib/auth';
+import { useMyId } from '@/lib/hooks';
 import { PhoenixSocket } from '@/lib/socket';
 
 function timeStr(iso: string) {
@@ -152,7 +152,7 @@ function MessagesContent() {
   const searchParams = useSearchParams();
   const initUser = searchParams.get('user');
 
-  const myId = decodeJwt(getStoredAppToken())?.sub as string | undefined;
+  const myId = useMyId();
 
   const [convs,      setConvs]      = useState<Conversation[]>([]);
   const [selected,   setSelected]   = useState<Conversation | null>(null);

@@ -5,7 +5,7 @@ import AppShell from '@/components/AppShell';
 import PostCard from '@/components/PostCard';
 import Avatar from '@/components/Avatar';
 import { posts as postsApi, stories as storiesApi, users as usersApi, Post, Story, UserProfile } from '@/lib/api';
-import { decodeJwt, getStoredAppToken } from '@/lib/auth';
+import { useMyId } from '@/lib/hooks';
 
 // ─── Stories strip ────────────────────────────────────────
 
@@ -189,7 +189,7 @@ function NewPostModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
 // ─── Feed page ────────────────────────────────────────────
 
 export default function FeedPage() {
-  const myId = decodeJwt(getStoredAppToken())?.sub as string | undefined;
+  const myId = useMyId();
 
   const [me,        setMe]        = useState<UserProfile | null>(null);
   const [postsList, setPostsList] = useState<Post[]>([]);

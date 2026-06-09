@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { clearStoredAuth, decodeJwt, getStoredAppToken } from '@/lib/auth';
+import { clearStoredAuth, getStoredAppToken } from '@/lib/auth';
+import { useMyId } from '@/lib/hooks';
 import { users as usersApi, UserProfile } from '@/lib/api';
 import Avatar from '@/components/Avatar';
 
@@ -92,7 +93,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       .catch(() => {});
   }, [router]);
 
-  const myId = me?.id ?? (decodeJwt(getStoredAppToken())?.sub as string | undefined);
+  const tokenId = useMyId();
+  const myId = me?.id ?? tokenId;
 
   const NAV: NavItem[] = [
     { href: '/feed',          label: 'Feed',          icon: <IconHome /> },
