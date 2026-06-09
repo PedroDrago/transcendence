@@ -23,7 +23,7 @@ export default function LoginPage() {
   useEffect(() => {
     setAuthBase(getStoredAuthBase());
     if (getStoredAppToken()) {
-      router.replace('/account');
+      router.replace('/feed');
     }
   }, [router]);
 
@@ -48,7 +48,7 @@ export default function LoginPage() {
       }
 
       setStoredAppToken(body.access_token);
-      router.push('/account');
+      router.push('/feed');
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : 'Unknown login error.');
     } finally {

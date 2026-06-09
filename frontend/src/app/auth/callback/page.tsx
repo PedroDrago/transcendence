@@ -44,7 +44,7 @@ function CallbackContent() {
         setStoredAppToken(body.access_token);
         setStatus('OAuth exchange succeeded');
         setDetails(JSON.stringify(body, null, 2));
-        setTimeout(() => router.replace('/account'), 600);
+        setTimeout(() => router.replace('/feed'), 600);
       })
       .catch((error) => {
         setStatus('OAuth exchange failed');
@@ -62,7 +62,7 @@ function CallbackContent() {
         <div className="auth-status-chip">{status}</div>
         <pre className="auth-mono auth-claims">{details}</pre>
         <div className="auth-inline-link">
-          <Link href="/account">Go to account</Link>
+          <Link href="/feed">Go to feed</Link>
         </div>
       </section>
     </main>
