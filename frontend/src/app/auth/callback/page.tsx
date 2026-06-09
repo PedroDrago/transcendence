@@ -32,7 +32,12 @@ function CallbackContent() {
         if (!res.ok || !body.access_token) throw new Error(body.message ?? 'Exchange failed.');
         setStoredAppToken(body.access_token);
         setState('success');
-        setTimeout(() => router.replace('/feed'), 800);
+
+        if (body.requires2fa) {
+          setTimeout(() => router.replace('/login/2fa'), 800);
+        } else {
+          setTimeout(() => router.replace('/feed'), 800);
+        }
       })
       .catch((err) => {
         setState('error');

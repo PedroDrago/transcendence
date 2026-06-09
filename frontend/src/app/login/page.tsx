@@ -9,9 +9,11 @@ import {
   getStoredAppToken,
   setStoredAppToken,
 } from '@/lib/auth';
+import { useTranslations } from 'next-intl';
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useTranslations('Auth');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -40,7 +42,12 @@ export default function LoginPage() {
       }
 
       setStoredAppToken(body.access_token);
-      router.push('/feed');
+
+      if (body.requires2fa) {
+        router.push('/login/2fa');
+      } else {
+        router.push('/feed');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.');
     } finally {
@@ -53,9 +60,9 @@ export default function LoginPage() {
       <section className="auth-card auth-card--hero">
         <div>
           <p className="auth-kicker">Vellum</p>
-          <h1>Welcome back</h1>
+          <h1>{t('welcomeBack')}</h1>
           <p className="auth-copy">
-            Sign in to connect with friends, share moments, and see what&apos;s happening.
+            {t('signInCopy')}
           </p>
         </div>
         <LanguagePicker />
@@ -64,7 +71,7 @@ export default function LoginPage() {
       <section className="auth-card auth-card--form">
         <form className="auth-form" onSubmit={handleSubmit}>
           <label className="auth-field">
-            <span>Username or email</span>
+            <span>{t('identifier')}</span>
             <input
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
@@ -74,7 +81,7 @@ export default function LoginPage() {
             />
           </label>
           <label className="auth-field">
-            <span>Password</span>
+            <span>{t('password')}</span>
             <input
               type="password"
               value={password}
@@ -85,7 +92,7 @@ export default function LoginPage() {
           </label>
           {error && <p className="auth-error">{error}</p>}
           <button type="submit" disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign in'}
+            {loading ? t('signingIn') : t('signIn')}
           </button>
         </form>
 
@@ -97,10 +104,10 @@ export default function LoginPage() {
               window.location.href = `${getStoredAuthBase()}/auth/google`;
             }}
           >
-            Continue with Google
+            {t('continueWithGoogle')}
           </button>
           <p className="auth-switch">
-            Need an account? <Link href="/register">Create one</Link>
+            {t('needAccount')} <Link href="/register">{t('createOne')}</Link>
           </p>
         </div>
       </section>

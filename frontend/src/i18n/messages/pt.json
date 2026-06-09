@@ -1,5 +1,32 @@
 {
-  "HomePage": {
-    "title": "Olá mundo!"
+  "AppShell": {
+    "nav": {
+      "feed": "Feed",
+      "messages": "Mensagens",
+      "notifications": "Notificações",
+      "profile": "Perfil",
+      "settings": "Configurações"
+    },
+    "signOut": "Sair",
+    "privacy": "Privacidade",
+    "terms": "Termos"
+  },
+  "Auth": {
+    "welcomeBack": "Bem-vindo de volta",
+    "signInCopy": "Faça login para se conectar com amigos, compartilhar momentos e ver o que está acontecendo.",
+    "identifier": "Nome de usuário ou email",
+    "password": "Senha",
+    "signIn": "Entrar",
+    "signingIn": "Entrando…",
+    "continueWithGoogle": "Continuar com o Google",
+    "needAccount": "Não tem uma conta?",
+    "createOne": "Crie uma",
+    "twoFactor": "Autenticação de Dois Fatores",
+    "enterCode": "Digite seu código de autenticação de 6 dígitos.",
+    "codeLabel": "Código de Autenticação",
+    "verify": "Verificar",
+    "verifying": "Verificando…",
+    "cancel": "Cancelar",
+    "backToLogin": "Voltar ao login"
   }
 }

@@ -1,5 +1,32 @@
 {
-  "HomePage": {
-    "title": "Hello world!"
+  "AppShell": {
+    "nav": {
+      "feed": "Feed",
+      "messages": "Messages",
+      "notifications": "Notifications",
+      "profile": "Profile",
+      "settings": "Settings"
+    },
+    "signOut": "Sign out",
+    "privacy": "Privacy",
+    "terms": "Terms"
+  },
+  "Auth": {
+    "welcomeBack": "Welcome back",
+    "signInCopy": "Sign in to connect with friends, share moments, and see what's happening.",
+    "identifier": "Username or email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "continueWithGoogle": "Continue with Google",
+    "needAccount": "Need an account?",
+    "createOne": "Create one",
+    "twoFactor": "Two-Factor Authentication",
+    "enterCode": "Enter your 6-digit authentication code.",
+    "codeLabel": "Authentication Code",
+    "verify": "Verify",
+    "verifying": "Verifying…",
+    "cancel": "Cancel",
+    "backToLogin": "Back to login"
   }
 }

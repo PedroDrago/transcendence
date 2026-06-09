@@ -7,6 +7,8 @@ import { clearStoredAuth, getStoredAppToken } from '@/lib/auth';
 import { useMyId } from '@/lib/hooks';
 import { users as usersApi, UserProfile } from '@/lib/api';
 import Avatar from '@/components/Avatar';
+import LanguagePicker from '@/components/LanguangePicker';
+import { useTranslations } from 'next-intl';
 
 // ─── SVG icons ────────────────────────────────────────────
 
@@ -96,12 +98,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const tokenId = useMyId();
   const myId = me?.id ?? tokenId;
 
+  const t = useTranslations('AppShell');
+
   const NAV: NavItem[] = [
-    { href: '/feed',          label: 'Feed',          icon: <IconHome /> },
-    { href: '/messages',      label: 'Messages',      icon: <IconMessage /> },
-    { href: '/notifications', label: 'Notifications', icon: <IconBell />, badge: pendingRequests || undefined },
-    ...(myId ? [{ href: `/profile/${myId}`, label: 'Profile', icon: <IconUser /> }] : []),
-    { href: '/settings',      label: 'Settings',      icon: <IconSettings /> },
+    { href: '/feed',          label: t('nav.feed'),          icon: <IconHome /> },
+    { href: '/messages',      label: t('nav.messages'),      icon: <IconMessage /> },
+    { href: '/notifications', label: t('nav.notifications'), icon: <IconBell />, badge: pendingRequests || undefined },
+    ...(myId ? [{ href: `/profile/${myId}`, label: t('nav.profile'), icon: <IconUser /> }] : []),
+    { href: '/settings',      label: t('nav.settings'),      icon: <IconSettings /> },
   ];
 
   function logout() {
@@ -144,8 +148,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           )}
           <button className="app-nav-logout" onClick={logout}>
             <IconLogout />
-            <span>Sign out</span>
+            <span>{t('signOut')}</span>
           </button>
+          
+          <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center' }}>
+            <LanguagePicker />
+          </div>
+
+          <div style={{ fontSize: '11px', color: '#888', marginTop: '1rem', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+            <Link href="/privacy" style={{ textDecoration: 'none', color: 'inherit' }}>{t('privacy')}</Link>
+            <span>&middot;</span>
+            <Link href="/terms" style={{ textDecoration: 'none', color: 'inherit' }}>{t('terms')}</Link>
+          </div>
         </div>
       </nav>
 

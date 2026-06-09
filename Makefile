@@ -1,11 +1,17 @@
-COMPOSE = docker compose --env-file .env
+COMPOSE = docker compose
 
-all: up
+all: envs up
 
-up:
+envs:
+	@./ops/init.sh --auto
+
+setup:
+	@./ops/init.sh --interactive
+
+up: envs
 	$(COMPOSE) up --build
 
-up-d:
+up-d: envs
 	$(COMPOSE) up --build -d
 
 down:
@@ -24,10 +30,16 @@ ps:
 clean:
 	$(COMPOSE) down --volumes --remove-orphans
 
-# Deep clean: does 'clean', plus removes all images and prunes the docker system completely
+# Deep clean: does 'clean', plus removes all images, prunes the docker system completely, and wipes generated secrets
 fclean: clean
 	$(COMPOSE) down --rmi all
 	docker system prune -af
+	@$(MAKE) --no-print-directory clean-envs
+
+clean-envs:
+	@echo "Removing all .env files and SSL certificates..."
+	@find . -type f -name ".env" -exec rm -f {} +
+	@rm -rf ops/nginx/certs
 
 # Rebuild from scratch
 re: fclean up

@@ -213,12 +213,109 @@ function PasswordSection() {
   );
 }
 
-// ─── Language section ─────────────────────────────────────
+// ─── Two-Factor Authentication ──────────────────────────────
+function TwoFactorSection() {
+  const [isEnabled, setIsEnabled] = useState(false);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState<Msg>(null);
 
-function LanguageSection() {
+  useEffect(() => {
+    authApi.get2faStatus().then((res) => setIsEnabled(res.isTwoFactorEnabled)).catch(() => {});
+  }, []);
+
+  async function handleGenerate() {
+    setLoading(true);
+    setMsg(null);
+    try {
+      const res = await authApi.generate2fa();
+      setQrCodeDataUrl(res.qrCodeDataUrl);
+    } catch (err) {
+      setMsg({ text: err instanceof Error ? err.message : 'Failed.', ok: false });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleEnable(e: FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setMsg(null);
+    try {
+      await authApi.turnOn2fa(code);
+      setIsEnabled(true);
+      setQrCodeDataUrl(null);
+      setCode('');
+      setMsg({ text: '2FA Enabled.', ok: true });
+    } catch (err) {
+      setMsg({ text: err instanceof Error ? err.message : 'Failed.', ok: false });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDisable(e: FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setMsg(null);
+    try {
+      await authApi.turnOff2fa(code);
+      setIsEnabled(false);
+      setCode('');
+      setMsg({ text: '2FA Disabled.', ok: true });
+    } catch (err) {
+      setMsg({ text: err instanceof Error ? err.message : 'Failed.', ok: false });
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <Section title="Language" description="Choose the language used across the platform.">
-      <LanguagePicker variant="full" />
+    <Section title="Two-Factor Authentication" description="Add an extra layer of security to your account.">
+      {!isEnabled && !qrCodeDataUrl && (
+        <>
+          <p className="settings-msg">Two-Factor Authentication is currently disabled.</p>
+          <button type="button" className="app-btn app-btn--sm" onClick={handleGenerate} disabled={loading}>
+            {loading ? 'Generating…' : 'Set up 2FA'}
+          </button>
+          <StatusMsg msg={msg} />
+        </>
+      )}
+
+      {!isEnabled && qrCodeDataUrl && (
+        <form onSubmit={handleEnable}>
+          <p className="settings-msg">Scan this QR code with your authenticator app (e.g. Google Authenticator), then enter the code below.</p>
+          <img src={qrCodeDataUrl} alt="2FA QR Code" style={{ marginBottom: '1rem', borderRadius: '8px' }} />
+          <div className="settings-field">
+            <span>Authentication Code</span>
+            <input type="text" inputMode="numeric" pattern="[0-9]*" maxLength={6} value={code} onChange={(e) => setCode(e.target.value)} placeholder="000000" />
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button type="submit" className="app-btn app-btn--sm" disabled={loading || code.length !== 6}>
+              {loading ? 'Verifying…' : 'Enable 2FA'}
+            </button>
+            <button type="button" className="app-btn app-btn--ghost app-btn--sm" onClick={() => { setQrCodeDataUrl(null); setCode(''); }}>
+              Cancel
+            </button>
+          </div>
+          <StatusMsg msg={msg} />
+        </form>
+      )}
+
+      {isEnabled && (
+        <form onSubmit={handleDisable}>
+          <p className="settings-msg settings-msg--success">Two-Factor Authentication is enabled.</p>
+          <div className="settings-field">
+            <span>Enter code to disable</span>
+            <input type="text" inputMode="numeric" pattern="[0-9]*" maxLength={6} value={code} onChange={(e) => setCode(e.target.value)} placeholder="000000" />
+          </div>
+          <button type="submit" className="app-btn app-btn--secondary app-btn--sm" disabled={loading || code.length !== 6}>
+            {loading ? 'Disabling…' : 'Disable 2FA'}
+          </button>
+          <StatusMsg msg={msg} />
+        </form>
+      )}
     </Section>
   );
 }
@@ -254,7 +351,7 @@ export default function SettingsPage() {
         <ProfileSection  profile={profile} onUpdate={setProfile} />
         <UsernameSection current={profile.username} />
         <PasswordSection />
-        <LanguageSection />
+        <TwoFactorSection />
       </div>
     </AppShell>
   );
