@@ -39,49 +39,19 @@ re: fclean up
 
 reset: clean
 
-# Per-service install / run targets
-install-auth:
-	npm install --prefix backend/services/auth
+# Per-service targets: make build-<service> / up-<service> / logs-<service> / restart-<service>
+# Examples: make build-posts-service  make logs-gateway  make restart-auth-service
+build-%:
+	$(COMPOSE) build $*
 
-run-auth:
-	npm run start:dev --prefix backend/services/auth
+up-%:
+	$(COMPOSE) up -d --build $*
 
-install-user:
-	npm install --prefix backend/services/user-management
+logs-%:
+	$(COMPOSE) logs -f $*
 
-run-user:
-	npm run start:dev --prefix backend/services/user-management
+restart-%:
+	$(COMPOSE) restart $*
 
-install-posts:
-	cd backend/services/posts && bun install
-
-run-posts:
-	cd backend/services/posts && bun run dev
-
-install-chat:
-	cd backend/services/chat && mix deps.get
-
-run-chat:
-	cd backend/services/chat && mix phx.server
-
-install-gateway:
-	npm install --prefix backend/api/transcendence-api-gateway
-
-run-gateway:
-	npm run start:dev --prefix backend/api/transcendence-api-gateway
-
-install-frontend:
-	npm install --prefix frontend
-
-run-frontend:
-	npm run dev --prefix frontend
-
-install-all: install-auth install-user install-posts install-chat install-gateway install-frontend
-
-# Start only the database and user service for isolated development
-dev-user:
-	$(COMPOSE) up -d database user-service
-
-# Stop and wipe volumes for the entire environment
-dev-user-clean:
-	$(COMPOSE) down -v
+down-%:
+	$(COMPOSE) down $*
