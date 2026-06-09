@@ -40,7 +40,12 @@ export default function LoginPage() {
       }
 
       setStoredAppToken(body.access_token);
-      router.push('/feed');
+
+      if (body.requires2fa) {
+        router.push('/login/2fa');
+      } else {
+        router.push('/feed');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.');
     } finally {

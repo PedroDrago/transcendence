@@ -57,6 +57,20 @@ export const auth = {
       method: 'PATCH',
       body: JSON.stringify({ username }),
     }),
+  get2faStatus: () =>
+    req<{ isTwoFactorEnabled: boolean }>('/auth/2fa/status'),
+  generate2fa: () =>
+    req<{ qrCodeDataUrl: string }>('/auth/2fa/generate', { method: 'POST' }),
+  turnOn2fa: (code: string) =>
+    req<{ message: string }>('/auth/2fa/turn-on', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    }),
+  turnOff2fa: (code: string) =>
+    req<{ message: string }>('/auth/2fa/turn-off', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    }),
 };
 
 // --- Users ---
