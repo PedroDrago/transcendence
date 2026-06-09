@@ -1,4 +1,4 @@
-COMPOSE = docker compose --env-file .env
+COMPOSE = docker compose
 
 all: envs up
 
