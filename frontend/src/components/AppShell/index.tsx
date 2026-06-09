@@ -78,7 +78,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     }
     usersApi.me().then(setMe).catch(() => {});
     usersApi.friendRequests()
-      .then((r) => setPendingRequests(r.requests.filter((req) => req.status === 'pending').length))
+      .then((reqs) => setPendingRequests(reqs.filter((r) => r.status === 'PENDING').length))
       .catch(() => {});
   }, [router]);
 

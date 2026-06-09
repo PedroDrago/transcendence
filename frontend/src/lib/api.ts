@@ -60,15 +60,15 @@ export const users = {
     form.append('avatar', file);
     return req<UserProfile>('/users/me/avatar', { method: 'PATCH', body: form });
   },
-  friends: () => req<{ friends: Friend[] }>('/users/friends'),
-  friendRequests: () => req<{ requests: FriendRequest[] }>('/users/friends/requests'),
-  friendIds: () => req<{ friendIds: string[] }>('/users/friends/my/ids'),
+  friends: () => req<UserProfile[]>('/users/friends'),
+  friendRequests: () => req<FriendRequest[]>('/users/friends/requests'),
+  friendIds: () => req<string[]>('/users/friends/my/ids'),
   sendFriendRequest: (addresseeId: string) =>
     req<FriendRequest>('/users/friends/requests', {
       method: 'POST',
       body: JSON.stringify({ addresseeId }),
     }),
-  respondFriendRequest: (id: string, status: 'accepted' | 'rejected' | 'cancelled') =>
+  respondFriendRequest: (id: string, status: 'ACCEPTED' | 'REJECTED') =>
     req<FriendRequest>(`/users/friends/requests/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
@@ -174,9 +174,11 @@ export interface Friend {
 
 export interface FriendRequest {
   id: string;
-  senderId: string;
-  senderName: string;
-  status: 'pending' | 'accepted';
+  requesterId: string;
+  addresseeId: string;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  requester: UserProfile;
+  createdAt: string;
 }
 
 export interface Post {

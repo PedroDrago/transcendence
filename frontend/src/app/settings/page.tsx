@@ -225,12 +225,12 @@ function FriendRequestsSection() {
 
   useEffect(() => {
     usersApi.friendRequests()
-      .then((r) => setRequests(r.requests.filter((req) => req.status === 'pending')))
+      .then((reqs) => setRequests(reqs.filter((r) => r.status === 'PENDING')))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
-  async function respond(id: string, status: 'accepted' | 'rejected') {
+  async function respond(id: string, status: 'ACCEPTED' | 'REJECTED') {
     try {
       await usersApi.respondFriendRequest(id, status);
       setRequests((prev) => prev.filter((r) => r.id !== id));
@@ -248,11 +248,11 @@ function FriendRequestsSection() {
       )}
       {requests.map((r) => (
         <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-          <span style={{ flex: 1, fontSize: '0.9rem' }}>{r.senderName}</span>
-          <button className="app-btn app-btn--sm" onClick={() => respond(r.id, 'accepted')}>
+          <span style={{ flex: 1, fontSize: '0.9rem' }}>{r.requester.username}</span>
+          <button className="app-btn app-btn--sm" onClick={() => respond(r.id, 'ACCEPTED')}>
             Accept
           </button>
-          <button className="app-btn app-btn--ghost app-btn--sm" onClick={() => respond(r.id, 'rejected')}>
+          <button className="app-btn app-btn--ghost app-btn--sm" onClick={() => respond(r.id, 'REJECTED')}>
             Decline
           </button>
         </div>

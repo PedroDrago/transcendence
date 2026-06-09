@@ -36,7 +36,6 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
   const [exhausted, setExhausted] = useState(false);
   const [loading,  setLoading]  = useState(true);
   const [friendStatus, setFriendStatus] = useState<'none' | 'pending' | 'friends'>('none');
-  const [pendingReqId, setPendingReqId] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
@@ -63,19 +62,12 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
 
       if (!isSelf && myId) {
         try {
-          const { friends } = await usersApi.friends();
+          const friends = await usersApi.friends();
           if (friends.some((f) => f.id === rawId)) {
             setFriendStatus('friends');
-          } else {
-            const { requests } = await usersApi.friendRequests();
-            const pending = requests.find(
-              (r) => r.senderId === myId && r.status === 'pending',
-            );
-            if (pending) {
-              setFriendStatus('pending');
-              setPendingReqId(pending.id);
-            }
           }
+          // Note: getPendingRequests only returns incoming requests (where I am the addressee),
+          // so outgoing pending requests are tracked in session state via sendFriendRequest.
         } catch {}
       }
 
@@ -98,19 +90,14 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
 
   async function sendFriendRequest() {
     try {
-      const req = await usersApi.sendFriendRequest(rawId);
+      await usersApi.sendFriendRequest(rawId);
       setFriendStatus('pending');
-      setPendingReqId(req.id);
-    } catch {}
-  }
-
-  async function cancelRequest() {
-    if (!pendingReqId) return;
-    try {
-      await usersApi.respondFriendRequest(pendingReqId, 'cancelled');
-      setFriendStatus('none');
-      setPendingReqId(null);
-    } catch {}
+    } catch (err) {
+      // If a request already exists (409 conflict), still show pending state
+      if (err instanceof Error && err.message.toLowerCase().includes('already')) {
+        setFriendStatus('pending');
+      }
+    }
   }
 
   async function removeFriend() {
@@ -180,7 +167,7 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
               <button className="app-btn" onClick={sendFriendRequest}>Add friend</button>
             )}
             {!isSelf && friendStatus === 'pending' && (
-              <button className="app-btn app-btn--ghost" onClick={cancelRequest}>
+              <button className="app-btn app-btn--ghost" disabled>
                 Request sent
               </button>
             )}
