@@ -119,6 +119,10 @@ OTEL_EXPORTER_URL=http://jaeger:4318/v1/traces
 
 ## JWT
 JWT_SECRET=$JWT_SECRET
+
+## Public URLs
+PUBLIC_FRONTEND_URL=$PUBLIC_FRONTEND_URL
+PUBLIC_API_URL=$PUBLIC_API_URL
 EOF
     echo "✅ Global .env generated!"
 fi
