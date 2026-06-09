@@ -1,8 +1,3 @@
-.PHONY: all up up-d down build logs ps clean fclean re reset dev-user dev-user-clean \
-  install-auth run-auth install-user run-user install-posts run-posts \
-  install-chat run-chat install-gateway run-gateway install-frontend run-frontend \
-  install-all
-
 COMPOSE = docker compose --env-file .env
 
 all: up
