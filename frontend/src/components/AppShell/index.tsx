@@ -147,6 +147,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <IconLogout />
             <span>Sign out</span>
           </button>
+          <div style={{ fontSize: '11px', color: '#888', marginTop: '1rem', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+            <Link href="/privacy" style={{ textDecoration: 'none', color: 'inherit' }}>Privacy</Link>
+            <span>&middot;</span>
+            <Link href="/terms" style={{ textDecoration: 'none', color: 'inherit' }}>Terms</Link>
+          </div>
         </div>
       </nav>
 
