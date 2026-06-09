@@ -22,6 +22,15 @@ CHAT_SERVICE_URL="http://chat-service:${CHAT_PORT}"
 POSTS_SERVICE_URL="http://posts-service:${POSTS_PORT}"
 DB_HOST="database"
 
+# Validate custom Nginx ports
+EFFECTIVE_HTTPS_PORT=${HTTPS_PORT:-443}
+EFFECTIVE_API_HTTPS_PORT=${API_HTTPS_PORT:-8443}
+
+if [ "$EFFECTIVE_HTTPS_PORT" == "$EFFECTIVE_API_HTTPS_PORT" ]; then
+    echo "❌ Error: HTTPS_PORT and API_HTTPS_PORT cannot be the same ($EFFECTIVE_HTTPS_PORT)."
+    exit 1
+fi
+
 # Public URLs (Used by the Browser and OAuth Providers via Nginx HTTPS)
 if [ "$EFFECTIVE_HTTPS_PORT" == "443" ]; then
     PUBLIC_FRONTEND_URL="https://localhost"
@@ -40,14 +49,10 @@ POSTGRES_USER="transcendence"
 POSTGRES_DB="transcendence"
 MINIO_USER="minioadmin"
 
-# Validate custom Nginx ports
-EFFECTIVE_HTTPS_PORT=${HTTPS_PORT:-443}
-EFFECTIVE_API_HTTPS_PORT=${API_HTTPS_PORT:-8443}
-
-if [ "$EFFECTIVE_HTTPS_PORT" == "$EFFECTIVE_API_HTTPS_PORT" ]; then
-    echo "❌ Error: HTTPS_PORT and API_HTTPS_PORT cannot be the same ($EFFECTIVE_HTTPS_PORT)."
-    exit 1
-fi
+# Default Values (Database and MinIO)
+POSTGRES_USER="transcendence"
+POSTGRES_DB="transcendence"
+MINIO_USER="minioadmin"
 
 # ==============================================================================
 
