@@ -30,10 +30,16 @@ ps:
 clean:
 	$(COMPOSE) down --volumes --remove-orphans
 
-# Deep clean: does 'clean', plus removes all images and prunes the docker system completely
+# Deep clean: does 'clean', plus removes all images, prunes the docker system completely, and wipes generated secrets
 fclean: clean
 	$(COMPOSE) down --rmi all
 	docker system prune -af
+	@$(MAKE) clean-envs
+
+clean-envs:
+	@echo "Removing all .env files and SSL certificates..."
+	@find . -type f -name ".env" -exec rm -f {} +
+	@rm -rf ops/nginx/certs
 
 # Rebuild from scratch
 re: fclean up
