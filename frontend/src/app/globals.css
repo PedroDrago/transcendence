@@ -1940,8 +1940,86 @@ button, input, textarea, select {
 }
 
 /* =========================================================================
-   Language picker — pass-through, no overrides needed
+   Language picker
    ========================================================================= */
+
+.lang-select {
+  background: #0D0D0D;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color var(--dur-micro) var(--ease), box-shadow var(--dur-micro) var(--ease);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.42)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.lang-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+
+.lang-select option {
+  background: #1C1C1C;
+  color: var(--text);
+}
+
+/* Full variant — button group */
+
+.lang-picker-full {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lang-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--dur-micro) var(--ease), border-color var(--dur-micro) var(--ease), color var(--dur-micro) var(--ease);
+}
+
+.lang-option:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+}
+
+.lang-option--active {
+  border-color: rgba(137, 59, 150, 0.5);
+  background: rgba(137, 59, 150, 0.12);
+  color: var(--text);
+}
+
+.lang-option-code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--accent-strong);
+  min-width: 28px;
+}
+
+.lang-option--active .lang-option-code {
+  color: var(--accent-strong);
+}
+
+.lang-option-label {
+  font-size: 14px;
+}
 
 /* =========================================================================
    Responsive

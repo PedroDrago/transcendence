@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import AppShell from '@/components/AppShell';
 import Avatar from '@/components/Avatar';
+import LanguagePicker from '@/components/LanguangePicker';
 import { users as usersApi, auth as authApi, UserProfile } from '@/lib/api';
 import { setStoredAppToken } from '@/lib/auth';
 
@@ -212,6 +213,16 @@ function PasswordSection() {
   );
 }
 
+// ─── Language section ─────────────────────────────────────
+
+function LanguageSection() {
+  return (
+    <Section title="Language" description="Choose the language used across the platform.">
+      <LanguagePicker variant="full" />
+    </Section>
+  );
+}
+
 // ─── Settings page ────────────────────────────────────────
 
 export default function SettingsPage() {
@@ -243,6 +254,7 @@ export default function SettingsPage() {
         <ProfileSection  profile={profile} onUpdate={setProfile} />
         <UsernameSection current={profile.username} />
         <PasswordSection />
+        <LanguageSection />
       </div>
     </AppShell>
   );

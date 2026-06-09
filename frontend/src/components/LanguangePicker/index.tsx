@@ -8,8 +8,13 @@ const LANGUAGES = [
   { code: 'pt', label: 'Português (Brasil)' },
 ];
 
-export default function LanguagePicker() {
-  const COOKIE_NAME = 'transcendence_locale';
+const COOKIE_NAME = 'transcendence_locale';
+
+interface Props {
+  variant?: 'compact' | 'full';
+}
+
+export default function LanguagePicker({ variant = 'compact' }: Props) {
   const [lang, setLang] = useState('');
 
   useEffect(() => {
@@ -22,15 +27,33 @@ export default function LanguagePicker() {
     setLang(cookieLang);
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newLang = e.target.value;
     setLang(newLang);
     setCookie(COOKIE_NAME, newLang);
-    window.location.reload(); // Optional: reload to apply language
-  };
+    window.location.reload();
+  }
+
+  if (variant === 'full') {
+    return (
+      <div className="lang-picker-full">
+        {LANGUAGES.map(({ code, label }) => (
+          <button
+            key={code}
+            type="button"
+            className={`lang-option${lang === code ? ' lang-option--active' : ''}`}
+            onClick={() => { if (lang !== code) { setCookie(COOKIE_NAME, code); window.location.reload(); } }}
+          >
+            <span className="lang-option-code">{code.toUpperCase()}</span>
+            <span className="lang-option-label">{label}</span>
+          </button>
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <select value={lang} onChange={handleChange}>
+    <select className="lang-select" value={lang} onChange={handleChange}>
       {LANGUAGES.map(({ code, label }) => (
         <option key={code} value={code}>{label}</option>
       ))}
