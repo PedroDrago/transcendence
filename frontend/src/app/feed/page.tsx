@@ -263,6 +263,13 @@ export default function FeedPage() {
 
   function handleCreated(post: Post) {
     setPostsList((prev) => [post, ...prev]);
+    if (me) {
+      setProfiles((prev) => {
+        const next = { ...prev, [post.userId]: me };
+        profilesRef.current = next;
+        return next;
+      });
+    }
   }
 
   return (
@@ -276,7 +283,7 @@ export default function FeedPage() {
         <StoriesStrip me={me} />
 
         {postsList.map((post) => (
-          <PostCard key={post.id} post={post} author={profiles[post.userId]} />
+          <PostCard key={post.id} post={post} author={profiles[post.userId]} me={me} />
         ))}
 
         <div ref={loaderRef} className="feed-loader">

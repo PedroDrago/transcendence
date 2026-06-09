@@ -8,6 +8,7 @@ import Avatar from '@/components/Avatar';
 interface Props {
   post: Post;
   author?: UserProfile;
+  me?: UserProfile | null;
 }
 
 function timeAgo(iso: string): string {
@@ -82,6 +83,9 @@ export default function PostCard({ post, author }: Props) {
     try {
       const created = await postsApi.addComment(post.id, content);
       setComments((prev) => [created, ...prev]);
+      if (me) {
+        setCommentAuthors((prev) => ({ ...prev, [created.userId]: me }));
+      }
       setCommentText('');
       setCommentCount((n) => n + 1);
     } catch {}
