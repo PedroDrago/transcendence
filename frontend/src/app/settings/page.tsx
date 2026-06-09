@@ -411,7 +411,7 @@ function DangerZoneSection({ profile }: { profile: UserProfile }) {
     setLoading(true);
     setMsg(null);
     try {
-      await usersApi.deleteMe(profile.id);
+      await usersApi.deleteMe();
       clearStoredAuth();
       router.replace('/login');
     } catch (err: any) {

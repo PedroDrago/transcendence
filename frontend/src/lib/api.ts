@@ -113,7 +113,10 @@ export const users = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-  deleteMe: (id: string) => req<void>(`/users/${id}`, { method: 'DELETE' }),
+  deleteMe: async () => {
+    await req<void>('/users/me', { method: 'DELETE' });
+    await req<void>('/auth/me', { method: 'DELETE' });
+  },
 };
 
 // --- Posts ---
