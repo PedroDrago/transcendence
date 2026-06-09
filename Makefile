@@ -1,11 +1,17 @@
 COMPOSE = docker compose --env-file .env
 
-all: up
+all: envs up
 
-up:
+envs:
+	@./ops/init.sh --auto
+
+setup:
+	@./ops/init.sh --interactive
+
+up: envs
 	$(COMPOSE) up --build
 
-up-d:
+up-d: envs
 	$(COMPOSE) up --build -d
 
 down:
