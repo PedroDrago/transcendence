@@ -107,6 +107,16 @@ export const users = {
   blocks: () => req<{ blocks: string[] }>('/users/blocks'),
   blockStatus: (targetId: string) =>
     req<{ isBlocked: boolean }>(`/users/blocks/${targetId}/status`),
+  exportData: () => req<any>('/users/me/export'),
+  importData: (data: any) =>
+    req<UserProfile>('/users/me/import', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  deleteMe: async () => {
+    await req<void>('/users/me', { method: 'DELETE' });
+    await req<void>('/auth/me', { method: 'DELETE' });
+  },
 };
 
 // --- Posts ---

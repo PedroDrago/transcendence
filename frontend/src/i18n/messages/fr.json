@@ -28,5 +28,85 @@
     "verifying": "Vérification…",
     "cancel": "Annuler",
     "backToLogin": "Retour à la connexion"
+  },
+  "Feed": {
+    "title": "Flux",
+    "createPostPlaceholder": "À quoi pensez-vous ?",
+    "createPostButton": "Publier",
+    "endOfFeed": "Plus de publications",
+    "noPosts": "Aucune publication pour l'instant. Soyez le premier !"
+  },
+  "Messages": {
+    "title": "Messages",
+    "newConversation": "Nouvelle Conversation",
+    "typeMessage": "Tapez un message...",
+    "send": "Envoyer"
+  },
+  "Notifications": {
+    "title": "Notifications",
+    "friendRequest": "vous a envoyé une demande d'ami",
+    "accept": "Accepter",
+    "reject": "Refuser",
+    "empty": "Aucune notification pour l'instant."
+  },
+  "Profile": {
+    "title": "Profil",
+    "editProfile": "Modifier le Profil",
+    "follow": "S'abonner",
+    "unfollow": "Se désabonner",
+    "addFriend": "Ajouter un Ami",
+    "removeFriend": "Retirer un Ami",
+    "message": "Message",
+    "block": "Bloquer",
+    "unblock": "Débloquer",
+    "posts": "Publications",
+    "followers": "Abonnés",
+    "following": "Abonnements",
+    "friends": "Amis"
+  },
+  "Settings": {
+    "title": "Paramètres",
+    "avatar": "Avatar",
+    "avatarDesc": "Téléchargez une photo. Formats : jpg, png, webp (max 5 Mo).",
+    "changeAvatar": "Changer d'avatar",
+    "uploading": "Téléchargement…",
+    "profile": "Profil",
+    "profileDesc": "Mettez à jour votre bio et l'URL de votre site web.",
+    "bio": "Bio",
+    "website": "URL du site web",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "username": "Nom d'utilisateur",
+    "usernameDesc": "Changez votre nom d'utilisateur.",
+    "password": "Mot de passe",
+    "passwordDesc": "Changez votre mot de passe.",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "twoFactor": "Authentification à Deux Facteurs",
+    "twoFactorDesc": "Ajoutez une couche de sécurité supplémentaire à votre compte.",
+    "enable2FA": "Activer l'A2F",
+    "disable2FA": "Désactiver l'A2F",
+    "privacy": "Confidentialité et Données",
+    "privacyDesc": "Gérez vos données et paramètres de confidentialité (Conformité RGPD).",
+    "privacyMsg": "Vous pouvez demander une copie de toutes vos données personnelles stockées sur nos serveurs. Vous pouvez également importer des données exportées pour restaurer les paramètres de votre profil. Remarque : l'importation de données écrasera votre profil actuel.",
+    "exportData": "Exporter Mes Données",
+    "importData": "Importer des Données",
+    "dangerZone": "Zone de Danger",
+    "dangerZoneDesc": "Actions irréversibles et destructives.",
+    "dangerZoneMsg": "La suppression de votre compte effacera de manière permanente toutes vos données, y compris votre profil, vos publications et vos messages. Cette action est irréversible.",
+    "deleteAccount": "Supprimer le Compte",
+    "deleting": "Suppression en cours..."
+  },
+  "Time": {
+    "justNow": "à l'instant",
+    "m": "{count}m",
+    "h": "{count}h",
+    "d": "{count}j"
+  },
+  "PostCard": {
+    "addComment": "Ajouter un commentaire…",
+    "post": "Publier",
+    "unlike": "Je n'aime plus",
+    "like": "J'aime"
   }
 }

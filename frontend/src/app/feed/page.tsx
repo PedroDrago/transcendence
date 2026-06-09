@@ -276,8 +276,8 @@ export default function FeedPage() {
     <AppShell>
       <div className="feed-wrap">
         <div className="feed-topbar">
-          <span className="feed-title">Feed</span>
-          <button className="app-btn" onClick={() => setShowModal(true)}>+ New post</button>
+          <span className="feed-title">{t("title")}</span>
+          <button className="app-btn" onClick={() => setShowModal(true)}>{t("createPostPlaceholder")}</button>
         </div>
 
         <StoriesStrip me={me} />
@@ -290,12 +290,11 @@ export default function FeedPage() {
           {loading && <span className="spinner" />}
           {!loading && exhausted && postsList.length === 0 && (
             <p className="feed-empty">
-              Your feed is empty.<br />
-              Add friends to see their posts here, or share your first post.
+              {t("noPosts")}
             </p>
           )}
           {!loading && exhausted && postsList.length > 0 && (
-            <p style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>You&apos;re all caught up.</p>
+            <p style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{t("endOfFeed")}</p>
           )}
         </div>
       </div>

@@ -6,10 +6,12 @@ import AppShell from '@/components/AppShell';
 import Avatar from '@/components/Avatar';
 import { chat as chatApi, getChatWsUrl, Conversation, Message } from '@/lib/api';
 import { useMyId } from '@/lib/hooks';
+import { decodeJwt, getStoredAppToken } from '@/lib/auth';
+import { useTranslations, useLocale } from 'next-intl';
 import { PhoenixSocket } from '@/lib/socket';
 
-function timeStr(iso: string) {
-  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+function timeStr(iso: string, locale: string) {
+  return new Date(iso).toLocaleTimeString([locale], { hour: '2-digit', minute: '2-digit' });
 }
 
 function convLabel(conv: Conversation): string {
@@ -32,6 +34,8 @@ function ChatPanel({
   myId: string;
   socket: PhoenixSocket | null;
 }) {
+  const locale = useLocale();
+  const t = useTranslations('Messages');
   const [messages,   setMessages]   = useState<Message[]>([]);
   const [text,       setText]       = useState('');
   const [typing,     setTyping]     = useState<string[]>([]);
@@ -121,7 +125,7 @@ function ChatPanel({
               <div className={`chat-bubble chat-bubble--${mine ? 'mine' : 'theirs'}`}>
                 {msg.body}
               </div>
-              <span className="chat-bubble-time">{timeStr(msg.inserted_at)}</span>
+              <span className="chat-bubble-time">{timeStr(msg.inserted_at, locale)}</span>
             </div>
           );
         })}
@@ -137,9 +141,9 @@ function ChatPanel({
           className="chat-input"
           value={text}
           onChange={handleInput}
-          placeholder="Message…"
+          placeholder={t("typeMessage")}
         />
-        <button type="submit" className="app-btn">Send</button>
+        <button type="submit" className="app-btn">{t("send")}</button>
       </form>
     </>
   );
@@ -148,6 +152,7 @@ function ChatPanel({
 // ─── Main messages page ───────────────────────────────────
 
 function MessagesContent() {
+  const t = useTranslations('Messages');
   const router = useRouter();
   const searchParams = useSearchParams();
   const initUser = searchParams.get('user');
@@ -221,12 +226,12 @@ function MessagesContent() {
       {/* Sidebar */}
       <div className="conv-sidebar">
         <div className="conv-sidebar-head">
-          <h2>Messages</h2>
+          <h2>{t("title")}</h2>
         </div>
 
         <div className="conv-list">
           {convs.length === 0 && (
-            <p className="conv-empty">No conversations yet. Start one below.</p>
+            <p className="conv-empty">No conversations yet.</p>
           )}
           {convs.map((c) => (
             <div

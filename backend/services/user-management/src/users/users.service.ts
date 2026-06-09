@@ -223,4 +223,36 @@ export class UsersService {
             }),
         );
     }
+
+    async importData(userId: string, data: any) {
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        if (!data || !data.profile) {
+            throw new BadRequestException('Invalid import data format. "profile" object is required.');
+        }
+
+        const profileData = data.profile;
+        if (profileData.displayName !== undefined) {
+            user.displayName = profileData.displayName;
+        }
+        if (profileData.bio !== undefined) {
+            user.bio = profileData.bio;
+        }
+        if (profileData.dateOfBirth !== undefined) {
+            if (profileData.dateOfBirth) {
+                if (new Date(profileData.dateOfBirth) > new Date()) {
+                    throw new BadRequestException('Date of birth cannot be in the future');
+                }
+                user.dateOfBirth = profileData.dateOfBirth;
+            } else {
+                user.dateOfBirth = null as any;
+            }
+        }
+
+        await this.usersRepository.save(user);
+        return this.serializeProfile(user);
+    }
 }

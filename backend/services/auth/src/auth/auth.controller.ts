@@ -9,6 +9,7 @@ import {
     Request,
     Res,
     UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -93,6 +94,13 @@ export class AuthController {
     @ApiOperation({ summary: 'Exchange OAuth handoff token for app JWT' })
     exchangeOAuthToken(@Body() dto: OAuthExchangeDto) {
         return this.authService.exchangeOAuthHandoffToken(dto.token);
+    }
+
+    @Delete('me')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.NO_CONTENT)
+    deleteMe(@Request() req) {
+        return this.authService.deleteUser(req.user.id);
     }
 
     @Patch('password')
