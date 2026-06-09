@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AppShell from '@/components/AppShell';
+import Avatar from '@/components/Avatar';
 import { chat as chatApi, getChatWsUrl, Conversation, Message } from '@/lib/api';
 import { decodeJwt, getStoredAppToken } from '@/lib/auth';
 import { PhoenixSocket } from '@/lib/socket';
@@ -104,9 +105,7 @@ function ChatPanel({
   return (
     <>
       <div className="chat-panel-head">
-        <div className="conv-avatar" style={{ width: 34, height: 34, fontSize: '0.9rem' }}>
-          {convInitial(conv)}
-        </div>
+        <Avatar username={convLabel(conv)} size={34} className="conv-avatar" />
         <span className="chat-panel-name">{convLabel(conv)}</span>
       </div>
 
@@ -235,7 +234,7 @@ function MessagesContent() {
               className={`conv-item${selected?.conversation_id === c.conversation_id ? ' conv-item--active' : ''}`}
               onClick={() => setSelected(c)}
             >
-              <div className="conv-avatar">{convInitial(c)}</div>
+              <Avatar username={convLabel(c)} size={42} className="conv-avatar" />
               <div className="conv-info">
                 <p className="conv-name">{convLabel(c)}</p>
                 {c.last_message && (

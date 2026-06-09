@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { clearStoredAuth, decodeJwt, getStoredAppToken } from '@/lib/auth';
 import { users as usersApi, UserProfile } from '@/lib/api';
+import Avatar from '@/components/Avatar';
 
 // ─── SVG icons ────────────────────────────────────────────
 
@@ -135,11 +136,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="app-nav-bottom">
           {me && (
             <Link href={`/profile/${me.id}`} className="app-nav-profile-link">
-              <div className="app-nav-avatar">
-                {me.avatarUrl
-                  ? <img src={me.avatarUrl} alt={me.username} />
-                  : me.username[0].toUpperCase()}
-              </div>
+              <Avatar username={me.username} avatarUrl={me.avatarUrl} size={28} className="app-nav-avatar" />
               <span className="app-nav-username">{me.username}</span>
             </Link>
           )}

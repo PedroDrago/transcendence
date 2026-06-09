@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import AppShell from '@/components/AppShell';
 import PostCard from '@/components/PostCard';
+import Avatar from '@/components/Avatar';
 import { posts as postsApi, stories as storiesApi, users as usersApi, Post, Story, UserProfile } from '@/lib/api';
 import { decodeJwt, getStoredAppToken } from '@/lib/auth';
 
@@ -35,9 +36,7 @@ function StoriesStrip({ me }: StoriesStripProps) {
       <div className="stories-strip">
         <button className="story-ring" onClick={() => setShowModal(true)} title="Your story">
           <div className={`story-ring-avatar${hasStory ? ' story-ring-avatar--active' : ''}`}>
-            {me.avatarUrl
-              ? <img src={me.avatarUrl} alt={me.username} />
-              : me.username[0].toUpperCase()}
+            <Avatar username={me.username} avatarUrl={me.avatarUrl} size={56} />
             <span className="story-ring-avatar--add-btn">{hasStory ? '●' : '+'}</span>
           </div>
           <span className="story-ring-name">Your story</span>

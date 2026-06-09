@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Post, UserProfile, posts as postsApi, Comment, users as usersApi } from '@/lib/api';
 import { decodeJwt, getStoredAppToken } from '@/lib/auth';
+import Avatar from '@/components/Avatar';
 
 interface Props {
   post: Post;
@@ -17,17 +18,6 @@ function timeAgo(iso: string): string {
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h`;
   return `${Math.floor(h / 24)}d`;
-}
-
-function Avatar({ user, size = 38 }: { user?: UserProfile; size?: number }) {
-  const style = { width: size, height: size, fontSize: size * 0.42 };
-  return (
-    <div className="post-card-avatar" style={style}>
-      {user?.avatarUrl
-        ? <img src={user.avatarUrl} alt={user.username} />
-        : (user?.username?.[0]?.toUpperCase() ?? '?')}
-    </div>
-  );
 }
 
 export default function PostCard({ post, author }: Props) {
@@ -100,7 +90,7 @@ export default function PostCard({ post, author }: Props) {
   return (
     <article className="post-card">
       <header className="post-card-header">
-        <Avatar user={author} />
+        <Avatar username={author?.username ?? post.userId.slice(0, 8)} avatarUrl={author?.avatarUrl} size={38} className="post-card-avatar" />
         <div className="post-card-author">
           <p className="post-card-username">{author?.username ?? post.userId.slice(0, 8)}</p>
           <p className="post-card-time">{timeAgo(post.createdAt)}</p>
@@ -140,11 +130,7 @@ export default function PostCard({ post, author }: Props) {
                 const ca = commentAuthors[c.userId];
                 return (
                   <div key={c.id} className="comment-item">
-                    <div className="comment-avatar">
-                      {ca?.avatarUrl
-                        ? <img src={ca.avatarUrl} alt={ca.username} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-                        : (ca?.username?.[0]?.toUpperCase() ?? '?')}
-                    </div>
+                    <Avatar username={ca?.username ?? c.userId.slice(0, 6)} avatarUrl={ca?.avatarUrl} size={28} className="comment-avatar" />
                     <div className="comment-body">
                       <span className="comment-username">{ca?.username ?? c.userId.slice(0, 6)}</span>
                       <span className="comment-content">{c.content}</span>
