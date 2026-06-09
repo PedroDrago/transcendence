@@ -78,7 +78,7 @@ If the stack is already running, you can manually edit `backend/services/auth/.e
 GOOGLE_CLIENT_ID=your_client_id
 GOOGLE_CLIENT_SECRET=your_secret
 ```
-Then run: `docker compose restart auth-service`
+Then run: `docker compose up -d --build auth-service`
 
 > **Important for Google Cloud Console:** Ensure your OAuth credentials in Google Cloud have the exact Authorized JavaScript Origins (`https://localhost:443`, etc.) and the precise Authorized Redirect URIs matching your API port (`https://localhost:8443/auth/google/callback`).
 
@@ -98,7 +98,10 @@ make up
 ```
 
 **Option 2: Edit the generated environment file manually**
-If the stack is already running, you can manually edit `backend/services/posts/.env` and `backend/services/user-management/.env` to include the R2 variables and restart the services.
+If the stack is already running, you can manually edit `backend/services/posts/.env` and `backend/services/user-management/.env` to include the R2 variables. Then rebuild them:
+```bash
+docker compose up -d --build posts-service user-service
+```
 
 ### Published Services (External)
 
