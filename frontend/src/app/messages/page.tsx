@@ -230,7 +230,7 @@ function MessagesContent() {
 
         <div className="conv-list">
           {convs.length === 0 && (
-            
+            <p className="conv-empty">No conversations yet.</p>
           )}
           {convs.map((c) => (
             <div
