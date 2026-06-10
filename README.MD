@@ -60,54 +60,43 @@ HTTPS_PORT=4443 API_HTTPS_PORT=9443 make up
 
 This will automatically configure the Nginx proxy, generate the appropriate CORS rules, and build the Next.js frontend to communicate with the correct API port.
 
-### Google OAuth Configuration
+### External Integrations (Google OAuth & Cloudflare R2)
 
-For security reasons, Google OAuth credentials (`GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`) are not stored in the repository. The application will start successfully without them, but the "Continue with Google" button will fail.
+For security reasons, external credentials like Google OAuth and Cloudflare R2 keys are not stored in the repository. The application will start successfully without them (using local MinIO for storage and disabling the "Continue with Google" button).
 
-To run the application with OAuth enabled, you have three options:
+If you want to run the application with these integrations enabled, you have three options:
 
 **Option 1: Interactive Prompt (First Run Only)**
-If you run `make up` on a fresh start (without `.env` files), the initialization script will pause and interactively ask you for the `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`. You can paste them into the terminal, or simply press Enter to disable OAuth.
+If you run `make up` on a fresh start (without `.env` files), the initialization script will pause and interactively ask you for the `GOOGLE_CLIENT_ID` and Cloudflare R2 credentials. You can paste them into the terminal, or simply press Enter to skip them and use the local defaults.
 
 **Option 2: Pass them inline when running make (Automated setups)**
+You can provide all keys simultaneously when starting the application:
 ```bash
-GOOGLE_CLIENT_ID="your_client_id" GOOGLE_CLIENT_SECRET="your_secret" make up
-```
-
-**Option 3: Edit the generated environment file manually**
-If the stack is already running, you can manually edit `backend/services/auth/.env` and restart the auth service:
-```bash
-# Inside backend/services/auth/.env
-GOOGLE_CLIENT_ID=your_client_id
-GOOGLE_CLIENT_SECRET=your_secret
-```
-Then run: `docker compose up -d --build auth-service`
-
-> **Important for Google Cloud Console:** Ensure your OAuth credentials in Google Cloud have the exact Authorized JavaScript Origins (`https://localhost:443`, etc.) and the precise Authorized Redirect URIs matching your API port (`https://localhost:8443/auth/google/callback`).
-
-### Cloudflare R2 Configuration (Optional)
-
-By default, the project uses a local **MinIO** container for S3-compatible object storage (avatars, images, etc.).
-
-If you wish to test with an actual Cloudflare R2 bucket instead of the local MinIO, you can override the storage credentials using environment variables:
-
-**Option 1: Interactive Prompt (First Run Only)**
-During a fresh `make up`, the script will ask for `R2_ACCESS_KEY_ID`. If you provide one, it will prompt for the rest of the credentials. If you press Enter, it defaults to the local MinIO container.
-
-**Option 2: Pass them inline when running make**
-```bash
-R2_ACCESS_KEY_ID="your_access_key" \
-R2_SECRET_ACCESS_KEY="your_secret_key" \
-R2_ENDPOINT="https://your_r2_endpoint.r2.cloudflarestorage.com" \
+GOOGLE_CLIENT_ID="your_google_client_id" \
+GOOGLE_CLIENT_SECRET="your_google_secret" \
+R2_ACCESS_KEY_ID="your_r2_access_key" \
+R2_SECRET_ACCESS_KEY="your_r2_secret_key" \
+R2_ENDPOINT="https://your_endpoint.r2.cloudflarestorage.com" \
 R2_BUCKET="your_bucket_name" \
 make up
 ```
 
-**Option 3: Edit the generated environment file manually**
-If the stack is already running, you can manually edit `backend/services/posts/.env` and `backend/services/user-management/.env` to include the R2 variables. Then rebuild them:
-```bash
-docker compose up -d --build posts-service user-service
-```
+**Option 3: Edit the generated environment files manually**
+If the stack is already running, you can manually edit the `.env` files and restart the respective services:
+
+1. For Google OAuth, edit `backend/services/auth/.env`:
+   ```bash
+   GOOGLE_CLIENT_ID=your_client_id
+   GOOGLE_CLIENT_SECRET=your_secret
+   ```
+   Then run: `docker compose up -d --build auth-service`
+
+2. For Cloudflare R2, edit `backend/services/posts/.env` and `backend/services/user-management/.env` to include the R2 variables, then run:
+   ```bash
+   docker compose up -d --build posts-service user-service
+   ```
+
+> **Important for Google Cloud Console:** Ensure your OAuth credentials in Google Cloud have the exact Authorized JavaScript Origins (`https://localhost:443`, etc.) and the precise Authorized Redirect URIs matching your API port (`https://localhost:8443/auth/google/callback`).
 
 ### Published Services (External)
 
