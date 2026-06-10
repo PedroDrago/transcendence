@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { getStoredAuthBase, setStoredAppToken } from '@/lib/auth';
 
 type State = 'loading' | 'success' | 'error';
@@ -9,6 +10,7 @@ type State = 'loading' | 'success' | 'error';
 function CallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations('AuthCallback');
   const [state, setState] = useState<State>('loading');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -50,21 +52,21 @@ function CallbackContent() {
       <section className="auth-card" style={{ maxWidth: 420, width: '100%', textAlign: 'center' }}>
         {state === 'loading' && (
           <>
-            <span className="spinner" style={{ margin: '0 auto 20px' }} />
-            <p style={{ color: 'var(--muted)' }}>Signing you in…</p>
+            <span className="spinner" style={{ margin: '0 auto 20px' }} aria-hidden="true" />
+            <p style={{ color: 'var(--muted)' }} role="status">{t('signingIn')}</p>
           </>
         )}
         {state === 'success' && (
           <>
-            <p style={{ fontSize: '2rem', marginBottom: 12 }}>✓</p>
-            <p style={{ color: 'var(--success)' }}>Signed in successfully. Redirecting…</p>
+            <p style={{ fontSize: '2rem', marginBottom: 12 }} aria-hidden="true">✓</p>
+            <p style={{ color: 'var(--success)' }} role="status">{t('success')}</p>
           </>
         )}
         {state === 'error' && (
           <>
-            <p style={{ fontSize: '1.3rem', marginBottom: 10, color: 'var(--error)' }}>Sign-in failed</p>
+            <p style={{ fontSize: '1.3rem', marginBottom: 10, color: 'var(--error)' }} role="alert">{t('errorTitle')}</p>
             <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginBottom: 20 }}>{errorMsg}</p>
-            <a href="/login" className="auth-button" style={{ display: 'inline-block' }}>Back to login</a>
+            <a href="/login" className="auth-button" style={{ display: 'inline-block' }}>{t('backToLogin')}</a>
           </>
         )}
       </section>
@@ -78,7 +80,7 @@ export default function AuthCallbackPage() {
       fallback={
         <main className="auth-shell auth-shell--callback">
           <section className="auth-card" style={{ maxWidth: 420, width: '100%', textAlign: 'center' }}>
-            <span className="spinner" style={{ margin: '0 auto' }} />
+            <span className="spinner" style={{ margin: '0 auto' }} aria-hidden="true" />
           </section>
         </main>
       }

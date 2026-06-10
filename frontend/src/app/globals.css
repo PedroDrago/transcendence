@@ -237,7 +237,8 @@ button, input, textarea, select {
 
 .auth-field input:focus,
 .auth-textarea:focus {
-  outline: none;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
   border-color: var(--accent);
   box-shadow: var(--ring);
 }
@@ -506,6 +507,11 @@ button, input, textarea, select {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   transition: background var(--dur-micro) var(--ease), color var(--dur-micro) var(--ease);
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
 }
 
 .app-nav-link:hover {
@@ -662,7 +668,8 @@ button, input, textarea, select {
 }
 
 .app-btn:focus-visible {
-  outline: 0;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
   box-shadow: var(--ring);
 }
 
@@ -1003,7 +1010,8 @@ button, input, textarea, select {
 }
 
 .comment-form input:focus {
-  outline: none;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
   border-color: var(--accent);
   box-shadow: var(--ring);
 }
@@ -1102,7 +1110,8 @@ button, input, textarea, select {
 
 .modal-field input:focus,
 .modal-field textarea:focus {
-  outline: none;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
   border-color: var(--accent);
   box-shadow: var(--ring);
 }
@@ -1136,6 +1145,35 @@ button, input, textarea, select {
   font-size: 12px;
   color: var(--error);
   margin-top: 8px;
+}
+
+.qr-modal-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.qr-modal-desc {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.qr-modal-code {
+  padding: 16px;
+  background: #fff;
+  border-radius: var(--radius);
+  line-height: 0;
+}
+
+.qr-modal-url {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  word-break: break-all;
+  text-align: center;
 }
 
 /* =========================================================================
@@ -1608,7 +1646,6 @@ button, input, textarea, select {
   color: var(--text);
   font-family: var(--font-mono);
   font-size: 13px;
-  outline: none;
   transition: border-color var(--dur-micro) var(--ease), box-shadow var(--dur-micro) var(--ease);
 }
 
@@ -1617,6 +1654,8 @@ button, input, textarea, select {
 }
 
 .chat-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
   border-color: var(--accent);
   box-shadow: var(--ring);
 }
@@ -1944,7 +1983,8 @@ button, input, textarea, select {
 
 .settings-field input:focus,
 .settings-field textarea:focus {
-  outline: none;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
   border-color: var(--accent);
   box-shadow: var(--ring);
 }
@@ -2113,7 +2153,8 @@ button, input, textarea, select {
 }
 
 .lang-select:focus {
-  outline: none;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
   border-color: var(--accent);
   box-shadow: var(--ring);
 }
@@ -2249,5 +2290,153 @@ button, input, textarea, select {
 
   .auth-shell::before {
     margin-bottom: 32px;
+  }
+}
+
+/* =========================================================================
+   Accessibility: sr-only + skip link + global focus
+   ========================================================================= */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--radius);
+  text-decoration: none;
+  transition: top 0.1s;
+}
+
+.skip-link:focus {
+  top: 16px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* =========================================================================
+   RTL layout mirroring
+   ========================================================================= */
+
+[dir="rtl"] .app-nav {
+  left: auto;
+  right: 0;
+  border-right: none;
+  border-left: 1px solid var(--line);
+}
+
+[dir="rtl"] .app-main {
+  margin-left: 0;
+  margin-right: 240px;
+}
+
+[dir="rtl"] .app-nav-link {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+[dir="rtl"] .app-nav-profile-link {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .app-nav-logout {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .app-nav-icon .badge {
+  right: auto;
+  left: -8px;
+}
+
+[dir="rtl"] .conv-sidebar {
+  border-right: none;
+  border-left: 1px solid var(--line);
+}
+
+[dir="rtl"] .conv-item {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+[dir="rtl"] .chat-bubble--mine {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+[dir="rtl"] .chat-bubble--theirs {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+[dir="rtl"] .post-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .post-actions {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .notif-item {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+[dir="rtl"] .profile-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .lang-select {
+  background-position: left 12px center;
+  padding-right: 14px;
+  padding-left: 36px;
+}
+
+[dir="rtl"] .auth-shell {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .settings-section {
+  text-align: right;
+}
+
+@media (max-width: 860px) {
+  [dir="rtl"] .app-nav {
+    left: 0;
+    right: 0;
+    border-left: none;
+    border-right: none;
+    border-top: 1px solid var(--line);
+  }
+
+  [dir="rtl"] .app-main {
+    margin-right: 0;
   }
 }

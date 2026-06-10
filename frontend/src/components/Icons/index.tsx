@@ -73,6 +73,25 @@ export function IconBell({ size = 18, className = '' }: IconProps) {
   );
 }
 
+export function IconQrCode({ size = 18, className = '' }: IconProps) {
+  return icon(
+    <>
+      <rect x="3" y="3" width="7" height="7" />
+      <rect x="14" y="3" width="7" height="7" />
+      <rect x="3" y="14" width="7" height="7" />
+      <rect x="5" y="5" width="3" height="3" />
+      <rect x="16" y="5" width="3" height="3" />
+      <rect x="5" y="16" width="3" height="3" />
+      <path d="M14 14h3v3h-3z" />
+      <path d="M17 17h4" />
+      <path d="M17 21v-4" />
+      <path d="M21 17v4" />
+    </>,
+    size,
+    className,
+  );
+}
+
 export function IconLogout({ size = 15, className = '' }: IconProps) {
   return icon(
     <>

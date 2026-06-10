@@ -3,12 +3,14 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { clearStoredAuth, getStoredAppToken } from '@/lib/auth';
 import { useMyId } from '@/lib/hooks';
 import { users as usersApi, UserProfile } from '@/lib/api';
 import Avatar from '@/components/Avatar';
 import LanguagePicker from '@/components/LanguangePicker';
-import { IconHome, IconMessage, IconUser, IconSettings, IconBell, IconLogout } from '@/components/Icons';
+import Modal from '@/components/Modal';
+import { IconHome, IconMessage, IconUser, IconSettings, IconBell, IconLogout, IconQrCode } from '@/components/Icons';
 import { useTranslations } from 'next-intl';
 
 // ─── Nav item definition ──────────────────────────────────
@@ -27,6 +29,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [me, setMe] = useState<UserProfile | null>(null);
   const [pendingRequests, setPendingRequests] = useState(0);
+  const [showQr, setShowQr] = useState(false);
+  const [profileUrl, setProfileUrl] = useState('');
 
   useEffect(() => {
     const token = getStoredAppToken();
@@ -42,6 +46,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   const tokenId = useMyId();
   const myId = me?.id ?? tokenId;
+
+  useEffect(() => {
+    if (myId) {
+      setProfileUrl(`${window.location.origin}/profile/${myId}`);
+    }
+  }, [myId]);
 
   const t = useTranslations('AppShell');
 
@@ -60,7 +70,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="app-shell">
-      <nav className="app-nav">
+      <a href="#main-content" className="skip-link">{t('skipToMain')}</a>
+      <nav className="app-nav" aria-label={t('nav.ariaLabel')}>
         <span className="app-nav-wordmark">Vellum</span>
 
         <div className="app-nav-links">
@@ -82,6 +93,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               </Link>
             );
           })}
+          {myId && (
+            <button
+              className="app-nav-link"
+              onClick={() => setShowQr(true)}
+              type="button"
+            >
+              <span className="app-nav-icon"><IconQrCode /></span>
+              <span>{t('nav.addFriend')}</span>
+            </button>
+          )}
         </div>
 
         <div className="app-nav-bottom">
@@ -108,7 +129,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </nav>
 
-      <main className="app-main">{children}</main>
+      <main id="main-content" className="app-main">{children}</main>
+
+      {showQr && profileUrl && (
+        <Modal title={t('qrModal.title')} onClose={() => setShowQr(false)}>
+          <div className="qr-modal-body">
+            <p className="qr-modal-desc">{t('qrModal.desc')}</p>
+            <div className="qr-modal-code">
+              <QRCodeSVG value={profileUrl} size={220} />
+            </div>
+            <p className="qr-modal-url">{profileUrl}</p>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

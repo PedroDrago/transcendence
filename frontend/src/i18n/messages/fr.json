@@ -5,11 +5,18 @@
       "messages": "Messages",
       "notifications": "Notifications",
       "profile": "Profil",
-      "settings": "Paramètres"
+      "settings": "Paramètres",
+      "addFriend": "Ajouter un ami",
+      "ariaLabel": "Navigation principale"
+    },
+    "qrModal": {
+      "title": "Ajouter un ami via QR Code",
+      "desc": "Scannez ce QR Code pour visiter votre profil."
     },
     "signOut": "Se déconnecter",
     "privacy": "Confidentialité",
-    "terms": "Conditions"
+    "terms": "Conditions",
+    "skipToMain": "Aller au contenu principal"
   },
   "Auth": {
     "welcomeBack": "De retour",
@@ -27,6 +34,26 @@
     "verify": "Vérifier",
     "verifying": "Vérification…",
     "cancel": "Annuler",
+    "backToLogin": "Retour à la connexion"
+  },
+  "Register": {
+    "createAccount": "Créer un compte",
+    "tagline": "Rejoignez Vellum pour partager vos moments, suivre vos amis et rester connecté.",
+    "username": "Nom d'utilisateur",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "passwordPlaceholder": "Au moins 8 caractères",
+    "submit": "Créer un compte",
+    "submitting": "Création du compte…",
+    "errorFallback": "Impossible de s'inscrire.",
+    "errorGeneric": "Une erreur s'est produite.",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "signIn": "Se connecter"
+  },
+  "AuthCallback": {
+    "signingIn": "Connexion en cours…",
+    "success": "Connexion réussie. Redirection…",
+    "errorTitle": "Échec de la connexion",
     "backToLogin": "Retour à la connexion"
   },
   "Feed": {
@@ -108,5 +135,56 @@
     "post": "Publier",
     "unlike": "Je n'aime plus",
     "like": "J'aime"
+  },
+  "Privacy": {
+    "title": "Politique de Confidentialité",
+    "lastUpdated": "Dernière mise à jour :",
+    "s1Title": "1. Introduction",
+    "s1Body": "Bienvenue sur Vellum. Nous respectons votre vie privée et nous nous engageons à protéger vos données personnelles. Cette politique de confidentialité vous informera sur la façon dont nous prenons soin de vos données personnelles lorsque vous visitez notre site web et vous informera de vos droits à la vie privée et de la façon dont la loi vous protège, conformément au Règlement Général sur la Protection des Données (RGPD).",
+    "s2Title": "2. Données que Nous Collectons",
+    "s2Intro": "Nous pouvons collecter, utiliser, stocker et transférer différents types de données personnelles vous concernant, que nous avons regroupées comme suit :",
+    "s2Li1": "Les Données d'Identité comprennent le nom d'utilisateur et le nom d'affichage.",
+    "s2Li2": "Les Données de Contact comprennent l'adresse e-mail.",
+    "s2Li3": "Les Données Techniques comprennent l'adresse IP, vos données de connexion, le type et la version du navigateur.",
+    "s2Li4": "Les Données de Profil comprennent votre nom d'utilisateur, mot de passe, avatars, bio et interactions (publications, messages, amitiés et blocages).",
+    "s3Title": "3. Comment Nous Utilisons Vos Données",
+    "s3Intro": "Nous n'utiliserons vos données personnelles que lorsque la loi nous y autorise. Généralement, nous utiliserons vos données personnelles dans les circonstances suivantes :",
+    "s3Li1": "Pour vous inscrire en tant que nouvel utilisateur.",
+    "s3Li2": "Pour gérer notre relation avec vous, y compris les notifications et la messagerie.",
+    "s3Li3": "Pour vous permettre de participer au réseau social (publications, commentaires, discussions).",
+    "s4Title": "4. Sécurité des Données",
+    "s4Body": "Nous avons mis en place des mesures de sécurité appropriées pour empêcher vos données personnelles d'être accidentellement perdues, utilisées ou consultées de manière non autorisée, modifiées ou divulguées. Vos données sont chiffrées et stockées en toute sécurité.",
+    "s5Title": "5. Vos Droits Légaux (RGPD)",
+    "s5Intro": "Dans certaines circonstances, vous disposez de droits en vertu des lois sur la protection des données concernant vos données personnelles, notamment le droit de :",
+    "s5Li1": "Demander l'accès à vos données personnelles.",
+    "s5Li2": "Demander la correction de vos données personnelles.",
+    "s5Li3": "Demander l'effacement de vos données personnelles (Droit à l'Oubli).",
+    "s5Li4": "Vous opposer au traitement de vos données personnelles.",
+    "s5Li5": "Demander la restriction du traitement de vos données personnelles.",
+    "s5Li6": "Demander le transfert de vos données personnelles.",
+    "s5Li7": "Droit de retirer votre consentement.",
+    "s5Outro": "Si vous souhaitez exercer l'un des droits mentionnés ci-dessus, veuillez contacter notre Délégué à la Protection des Données."
+  },
+  "Terms": {
+    "title": "Conditions d'Utilisation",
+    "lastUpdated": "Dernière mise à jour :",
+    "s1Title": "1. Acceptation des Conditions",
+    "s1Body": "En accédant ou en utilisant Vellum, vous acceptez d'être lié par ces Conditions d'Utilisation et toutes les lois et réglementations applicables. Si vous n'êtes pas d'accord avec l'une de ces conditions, il vous est interdit d'utiliser ou d'accéder à ce site.",
+    "s2Title": "2. Licence d'Utilisation",
+    "s2Intro": "L'autorisation est accordée d'utiliser temporairement les matériaux (informations ou logiciels) du site web de Vellum pour une visualisation personnelle, non commerciale et transitoire uniquement. Vous ne pouvez pas :",
+    "s2Li1": "Modifier ou copier les matériaux.",
+    "s2Li2": "Utiliser les matériaux à des fins commerciales.",
+    "s2Li3": "Tenter de décompiler ou de procéder à de la rétro-ingénierie sur tout logiciel contenu sur Vellum.",
+    "s2Li4": "Transférer les matériaux à une autre personne ou « refléter » les matériaux sur tout autre serveur.",
+    "s3Title": "3. Contenu de l'Utilisateur",
+    "s3Body": "Vous conservez tous les droits sur tout contenu que vous soumettez, publiez ou affichez sur Vellum. En soumettant, publiant ou affichant du contenu, vous nous accordez une licence mondiale, non exclusive et libre de redevances pour utiliser, copier, reproduire, traiter, adapter, modifier, publier, transmettre, afficher et distribuer ce contenu.",
+    "s4Title": "4. Politique d'Utilisation Acceptable",
+    "s4Intro": "Vous acceptez de ne pas utiliser la plateforme pour :",
+    "s4Li1": "Télécharger, publier ou transmettre tout contenu illégal, nuisible, menaçant, abusif, harcelant ou diffamatoire.",
+    "s4Li2": "Usurper l'identité de toute personne ou entité.",
+    "s4Li3": "Interférer avec ou perturber le service ou les serveurs.",
+    "s4Li4": "Violer toute loi locale, étatique, nationale ou internationale applicable.",
+    "s5Title": "5. Résiliation",
+    "s5Body": "Nous pouvons résilier ou suspendre votre accès à notre service immédiatement, sans préavis ni responsabilité, pour quelque raison que ce soit, y compris, sans limitation, si vous enfreignez les Conditions."
   }
 }

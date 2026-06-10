@@ -5,11 +5,18 @@
       "messages": "Mensajes",
       "notifications": "Notificaciones",
       "profile": "Perfil",
-      "settings": "Configuración"
+      "settings": "Configuración",
+      "addFriend": "Agregar Amigo",
+      "ariaLabel": "Navegación principal"
+    },
+    "qrModal": {
+      "title": "Agregar Amigo por QR Code",
+      "desc": "Escanea este código QR para visitar tu perfil."
     },
     "signOut": "Cerrar sesión",
     "privacy": "Privacidad",
-    "terms": "Términos"
+    "terms": "Términos",
+    "skipToMain": "Ir al contenido principal"
   },
   "Auth": {
     "welcomeBack": "Bienvenido de nuevo",
@@ -28,6 +35,26 @@
     "verifying": "Verificando…",
     "cancel": "Cancelar",
     "backToLogin": "Volver al login"
+  },
+  "Register": {
+    "createAccount": "Crear cuenta",
+    "tagline": "Únete a Vellum para compartir tus momentos, seguir amigos y mantenerte conectado.",
+    "username": "Nombre de usuario",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "passwordPlaceholder": "Al menos 8 caracteres",
+    "submit": "Crear cuenta",
+    "submitting": "Creando cuenta…",
+    "errorFallback": "No se pudo registrar.",
+    "errorGeneric": "Algo salió mal.",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "signIn": "Iniciar sesión"
+  },
+  "AuthCallback": {
+    "signingIn": "Iniciando sesión…",
+    "success": "Sesión iniciada correctamente. Redirigiendo…",
+    "errorTitle": "Error al iniciar sesión",
+    "backToLogin": "Volver al inicio de sesión"
   },
   "Feed": {
     "title": "Feed",
@@ -92,7 +119,7 @@
     "exportData": "Exportar mis datos",
     "importData": "Importar datos",
     "dangerZone": "Zona de Peligro",
-    "dangerZoneDesc": "Acciones irreversíveis y destructivas.",
+    "dangerZoneDesc": "Acciones irreversibles y destructivas.",
     "dangerZoneMsg": "Al eliminar tu cuenta, todos tus datos, incluyendo perfil, publicaciones y mensajes, serán eliminados de forma permanente. Esta acción no se puede deshacer.",
     "deleteAccount": "Eliminar Cuenta",
     "deleting": "Eliminando..."
@@ -108,5 +135,56 @@
     "post": "Publicar",
     "unlike": "Ya no me gusta",
     "like": "Me gusta"
+  },
+  "Privacy": {
+    "title": "Política de Privacidad",
+    "lastUpdated": "Última actualización:",
+    "s1Title": "1. Introducción",
+    "s1Body": "Bienvenido a Vellum. Respetamos tu privacidad y nos comprometemos a proteger tus datos personales. Esta política de privacidad te informará sobre cómo cuidamos tus datos personales cuando visitas nuestro sitio web y te informará sobre tus derechos de privacidad y cómo la ley te protege, de conformidad con el Reglamento General de Protección de Datos (RGPD).",
+    "s2Title": "2. Datos que Recopilamos",
+    "s2Intro": "Podemos recopilar, utilizar, almacenar y transferir diferentes tipos de datos personales sobre ti, que hemos agrupado de la siguiente manera:",
+    "s2Li1": "Datos de Identidad incluye nombre de usuario y nombre para mostrar.",
+    "s2Li2": "Datos de Contacto incluye dirección de correo electrónico.",
+    "s2Li3": "Datos Técnicos incluye dirección de protocolo de Internet (IP), datos de inicio de sesión, tipo y versión del navegador.",
+    "s2Li4": "Datos de Perfil incluye tu nombre de usuario, contraseña, avatares, biografía e interacciones (publicaciones, mensajes, amistades y bloqueos).",
+    "s3Title": "3. Cómo Usamos Tus Datos",
+    "s3Intro": "Solo utilizaremos tus datos personales cuando la ley nos lo permita. Comúnmente, usaremos tus datos personales en las siguientes circunstancias:",
+    "s3Li1": "Para registrarte como nuevo usuario.",
+    "s3Li2": "Para gestionar nuestra relación contigo, incluyendo notificaciones y mensajes.",
+    "s3Li3": "Para permitirte participar en la red social (publicar, comentar, chatear).",
+    "s4Title": "4. Seguridad de los Datos",
+    "s4Body": "Hemos implementado medidas de seguridad adecuadas para evitar que tus datos personales se pierdan accidentalmente, se usen o accedan de forma no autorizada, se alteren o divulguen. Tus datos están cifrados y almacenados de forma segura.",
+    "s5Title": "5. Tus Derechos Legales (RGPD)",
+    "s5Intro": "En determinadas circunstancias, tienes derechos bajo las leyes de protección de datos en relación con tus datos personales, incluyendo el derecho a:",
+    "s5Li1": "Solicitar acceso a tus datos personales.",
+    "s5Li2": "Solicitar la corrección de tus datos personales.",
+    "s5Li3": "Solicitar la eliminación de tus datos personales (Derecho al Olvido).",
+    "s5Li4": "Oponerte al tratamiento de tus datos personales.",
+    "s5Li5": "Solicitar la restricción del tratamiento de tus datos personales.",
+    "s5Li6": "Solicitar la transferencia de tus datos personales.",
+    "s5Li7": "Derecho a retirar el consentimiento.",
+    "s5Outro": "Si deseas ejercer alguno de los derechos mencionados, ponte en contacto con nuestro Responsable de Protección de Datos."
+  },
+  "Terms": {
+    "title": "Términos de Servicio",
+    "lastUpdated": "Última actualización:",
+    "s1Title": "1. Aceptación de los Términos",
+    "s1Body": "Al acceder o usar Vellum, aceptas estar sujeto a estos Términos de Servicio y todas las leyes y regulaciones aplicables. Si no estás de acuerdo con alguno de estos términos, tienes prohibido usar o acceder a este sitio.",
+    "s2Title": "2. Licencia de Uso",
+    "s2Intro": "Se otorga permiso para usar temporalmente los materiales (información o software) del sitio web de Vellum solo para visualización personal, no comercial y transitoria. No puedes:",
+    "s2Li1": "Modificar o copiar los materiales.",
+    "s2Li2": "Usar los materiales con fines comerciales.",
+    "s2Li3": "Intentar descompilar o realizar ingeniería inversa del software de Vellum.",
+    "s2Li4": "Transferir los materiales a otra persona o \"reflejar\" los materiales en otro servidor.",
+    "s3Title": "3. Contenido del Usuario",
+    "s3Body": "Conservas todos los derechos sobre cualquier contenido que envíes, publiques o muestres en Vellum. Al enviar, publicar o mostrar contenido, nos otorgas una licencia mundial, no exclusiva y libre de regalías para usar, copiar, reproducir, procesar, adaptar, modificar, publicar, transmitir, mostrar y distribuir dicho contenido.",
+    "s4Title": "4. Política de Uso Aceptable",
+    "s4Intro": "Aceptas no usar la plataforma para:",
+    "s4Li1": "Cargar, publicar o transmitir contenido ilegal, dañino, amenazante, abusivo, acosador o difamatorio.",
+    "s4Li2": "Suplantar la identidad de cualquier persona o entidad.",
+    "s4Li3": "Interferir o interrumpir el servicio o los servidores.",
+    "s4Li4": "Violar cualquier ley local, estatal, nacional o internacional aplicable.",
+    "s5Title": "5. Terminación",
+    "s5Body": "Podemos cancelar o suspender tu acceso a nuestro servicio de inmediato, sin previo aviso ni responsabilidad, por cualquier motivo, incluyendo, sin limitación, si incumples los Términos."
   }
 }

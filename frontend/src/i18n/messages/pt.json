@@ -5,11 +5,18 @@
       "messages": "Mensagens",
       "notifications": "Notificações",
       "profile": "Perfil",
-      "settings": "Configurações"
+      "settings": "Configurações",
+      "addFriend": "Adicionar Amigo",
+      "ariaLabel": "Navegação principal"
+    },
+    "qrModal": {
+      "title": "Adicionar Amigo via QR Code",
+      "desc": "Escaneie este QR Code para visitar o seu perfil."
     },
     "signOut": "Sair",
     "privacy": "Privacidade",
-    "terms": "Termos"
+    "terms": "Termos",
+    "skipToMain": "Ir para o conteúdo principal"
   },
   "Auth": {
     "welcomeBack": "Bem-vindo de volta",
@@ -27,6 +34,26 @@
     "verify": "Verificar",
     "verifying": "Verificando…",
     "cancel": "Cancelar",
+    "backToLogin": "Voltar ao login"
+  },
+  "Register": {
+    "createAccount": "Criar conta",
+    "tagline": "Junte-se ao Vellum para compartilhar seus momentos, seguir amigos e ficar conectado.",
+    "username": "Nome de usuário",
+    "email": "E-mail",
+    "password": "Senha",
+    "passwordPlaceholder": "Pelo menos 8 caracteres",
+    "submit": "Criar conta",
+    "submitting": "Criando conta…",
+    "errorFallback": "Não foi possível registrar.",
+    "errorGeneric": "Algo deu errado.",
+    "alreadyHaveAccount": "Já tem uma conta?",
+    "signIn": "Entrar"
+  },
+  "AuthCallback": {
+    "signingIn": "Fazendo login…",
+    "success": "Login realizado com sucesso. Redirecionando…",
+    "errorTitle": "Falha no login",
     "backToLogin": "Voltar ao login"
   },
   "Feed": {
@@ -108,5 +135,56 @@
     "post": "Publicar",
     "unlike": "Descurtir",
     "like": "Curtir"
+  },
+  "Privacy": {
+    "title": "Política de Privacidade",
+    "lastUpdated": "Última atualização:",
+    "s1Title": "1. Introdução",
+    "s1Body": "Bem-vindo ao Vellum. Respeitamos sua privacidade e estamos comprometidos em proteger seus dados pessoais. Esta política de privacidade informará como cuidamos de seus dados pessoais quando você visita nosso site e informará sobre seus direitos de privacidade e como a lei o protege, em conformidade com o Regulamento Geral de Proteção de Dados (RGPD).",
+    "s2Title": "2. Dados que Coletamos",
+    "s2Intro": "Podemos coletar, usar, armazenar e transferir diferentes tipos de dados pessoais sobre você, que agrupamos da seguinte forma:",
+    "s2Li1": "Dados de Identidade incluem nome de usuário e nome de exibição.",
+    "s2Li2": "Dados de Contato incluem endereço de e-mail.",
+    "s2Li3": "Dados Técnicos incluem endereço de protocolo de internet (IP), seus dados de login, tipo e versão do navegador.",
+    "s2Li4": "Dados de Perfil incluem seu nome de usuário, senha, avatares, bio e interações (postagens, mensagens, amizades e bloqueios).",
+    "s3Title": "3. Como Usamos Seus Dados",
+    "s3Intro": "Usaremos seus dados pessoais apenas quando a lei nos permitir. Geralmente, usaremos seus dados pessoais nas seguintes circunstâncias:",
+    "s3Li1": "Para registrá-lo como novo usuário.",
+    "s3Li2": "Para gerenciar nosso relacionamento com você, incluindo notificações e mensagens.",
+    "s3Li3": "Para permitir que você participe da rede social (postagens, comentários, conversas).",
+    "s4Title": "4. Segurança dos Dados",
+    "s4Body": "Implementamos medidas de segurança adequadas para evitar que seus dados pessoais sejam perdidos acidentalmente, usados ou acessados de forma não autorizada, alterados ou divulgados. Seus dados são criptografados e armazenados com segurança.",
+    "s5Title": "5. Seus Direitos Legais (RGPD)",
+    "s5Intro": "Em certas circunstâncias, você tem direitos sob as leis de proteção de dados em relação aos seus dados pessoais, incluindo o direito de:",
+    "s5Li1": "Solicitar acesso aos seus dados pessoais.",
+    "s5Li2": "Solicitar a correção dos seus dados pessoais.",
+    "s5Li3": "Solicitar a exclusão dos seus dados pessoais (Direito ao Esquecimento).",
+    "s5Li4": "Opor-se ao processamento dos seus dados pessoais.",
+    "s5Li5": "Solicitar a restrição do processamento dos seus dados pessoais.",
+    "s5Li6": "Solicitar a transferência dos seus dados pessoais.",
+    "s5Li7": "Direito de retirar o consentimento.",
+    "s5Outro": "Se desejar exercer algum dos direitos acima, entre em contato com nosso Encarregado de Proteção de Dados."
+  },
+  "Terms": {
+    "title": "Termos de Serviço",
+    "lastUpdated": "Última atualização:",
+    "s1Title": "1. Concordância com os Termos",
+    "s1Body": "Ao acessar ou usar o Vellum, você concorda em estar vinculado a estes Termos de Serviço e todas as leis e regulamentos aplicáveis. Se você não concordar com algum desses termos, está proibido de usar ou acessar este site.",
+    "s2Title": "2. Licença de Uso",
+    "s2Intro": "É concedida permissão para usar temporariamente os materiais (informações ou software) do site do Vellum apenas para visualização pessoal, não comercial e transitória. Você não pode:",
+    "s2Li1": "Modificar ou copiar os materiais.",
+    "s2Li2": "Usar os materiais para qualquer finalidade comercial.",
+    "s2Li3": "Tentar descompilar ou fazer engenharia reversa de qualquer software contido no Vellum.",
+    "s2Li4": "Transferir os materiais para outra pessoa ou \"espelhar\" os materiais em qualquer outro servidor.",
+    "s3Title": "3. Conteúdo do Usuário",
+    "s3Body": "Você retém todos os direitos sobre qualquer conteúdo que enviar, postar ou exibir no Vellum. Ao enviar, postar ou exibir conteúdo, você nos concede uma licença mundial, não exclusiva e sem royalties para usar, copiar, reproduzir, processar, adaptar, modificar, publicar, transmitir, exibir e distribuir tal conteúdo.",
+    "s4Title": "4. Política de Uso Aceitável",
+    "s4Intro": "Você concorda em não usar a plataforma para:",
+    "s4Li1": "Carregar, postar ou transmitir qualquer conteúdo ilegal, prejudicial, ameaçador, abusivo, assediador ou difamatório.",
+    "s4Li2": "Personificar qualquer pessoa ou entidade.",
+    "s4Li3": "Interferir ou interromper o serviço ou servidores.",
+    "s4Li4": "Violar qualquer lei local, estadual, nacional ou internacional aplicável.",
+    "s5Title": "5. Rescisão",
+    "s5Body": "Podemos encerrar ou suspender seu acesso ao nosso serviço imediatamente, sem aviso prévio ou responsabilidade, por qualquer motivo, incluindo, sem limitação, se você violar os Termos."
   }
 }

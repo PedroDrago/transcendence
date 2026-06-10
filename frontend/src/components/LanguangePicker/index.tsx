@@ -7,6 +7,7 @@ const LANGUAGES = [
   { code: 'es', label: 'Español' },
   { code: 'fr', label: 'Français' },
   { code: 'pt', label: 'Português (Brasil)' },
+  { code: 'ar', label: 'العربية' },
 ];
 
 const COOKIE_NAME = 'transcendence_locale';
@@ -37,13 +38,14 @@ export default function LanguagePicker({ variant = 'compact' }: Props) {
 
   if (variant === 'full') {
     return (
-      <div className="lang-picker-full">
+      <div className="lang-picker-full" role="group" aria-label="Language">
         {LANGUAGES.map(({ code, label }) => (
           <button
             key={code}
             type="button"
             className={`lang-option${lang === code ? ' lang-option--active' : ''}`}
             onClick={() => { if (lang !== code) { setCookie(COOKIE_NAME, code); window.location.reload(); } }}
+            aria-pressed={lang === code}
           >
             <span className="lang-option-code">{code.toUpperCase()}</span>
             <span className="lang-option-label">{label}</span>
@@ -54,7 +56,7 @@ export default function LanguagePicker({ variant = 'compact' }: Props) {
   }
 
   return (
-    <select className="lang-select" value={lang} onChange={handleChange}>
+    <select className="lang-select" value={lang} onChange={handleChange} aria-label="Language">
       {LANGUAGES.map(({ code, label }) => (
         <option key={code} value={code}>{label}</option>
       ))}
