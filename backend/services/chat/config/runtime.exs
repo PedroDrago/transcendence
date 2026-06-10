@@ -41,11 +41,14 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
-  host = System.get_env("PHX_HOST") || "example.com"
+  host = System.get_env("PHX_HOST") || "localhost"
 
   config :transcendence_chat, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
+  # check_origin: false because this service sits behind the API gateway which
+  # already validates JWT tokens before forwarding WebSocket upgrades.
   config :transcendence_chat, TranscendenceChatWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
-    secret_key_base: secret_key_base
+    secret_key_base: secret_key_base,
+    check_origin: false
 end
