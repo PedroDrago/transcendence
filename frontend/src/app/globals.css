@@ -1392,6 +1392,7 @@ button, input, textarea, select {
   flex-direction: column;
   background: #0D0D0D;
   overflow: hidden;
+  position: relative;
 }
 
 .conv-sidebar-head {
@@ -1419,6 +1420,7 @@ button, input, textarea, select {
 .conv-list {
   flex: 1;
   overflow-y: auto;
+  padding-bottom: 72px;
 }
 
 .conv-item {
@@ -1631,33 +1633,183 @@ button, input, textarea, select {
   letter-spacing: 0.08em;
 }
 
-.new-chat-form {
-  padding: 12px 16px;
-  border-top: 1px solid var(--line);
+/* FAB — new conversation */
+.conv-fab {
+  position: absolute;
+  bottom: 20px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 300;
+  line-height: 1;
+  cursor: pointer;
   display: flex;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(137, 59, 150, 0.5);
+  transition:
+    background var(--dur-micro) var(--ease),
+    transform var(--dur-micro) var(--ease),
+    box-shadow var(--dur-micro) var(--ease);
+  z-index: 10;
 }
 
-.new-chat-form input {
+.conv-fab:hover {
+  background: #a54db8;
+  transform: scale(1.06);
+  box-shadow: 0 6px 20px rgba(137, 59, 150, 0.65);
+}
+
+.conv-fab:active {
+  transform: scale(0.96);
+}
+
+
+/* Conversation name row (name + group tag) */
+.conv-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.conv-type-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-strong);
+  background: var(--accent-deep);
+  border: 1px solid rgba(137, 59, 150, 0.35);
+  border-radius: var(--radius-tag);
+  padding: 1px 6px;
+  flex-shrink: 0;
+}
+
+/* New conversation modal */
+.conv-new-modal {
+  width: min(400px, calc(100vw - 32px));
+}
+
+.conv-modal-choice {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.conv-modal-choice-btn {
   flex: 1;
-  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 16px;
+  background: #0D0D0D;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transition:
+    border-color var(--dur-micro) var(--ease),
+    background var(--dur-micro) var(--ease);
+}
+
+.conv-modal-choice-btn:hover {
+  border-color: var(--accent);
+  background: var(--accent-deep);
+}
+
+.conv-modal-choice-icon {
+  font-size: 24px;
+  color: var(--accent-strong);
+}
+
+/* Friend list inside modal */
+.conv-friend-list {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #0D0D0D;
+  margin-bottom: 4px;
+}
+
+.conv-friend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  text-align: left;
   color: var(--text);
   font-family: var(--font-mono);
   font-size: 12px;
-  transition: border-color var(--dur-micro) var(--ease), box-shadow var(--dur-micro) var(--ease);
+  transition: background var(--dur-micro) var(--ease);
 }
 
-.new-chat-form input::placeholder {
-  color: rgba(255, 255, 255, 0.24);
+.conv-friend-item:last-child {
+  border-bottom: none;
 }
 
-.new-chat-form input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: var(--ring);
+.conv-friend-item:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.conv-friend-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.conv-friend-item--selected {
+  background: var(--accent-deep);
+}
+
+.conv-friend-item--selected:hover {
+  background: rgba(61, 29, 77, 0.8) !important;
+}
+
+.conv-friend-item-name {
+  flex: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.conv-friend-item-check {
+  color: var(--accent-strong);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Chat panel header — name + member list for groups */
+.chat-panel-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.chat-panel-members {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* =========================================================================
