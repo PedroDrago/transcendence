@@ -220,11 +220,10 @@ The Docker workflow does not require host installations of Node.js, Bun, Elixir,
 1. Clone and enter the repository:
 
    ```bash
-   git clone <repository-url>
+   git clone git@vogsphere.42.rio:vogsphere/intra-uuid-a50b7cdc-b07f-40ee-a32a-2c683dc4da6b-7461841-dherszen
    cd transcendence
    ```
 
-   <!-- Replace with the canonical submission repository URL. -->
 
 2. Generate configuration, build, and start:
 
