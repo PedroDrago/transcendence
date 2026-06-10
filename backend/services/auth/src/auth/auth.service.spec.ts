@@ -30,6 +30,7 @@ describe('AuthService', () => {
           useValue: {
             createProfile: jest.fn(),
             updateUsername: jest.fn(),
+            deleteProfile: jest.fn(),
             toHttpException: jest.fn((_error, message) => new Error(message)),
           },
         },
@@ -124,6 +125,32 @@ describe('AuthService', () => {
       'alice',
       true,
     );
+  });
+
+  it('deletes the profile before deleting auth credentials', async () => {
+    const user = createAuthUser();
+    usersService.findById.mockResolvedValue(user);
+
+    await expect(service.deleteUser(user.id)).resolves.toBeUndefined();
+
+    expect(profileSyncService.deleteProfile).toHaveBeenCalledWith(user.id);
+    expect(usersService.deleteById).toHaveBeenCalledWith(user.id);
+    expect(profileSyncService.deleteProfile.mock.invocationCallOrder[0])
+      .toBeLessThan(usersService.deleteById.mock.invocationCallOrder[0]);
+  });
+
+  it('keeps auth credentials when profile deletion fails', async () => {
+    const user = createAuthUser();
+    usersService.findById.mockResolvedValue(user);
+    profileSyncService.deleteProfile.mockRejectedValue(
+      new Error('user service down'),
+    );
+
+    await expect(service.deleteUser(user.id)).rejects.toThrow(
+      'User profile could not be deleted',
+    );
+
+    expect(usersService.deleteById).not.toHaveBeenCalled();
   });
 });
 

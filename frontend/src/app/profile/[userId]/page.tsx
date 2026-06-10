@@ -12,6 +12,7 @@ import {
   Post,
   FriendRequest,
 } from '@/lib/api';
+import { useMyId } from '@/lib/hooks';
 import { decodeJwt, getStoredAppToken } from '@/lib/auth';
 import { useTranslations } from 'next-intl';
 
@@ -30,7 +31,7 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
   const { userId: rawId } = use(params);
   const router = useRouter();
 
-  const myId = decodeJwt(getStoredAppToken())?.sub as string | undefined;
+  const myId = useMyId();
   const isSelf = rawId === myId;
 
   const [profile,  setProfile]  = useState<UserProfile | null>(null);

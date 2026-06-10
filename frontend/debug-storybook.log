@@ -1,0 +1,34 @@
+[08:33:06.248] [INFO] storybook v10.4.3
+[08:33:07.080] [DEBUG] Getting package.json info for /home/fenol64/projects/transcendence/frontend/package.json...
+[08:33:07.081] [WARN] You are currently using Storybook 10.4.3 but you have packages which are incompatible with it:
+
+- @storybook/addon-essentials@8.6.14 which depends on 8.6.14
+ Repo: https://github.com/storybookjs/storybook/tree/next/code/addons/essentials
+
+Please consider updating your packages or contacting the maintainers for compatibility details.
+
+For more details on compatibility guidance, see:
+https://github.com/storybookjs/storybook/issues/32836
+[08:33:07.778] [INFO] Starting...
+[08:33:07.789] [INFO] Storybook collects completely anonymous usage telemetry. We use it to shape Storybook's roadmap and prioritize features. You can learn more, including how to opt out, at https://storybook.js.org/telemetry
+[08:33:07.985] [ERROR] [38;2;241;97;97mSB_CORE-SERVER_0004 (NoMatchingExportError): There was an exports mismatch error when trying to build Storybook.
+Please check whether the versions of your Storybook packages match whenever possible, as this might be the cause.
+
+Problematic example:
+{ "@storybook/react": "7.5.3", "@storybook/react-vite": "7.4.5", "storybook": "7.3.0" }
+
+Correct example:
+{ "@storybook/react": "7.5.3", "@storybook/react-vite": "7.5.3", "storybook": "7.5.3" }
+
+Please run `npx storybook doctor` for guidance on how to fix this issue.
+
+More info: 
+[39m
+    at buildOrThrow (file://./node_modules/storybook/dist/core-server/index.js:8210:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async buildDevStandalone (file://./node_modules/storybook/dist/core-server/index.js:12057:41)
+    at async withTelemetry (file://./node_modules/storybook/dist/_node-chunks/chunk-ZQ5NLTS2.js:655:12)
+    at async dev (file://./node_modules/storybook/dist/bin/core.js:2735:3)
+    at async _Command.<anonymous> (file://./node_modules/storybook/dist/bin/core.js:2805:92)
+[08:33:07.987] [WARN] Broken build, fix the error above.
+You may need to refresh the browser.

@@ -8,9 +8,13 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-export default function InstallPWA() {
+interface InstallPWAProps {
+  forceShow?: boolean;
+}
+
+export default function InstallPWA({ forceShow = false }: InstallPWAProps) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstallable, setIsInstallable] = useState(false);
+  const [isInstallable, setIsInstallable] = useState(forceShow);
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {

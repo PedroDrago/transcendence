@@ -237,7 +237,8 @@ button, input, textarea, select {
 
 .auth-field input:focus,
 .auth-textarea:focus {
-  outline: none;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
   border-color: var(--accent);
   box-shadow: var(--ring);
 }
@@ -506,6 +507,11 @@ button, input, textarea, select {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   transition: background var(--dur-micro) var(--ease), color var(--dur-micro) var(--ease);
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
 }
 
 .app-nav-link:hover {
@@ -662,7 +668,8 @@ button, input, textarea, select {
 }
 
 .app-btn:focus-visible {
-  outline: 0;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
   box-shadow: var(--ring);
 }
 
@@ -1003,7 +1010,8 @@ button, input, textarea, select {
 }
 
 .comment-form input:focus {
-  outline: none;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
   border-color: var(--accent);
   box-shadow: var(--ring);
 }
@@ -1102,7 +1110,8 @@ button, input, textarea, select {
 
 .modal-field input:focus,
 .modal-field textarea:focus {
-  outline: none;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
   border-color: var(--accent);
   box-shadow: var(--ring);
 }
@@ -1136,6 +1145,35 @@ button, input, textarea, select {
   font-size: 12px;
   color: var(--error);
   margin-top: 8px;
+}
+
+.qr-modal-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.qr-modal-desc {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.qr-modal-code {
+  padding: 16px;
+  background: #fff;
+  border-radius: var(--radius);
+  line-height: 0;
+}
+
+.qr-modal-url {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  word-break: break-all;
+  text-align: center;
 }
 
 /* =========================================================================
@@ -1392,6 +1430,7 @@ button, input, textarea, select {
   flex-direction: column;
   background: #0D0D0D;
   overflow: hidden;
+  position: relative;
 }
 
 .conv-sidebar-head {
@@ -1419,6 +1458,7 @@ button, input, textarea, select {
 .conv-list {
   flex: 1;
   overflow-y: auto;
+  padding-bottom: 72px;
 }
 
 .conv-item {
@@ -1606,7 +1646,6 @@ button, input, textarea, select {
   color: var(--text);
   font-family: var(--font-mono);
   font-size: 13px;
-  outline: none;
   transition: border-color var(--dur-micro) var(--ease), box-shadow var(--dur-micro) var(--ease);
 }
 
@@ -1615,6 +1654,8 @@ button, input, textarea, select {
 }
 
 .chat-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
   border-color: var(--accent);
   box-shadow: var(--ring);
 }
@@ -1631,33 +1672,183 @@ button, input, textarea, select {
   letter-spacing: 0.08em;
 }
 
-.new-chat-form {
-  padding: 12px 16px;
-  border-top: 1px solid var(--line);
+/* FAB — new conversation */
+.conv-fab {
+  position: absolute;
+  bottom: 20px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 300;
+  line-height: 1;
+  cursor: pointer;
   display: flex;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(137, 59, 150, 0.5);
+  transition:
+    background var(--dur-micro) var(--ease),
+    transform var(--dur-micro) var(--ease),
+    box-shadow var(--dur-micro) var(--ease);
+  z-index: 10;
 }
 
-.new-chat-form input {
+.conv-fab:hover {
+  background: #a54db8;
+  transform: scale(1.06);
+  box-shadow: 0 6px 20px rgba(137, 59, 150, 0.65);
+}
+
+.conv-fab:active {
+  transform: scale(0.96);
+}
+
+
+/* Conversation name row (name + group tag) */
+.conv-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.conv-type-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-strong);
+  background: var(--accent-deep);
+  border: 1px solid rgba(137, 59, 150, 0.35);
+  border-radius: var(--radius-tag);
+  padding: 1px 6px;
+  flex-shrink: 0;
+}
+
+/* New conversation modal */
+.conv-new-modal {
+  width: min(400px, calc(100vw - 32px));
+}
+
+.conv-modal-choice {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.conv-modal-choice-btn {
   flex: 1;
-  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 16px;
+  background: #0D0D0D;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transition:
+    border-color var(--dur-micro) var(--ease),
+    background var(--dur-micro) var(--ease);
+}
+
+.conv-modal-choice-btn:hover {
+  border-color: var(--accent);
+  background: var(--accent-deep);
+}
+
+.conv-modal-choice-icon {
+  font-size: 24px;
+  color: var(--accent-strong);
+}
+
+/* Friend list inside modal */
+.conv-friend-list {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #0D0D0D;
+  margin-bottom: 4px;
+}
+
+.conv-friend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  text-align: left;
   color: var(--text);
   font-family: var(--font-mono);
   font-size: 12px;
-  transition: border-color var(--dur-micro) var(--ease), box-shadow var(--dur-micro) var(--ease);
+  transition: background var(--dur-micro) var(--ease);
 }
 
-.new-chat-form input::placeholder {
-  color: rgba(255, 255, 255, 0.24);
+.conv-friend-item:last-child {
+  border-bottom: none;
 }
 
-.new-chat-form input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: var(--ring);
+.conv-friend-item:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.conv-friend-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.conv-friend-item--selected {
+  background: var(--accent-deep);
+}
+
+.conv-friend-item--selected:hover {
+  background: rgba(61, 29, 77, 0.8) !important;
+}
+
+.conv-friend-item-name {
+  flex: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.conv-friend-item-check {
+  color: var(--accent-strong);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Chat panel header — name + member list for groups */
+.chat-panel-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.chat-panel-members {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* =========================================================================
@@ -1792,7 +1983,8 @@ button, input, textarea, select {
 
 .settings-field input:focus,
 .settings-field textarea:focus {
-  outline: none;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
   border-color: var(--accent);
   box-shadow: var(--ring);
 }
@@ -1940,8 +2132,87 @@ button, input, textarea, select {
 }
 
 /* =========================================================================
-   Language picker — pass-through, no overrides needed
+   Language picker
    ========================================================================= */
+
+.lang-select {
+  background: #0D0D0D;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color var(--dur-micro) var(--ease), box-shadow var(--dur-micro) var(--ease);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.42)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.lang-select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+
+.lang-select option {
+  background: #1C1C1C;
+  color: var(--text);
+}
+
+/* Full variant — button group */
+
+.lang-picker-full {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lang-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--dur-micro) var(--ease), border-color var(--dur-micro) var(--ease), color var(--dur-micro) var(--ease);
+}
+
+.lang-option:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+}
+
+.lang-option--active {
+  border-color: rgba(137, 59, 150, 0.5);
+  background: rgba(137, 59, 150, 0.12);
+  color: var(--text);
+}
+
+.lang-option-code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--accent-strong);
+  min-width: 28px;
+}
+
+.lang-option--active .lang-option-code {
+  color: var(--accent-strong);
+}
+
+.lang-option-label {
+  font-size: 14px;
+}
 
 /* =========================================================================
    Responsive
@@ -2019,5 +2290,153 @@ button, input, textarea, select {
 
   .auth-shell::before {
     margin-bottom: 32px;
+  }
+}
+
+/* =========================================================================
+   Accessibility: sr-only + skip link + global focus
+   ========================================================================= */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--radius);
+  text-decoration: none;
+  transition: top 0.1s;
+}
+
+.skip-link:focus {
+  top: 16px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* =========================================================================
+   RTL layout mirroring
+   ========================================================================= */
+
+[dir="rtl"] .app-nav {
+  left: auto;
+  right: 0;
+  border-right: none;
+  border-left: 1px solid var(--line);
+}
+
+[dir="rtl"] .app-main {
+  margin-left: 0;
+  margin-right: 240px;
+}
+
+[dir="rtl"] .app-nav-link {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+[dir="rtl"] .app-nav-profile-link {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .app-nav-logout {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .app-nav-icon .badge {
+  right: auto;
+  left: -8px;
+}
+
+[dir="rtl"] .conv-sidebar {
+  border-right: none;
+  border-left: 1px solid var(--line);
+}
+
+[dir="rtl"] .conv-item {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+[dir="rtl"] .chat-bubble--mine {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+[dir="rtl"] .chat-bubble--theirs {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+[dir="rtl"] .post-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .post-actions {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .notif-item {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+[dir="rtl"] .profile-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .lang-select {
+  background-position: left 12px center;
+  padding-right: 14px;
+  padding-left: 36px;
+}
+
+[dir="rtl"] .auth-shell {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .settings-section {
+  text-align: right;
+}
+
+@media (max-width: 860px) {
+  [dir="rtl"] .app-nav {
+    left: 0;
+    right: 0;
+    border-left: none;
+    border-right: none;
+    border-top: 1px solid var(--line);
+  }
+
+  [dir="rtl"] .app-main {
+    margin-right: 0;
   }
 }

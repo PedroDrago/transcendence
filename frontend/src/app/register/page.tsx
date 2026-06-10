@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import LanguagePicker from '@/components/LanguangePicker';
 import {
   getStoredAuthBase,
@@ -12,6 +13,7 @@ import {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const t = useTranslations('Register');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,7 +40,7 @@ export default function RegisterPage() {
       const body = await response.json();
       if (!response.ok) {
         throw new Error(
-          Array.isArray(body.message) ? body.message.join(', ') : (body.message ?? 'Unable to register.'),
+          Array.isArray(body.message) ? body.message.join(', ') : (body.message ?? t('errorFallback')),
         );
       }
 
@@ -49,7 +51,7 @@ export default function RegisterPage() {
         router.push('/login');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.');
+      setError(err instanceof Error ? err.message : t('errorGeneric'));
     } finally {
       setLoading(false);
     }
@@ -60,18 +62,16 @@ export default function RegisterPage() {
       <section className="auth-card auth-card--hero">
         <div>
           <p className="auth-kicker">Vellum</p>
-          <h1>Create account</h1>
-          <p className="auth-copy">
-            Join Vellum to share your moments, follow friends, and stay connected.
-          </p>
+          <h1>{t('createAccount')}</h1>
+          <p className="auth-copy">{t('tagline')}</p>
         </div>
         <LanguagePicker />
       </section>
 
       <section className="auth-card auth-card--form">
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <label className="auth-field">
-            <span>Username</span>
+            <span>{t('username')}</span>
             <input
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -80,37 +80,40 @@ export default function RegisterPage() {
               minLength={3}
               maxLength={20}
               autoFocus
+              aria-required="true"
             />
           </label>
           <label className="auth-field">
-            <span>Email</span>
+            <span>{t('email')}</span>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               autoComplete="email"
+              aria-required="true"
             />
           </label>
           <label className="auth-field">
-            <span>Password</span>
+            <span>{t('password')}</span>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 8 characters"
+              placeholder={t('passwordPlaceholder')}
               autoComplete="new-password"
               minLength={8}
+              aria-required="true"
             />
           </label>
-          {error && <p className="auth-error">{error}</p>}
+          {error && <p className="auth-error" role="alert">{error}</p>}
           <button type="submit" disabled={loading}>
-            {loading ? 'Creating account…' : 'Create account'}
+            {loading ? t('submitting') : t('submit')}
           </button>
         </form>
 
         <p className="auth-switch">
-          Already have an account? <Link href="/login">Sign in</Link>
+          {t('alreadyHaveAccount')} <Link href="/login">{t('signIn')}</Link>
         </p>
       </section>
     </main>

@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { Post, UserProfile, posts as postsApi, Comment, users as usersApi } from '@/lib/api';
-import { decodeJwt, getStoredAppToken } from '@/lib/auth';
+import { useMyId } from '@/lib/hooks';
 import Avatar from '@/components/Avatar';
 import { useTranslations } from 'next-intl';
+import { decodeJwt, getStoredAppToken } from '@/lib/auth';
 
 interface Props {
   post: Post;
@@ -23,6 +24,7 @@ function timeAgo(iso: string, t: any): string {
 }
 
 export default function PostCard({ post, author, me }: Props) {
+  // const myId = useMyId();
   const tTime = useTranslations('Time');
   const tPost = useTranslations('PostCard');
   const myId = decodeJwt(getStoredAppToken())?.sub as string | undefined;

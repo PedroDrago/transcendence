@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import AppShell from '@/components/AppShell';
 import Avatar from '@/components/Avatar';
+import LanguagePicker from '@/components/LanguangePicker';
 import { users as usersApi, auth as authApi, UserProfile } from '@/lib/api';
 import { setStoredAppToken, clearStoredAuth } from '@/lib/auth';
 

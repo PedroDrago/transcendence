@@ -1,0 +1,20 @@
+/* Isolate globals.css dark body background to story content only.
+   Without this, the Storybook docs page background is overridden to black. */
+
+body {
+  background: transparent !important;
+}
+
+/* Story wrapper restores the dark theme inside stories */
+.sb-theme-wrapper {
+  background: var(--bg, #000000);
+  color: var(--text, #ffffff);
+  min-height: 100%;
+}
+
+/* Docs page: ensure readable contrast on the docs shell */
+.sbdocs-wrapper,
+.sb-story-block,
+#storybook-root {
+  background: transparent;
+}

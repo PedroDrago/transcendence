@@ -1,12 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import AppShell from '@/components/AppShell';
 import PostCard from '@/components/PostCard';
 import Avatar from '@/components/Avatar';
 import { posts as postsApi, stories as storiesApi, users as usersApi, Post, Story, UserProfile } from '@/lib/api';
-import { decodeJwt, getStoredAppToken } from '@/lib/auth';
-import { useTranslations } from 'next-intl';
+import { useMyId } from '@/lib/hooks';
 
 // ─── Stories strip ────────────────────────────────────────
 
@@ -191,7 +191,7 @@ function NewPostModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
 
 export default function FeedPage() {
   const t = useTranslations('Feed');
-  const myId = decodeJwt(getStoredAppToken())?.sub as string | undefined;
+  const myId = useMyId();
 
   const [me,        setMe]        = useState<UserProfile | null>(null);
   const [postsList, setPostsList] = useState<Post[]>([]);

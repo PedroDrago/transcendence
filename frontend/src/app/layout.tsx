@@ -3,6 +3,8 @@ import { getLocale, getMessages } from 'next-intl/server';
 import InstallPWA from '@/components/InstallPWA';
 import './globals.css';
 
+const RTL_LOCALES = ['ar'];
+
 type Props = {
   children: React.ReactNode;
 };
@@ -10,8 +12,9 @@ type Props = {
 export default async function RootLayout({children}: Props) {
     const messages = await getMessages();
     const locale = await getLocale();
+    const dir = RTL_LOCALES.includes(locale) ? 'rtl' : 'ltr';
   return (
-    <html lang={locale}>
+    <html lang={locale} dir={dir}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
