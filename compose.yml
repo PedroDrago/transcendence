@@ -179,7 +179,7 @@ services:
   chat-service:
     build:
       context: ./backend/services/chat
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
       db-bootstrap:
@@ -191,17 +191,15 @@ services:
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_NAME: ${POSTGRES_DB}
-    command: sh -c "mix ecto.migrate && mix phx.server"
     healthcheck:
       test:
         - CMD-SHELL
-        - wget -q -O /dev/null http://127.0.0.1:4002/ || exit 1
+        - wget -q -O /dev/null http://127.0.0.1:4002/health || exit 1
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 30s
     networks:
-      - transcendence-public
       - transcendence-internal
 
   posts-service:

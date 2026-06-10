@@ -194,13 +194,12 @@ fi
 CHAT_ENV="./backend/services/chat/.env"
 if [ ! -f "$CHAT_ENV" ]; then
     cat << EOF > "$CHAT_ENV"
-MIX_ENV=dev
 PORT=${CHAT_PORT}
 PHX_IP=0.0.0.0
-PHX_SERVER="true"
+PHX_SERVER=true
 DB_HOST=${DB_HOST}
 DB_PORT=${DB_PORT}
-DEV_SECRET_KEY_BASE=$(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9' | head -c 64)
+SECRET_KEY_BASE=$(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9' | head -c 64)
 EOF
     echo "✅ Chat .env generated!"
 else
