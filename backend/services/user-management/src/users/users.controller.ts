@@ -178,6 +178,14 @@ export class UsersController {
 		return this.usersService.findOne(id);
 	}
 
+	@Delete('me')
+	@HttpCode(HttpStatus.NO_CONTENT)
+	async removeMe(@Headers('x-user-id') requesterId: string): Promise<void> {
+		this.validateUserId(requesterId);
+		await this.usersService.remove(requesterId);
+		return;
+	}
+
 	@Delete(':id')
 	@HttpCode(HttpStatus.NO_CONTENT)
 	async remove(
