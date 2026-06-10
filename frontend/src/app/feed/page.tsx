@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import AppShell from '@/components/AppShell';
 import PostCard from '@/components/PostCard';
 import Avatar from '@/components/Avatar';
@@ -189,6 +190,7 @@ function NewPostModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
 // ─── Feed page ────────────────────────────────────────────
 
 export default function FeedPage() {
+  const t = useTranslations('Feed');
   const myId = useMyId();
 
   const [me,        setMe]        = useState<UserProfile | null>(null);
