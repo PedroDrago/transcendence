@@ -231,6 +231,24 @@ export class AuthService {
     await this.usersService.updatePassword(userId, newHash);
   }
 
+  async deleteUser(userId: string): Promise<void> {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    try {
+      await this.profileSyncService.deleteProfile(userId);
+    } catch (error) {
+      throw this.profileSyncService.toHttpException(
+        error,
+        'User profile could not be deleted',
+      );
+    }
+
+    await this.usersService.deleteById(userId);
+  }
+
   createOAuthHandoffToken(accessToken: string, requires2fa?: boolean) {
     return this.jwtService.sign(
       { access_token: accessToken, typ: 'oauth_handoff', requires2fa: !!requires2fa },

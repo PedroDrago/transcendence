@@ -37,6 +37,15 @@ export class ProfileSyncService {
     });
   }
 
+  async deleteProfile(id: string): Promise<void> {
+    await this.request(`/users/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: {
+        'x-user-id': id,
+      },
+    });
+  }
+
   toHttpException(error: unknown, fallbackMessage: string) {
     if (error instanceof ProfileSyncError && error.status === 409) {
       return new ConflictException(fallbackMessage);
