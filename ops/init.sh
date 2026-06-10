@@ -158,6 +158,18 @@ fi
 
 AUTH_ENV="./backend/services/auth/.env"
 if [ ! -f "$AUTH_ENV" ]; then
+    if [ -z "$GOOGLE_CLIENT_ID" ]; then
+        echo ""
+        echo "--- Google OAuth Setup ---"
+        read -p "Enter GOOGLE_CLIENT_ID (or press Enter to disable): " input
+        GOOGLE_CLIENT_ID=${input:-disabled}
+        if [ "$GOOGLE_CLIENT_ID" != "disabled" ]; then
+            read -p "Enter GOOGLE_CLIENT_SECRET: " GOOGLE_CLIENT_SECRET
+        else
+            GOOGLE_CLIENT_SECRET="disabled"
+        fi
+    fi
+
     cat << EOF > "$AUTH_ENV"
 NODE_ENV=production
 PORT=${AUTH_PORT}
@@ -167,8 +179,8 @@ JWT_EXPIRES_IN=1h
 USER_SERVICE_URL=${USER_SERVICE_URL}
 FRONTEND_ORIGIN=${PUBLIC_FRONTEND_URL}
 ALLOWED_ORIGINS=${PUBLIC_FRONTEND_URL},${FRONTEND_URL},${GATEWAY_URL}
-GOOGLE_CLIENT_ID=disabled
-GOOGLE_CLIENT_SECRET=disabled
+GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
 GOOGLE_CALLBACK_URL=${PUBLIC_API_URL}/auth/google/callback
 GOOGLE_TEST_CALLBACK_URL=http://localhost:${AUTH_PORT}/auth/google/callback/test
 FRONTEND_OAUTH_SUCCESS_URL=${PUBLIC_FRONTEND_URL}/auth/callback
@@ -208,6 +220,18 @@ fi
 
 POSTS_ENV="./backend/services/posts/.env"
 if [ ! -f "$POSTS_ENV" ]; then
+    if [ -z "$R2_ACCESS_KEY_ID" ]; then
+        echo ""
+        echo "--- Cloudflare R2 Setup (Optional) ---"
+        read -p "Enter R2_ACCESS_KEY_ID (or press Enter to use local MinIO): " input
+        if [ ! -z "$input" ]; then
+            R2_ACCESS_KEY_ID=$input
+            read -p "Enter R2_SECRET_ACCESS_KEY: " R2_SECRET_ACCESS_KEY
+            read -p "Enter R2_ENDPOINT: " R2_ENDPOINT
+            read -p "Enter R2_BUCKET: " R2_BUCKET
+        fi
+    fi
+
     cat << EOF > "$POSTS_ENV"
 NODE_ENV=development
 HOST=0.0.0.0

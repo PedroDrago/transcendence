@@ -64,14 +64,17 @@ This will automatically configure the Nginx proxy, generate the appropriate CORS
 
 For security reasons, Google OAuth credentials (`GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`) are not stored in the repository. The application will start successfully without them, but the "Continue with Google" button will fail.
 
-To run the application with OAuth enabled, you can either:
+To run the application with OAuth enabled, you have three options:
 
-**Option 1: Pass them inline when running make (Recommended for fresh starts)**
+**Option 1: Interactive Prompt (First Run Only)**
+If you run `make up` on a fresh start (without `.env` files), the initialization script will pause and interactively ask you for the `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`. You can paste them into the terminal, or simply press Enter to disable OAuth.
+
+**Option 2: Pass them inline when running make (Automated setups)**
 ```bash
 GOOGLE_CLIENT_ID="your_client_id" GOOGLE_CLIENT_SECRET="your_secret" make up
 ```
 
-**Option 2: Edit the generated environment file manually**
+**Option 3: Edit the generated environment file manually**
 If the stack is already running, you can manually edit `backend/services/auth/.env` and restart the auth service:
 ```bash
 # Inside backend/services/auth/.env
@@ -88,7 +91,10 @@ By default, the project uses a local **MinIO** container for S3-compatible objec
 
 If you wish to test with an actual Cloudflare R2 bucket instead of the local MinIO, you can override the storage credentials using environment variables:
 
-**Option 1: Pass them inline when running make**
+**Option 1: Interactive Prompt (First Run Only)**
+During a fresh `make up`, the script will ask for `R2_ACCESS_KEY_ID`. If you provide one, it will prompt for the rest of the credentials. If you press Enter, it defaults to the local MinIO container.
+
+**Option 2: Pass them inline when running make**
 ```bash
 R2_ACCESS_KEY_ID="your_access_key" \
 R2_SECRET_ACCESS_KEY="your_secret_key" \
@@ -97,7 +103,7 @@ R2_BUCKET="your_bucket_name" \
 make up
 ```
 
-**Option 2: Edit the generated environment file manually**
+**Option 3: Edit the generated environment file manually**
 If the stack is already running, you can manually edit `backend/services/posts/.env` and `backend/services/user-management/.env` to include the R2 variables. Then rebuild them:
 ```bash
 docker compose up -d --build posts-service user-service
