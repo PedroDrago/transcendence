@@ -114,7 +114,6 @@ export const users = {
       body: JSON.stringify(data),
     }),
   deleteMe: async () => {
-    await req<void>('/users/me', { method: 'DELETE' });
     await req<void>('/auth/me', { method: 'DELETE' });
   },
 };
