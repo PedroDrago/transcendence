@@ -1,5 +1,6 @@
 services:
   database:
+    container_name: database
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -19,6 +20,7 @@ services:
       - transcendence-internal
 
   db-bootstrap:
+    container_name: db-bootstrap
     image: postgres:16-alpine
     depends_on:
       database:
@@ -43,6 +45,7 @@ services:
       - transcendence-internal
 
   redis:
+    container_name: redis
     image: redis:8.6.2-alpine
     restart: unless-stopped
     volumes:
@@ -59,6 +62,7 @@ services:
       - transcendence-internal
 
   minio:
+    container_name: minio
     image: minio/minio:latest
     restart: unless-stopped
     entrypoint:
@@ -86,12 +90,14 @@ services:
       - transcendence-internal
 
   jaeger:
+    container_name: jaeger
     image: jaegertracing/all-in-one:1.57
     restart: unless-stopped
     networks:
       - transcendence-internal
 
   frontend:
+    container_name: frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -116,6 +122,7 @@ services:
       - transcendence-internal
 
   gateway:
+    container_name: gateway
     build:
       context: ./backend/api/transcendence-api-gateway
       dockerfile: Dockerfile
@@ -147,6 +154,7 @@ services:
       - transcendence-internal
 
   auth-service:
+    container_name: auth-service
     build:
       context: ./backend/services/auth
       dockerfile: Dockerfile
@@ -177,6 +185,7 @@ services:
       - transcendence-internal
 
   chat-service:
+    container_name: chat-service
     build:
       context: ./backend/services/chat
       dockerfile: Dockerfile
@@ -203,6 +212,7 @@ services:
       - transcendence-internal
 
   posts-service:
+    container_name: posts-service
     build:
       context: ./backend/services/posts
       dockerfile: Dockerfile
@@ -237,6 +247,7 @@ services:
       - transcendence-internal
 
   user-service:
+    container_name: user-service
     build:
       context: ./backend/services/user-management
       dockerfile: Dockerfile
@@ -266,6 +277,7 @@ services:
       - transcendence-internal
 
   nginx:
+    container_name: nginx
     image: nginx:1.27.0-alpine
     restart: unless-stopped
     depends_on:
