@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "storybook": "storybook dev -p 6006",
+    "storybook:build": "storybook build"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
@@ -16,6 +18,8 @@
     "react-dom": "19.2.1"
   },
   "devDependencies": {
+    "@storybook/addon-docs": "^10.4.3",
+    "@storybook/nextjs": "^10.4.3",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/next-pwa": "^5.6.9",
     "@types/node": "^20",
@@ -27,6 +31,7 @@
     "eslint-config-next": "16.0.10",
     "postcss": "^8.5.6",
     "sharp": "^0.34.5",
+    "storybook": "^10.4.3",
     "typescript": "^5"
   }
 }
