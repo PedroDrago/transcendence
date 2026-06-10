@@ -14,6 +14,7 @@ import {
 } from './guards/google-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { Jwt2FAStrategy } from './strategies/jwt-2fa.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 
@@ -38,6 +39,7 @@ import { LocalStrategy } from './strategies/local.strategy';
     LocalStrategy,
     LocalAuthGuard,
     JwtStrategy,
+    Jwt2FAStrategy,
     GoogleStrategy,
     GoogleAuthGuard,
     GoogleCallbackGuard,
