@@ -52,3 +52,5 @@ ops/nginx/certs/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.history
