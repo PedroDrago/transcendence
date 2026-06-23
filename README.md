@@ -255,6 +255,14 @@ HTTPS_PORT=4443 API_HTTPS_PORT=9443 make up
 
 The initialization script derives the frontend URL, API URL, CORS configuration, OAuth callback, and frontend build configuration from these ports.
 
+To expose the app on your local network, set a public host when running the setup:
+
+```bash
+PUBLIC_HOST=192.168.1.50 make up
+```
+
+The initialization script uses this host for the public browser-facing URLs and self-signed certificate SANs. If you need to clear generated `.env` files and certificates first, use `make clean-envs`.
+
 ### Object Storage
 
 Local development uses MinIO by default. To use Cloudflare R2 instead, provide the storage credentials during `make setup` or pass them when generating the environment:

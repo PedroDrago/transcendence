@@ -13,6 +13,9 @@ USER_PORT=3002
 POSTS_PORT=3333
 DB_PORT=5432
 
+# Public host used in generated browser-facing URLs and certs.
+PUBLIC_HOST=${PUBLIC_HOST:-localhost}
+
 # Hosts / Internal URLs (Used by Docker containers)
 FRONTEND_URL="http://frontend:${FRONTEND_PORT}"
 GATEWAY_URL="http://gateway:${BACKEND_PORT}"
@@ -33,15 +36,15 @@ fi
 
 # Public URLs (Used by the Browser and OAuth Providers via Nginx HTTPS)
 if [ "$EFFECTIVE_HTTPS_PORT" == "443" ]; then
-    PUBLIC_FRONTEND_URL="https://localhost"
+    PUBLIC_FRONTEND_URL="https://${PUBLIC_HOST}"
 else
-    PUBLIC_FRONTEND_URL="https://localhost:${EFFECTIVE_HTTPS_PORT}"
+    PUBLIC_FRONTEND_URL="https://${PUBLIC_HOST}:${EFFECTIVE_HTTPS_PORT}"
 fi
 
 if [ "$EFFECTIVE_API_HTTPS_PORT" == "443" ]; then
-    PUBLIC_API_URL="https://localhost"
+    PUBLIC_API_URL="https://${PUBLIC_HOST}"
 else
-    PUBLIC_API_URL="https://localhost:${EFFECTIVE_API_HTTPS_PORT}"
+    PUBLIC_API_URL="https://${PUBLIC_HOST}:${EFFECTIVE_API_HTTPS_PORT}"
 fi
 
 # Default Values (Database and MinIO)
@@ -75,17 +78,17 @@ else
         echo "--- Interactive Setup ---"
         read -p "Enter Postgres user [default: $POSTGRES_USER]: " input
         POSTGRES_USER=${input:-$POSTGRES_USER}
-        
+
         read -p "Enter Postgres password: " -s POSTGRES_PASSWORD; echo
-        
+
         read -p "Enter database name [default: $POSTGRES_DB]: " input
         POSTGRES_DB=${input:-$POSTGRES_DB}
-        
+
         read -p "Enter MinIO user [default: $MINIO_USER]: " input
         MINIO_USER=${input:-$MINIO_USER}
-        
+
         read -p "Enter MinIO password: " -s MINIO_PASSWORD; echo
-        
+
         read -p "Enter JWT secret: " -s JWT_SECRET; echo
     else
         echo "⚙️  Automatic Mode: Generating secure global passwords..."
@@ -104,6 +107,7 @@ AUTH_PORT=${AUTH_PORT}
 CHAT_PORT=${CHAT_PORT}
 USER_PORT=${USER_PORT}
 DB_HOST_PORT=${DB_PORT}
+PUBLIC_HOST=${PUBLIC_HOST}
 
 ## Postgres
 POSTGRES_USER=$POSTGRES_USER
@@ -254,10 +258,39 @@ SSL_DIR="ops/nginx/certs"
 mkdir -p "$SSL_DIR"
 if [ ! -f "$SSL_DIR/server.crt" ]; then
     echo "🔒 Generating SSL certificates (self-signed)..."
+    if [[ "$PUBLIC_HOST" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        PUBLIC_HOST_SAN="IP.2 = ${PUBLIC_HOST}"
+    else
+        PUBLIC_HOST_SAN="DNS.2 = ${PUBLIC_HOST}"
+    fi
+    cat << EOF > "$SSL_DIR/openssl.cnf"
+[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+distinguished_name = dn
+x509_extensions = v3_req
+
+[dn]
+C = BR
+ST = Rio
+L = Rio
+O = 42
+CN = ${PUBLIC_HOST}
+
+[v3_req]
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = localhost
+IP.1 = 127.0.0.1
+${PUBLIC_HOST_SAN}
+EOF
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
         -keyout "$SSL_DIR/server.key" \
         -out "$SSL_DIR/server.crt" \
-        -subj "/C=BR/ST=Rio/L=Rio/O=42/CN=localhost" > /dev/null 2>&1
+        -config "$SSL_DIR/openssl.cnf" \
+        -extensions v3_req > /dev/null 2>&1
     echo "✅ SSL Certificates generated!"
 else
     echo "⏭️  SSL Certificates already exist."
